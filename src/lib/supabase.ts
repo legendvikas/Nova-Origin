@@ -14,27 +14,27 @@ export function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 export async function api<T = any>(table: string, query: Record<string, string> = {}, options: { method?: string; body?: unknown; token?: string; prefer?: string } = {}): Promise<T> {
   if (!hasSupabaseConfig()) throw new Error('Supabase is not configured. Add the VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment variables.');
-  const url = new URL(\`\${SUPABASE_URL}/rest/v1/\${table}\`);
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
   Object.entries(query).forEach(([key, value]) => url.searchParams.set(key, value));
   const session = getSession();
   const response = await fetch(url.toString(), {
     method: options.method || 'GET',
     headers: {
       apikey: SUPABASE_KEY,
-      Authorization: \`Bearer \${options.token || session?.access_token || SUPABASE_KEY}\`,
+      Authorization: `Bearer ${options.token || session?.access_token || SUPABASE_KEY}`,
       'Content-Type': 'application/json',
       ...(options.prefer ? { Prefer: options.prefer } : {}),
     },
     ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
   });
   const text = await response.text();
-  if (!response.ok) throw new Error(text || \`Request failed (\${response.status})\`);
+  if (!response.ok) throw new Error(text || `Request failed (${response.status})`);
   return (text ? JSON.parse(text) : null) as T;
 }
 
 export async function currentUser(token: string): Promise<NovaUser> {
-  const response = await fetch(\`\${SUPABASE_URL}/auth/v1/user\`, {
-    headers: { apikey: SUPABASE_KEY, Authorization: \`Bearer \${token}\` },
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
   });
   if (!response.ok) throw new Error('Your sign-in session is no longer valid.');
   return response.json();
@@ -43,7 +43,7 @@ export async function currentUser(token: string): Promise<NovaUser> {
 export function signInWithGoogle() {
   if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
   const redirect = encodeURIComponent(window.location.origin);
-  window.location.href = \`\${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=\${redirect}\`;
+  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirect}`;
 }
 
 export function signOut() { clearSession(); window.location.assign('/'); }
