@@ -12,7 +12,7 @@ function App() {
   const [user, setUser] = useState<NovaUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [organizerStatus, setOrganizerStatus] = useState<string | null>(null);
-  const [page, setPage] = useState<'home' | 'admin'>('home');
+  const [page, setPage] = useState<'home' | 'admin'>(() => window.location.hostname.startsWith('nova-origin-admin') || window.location.pathname.startsWith('/admin') ? 'admin' : 'home');
   const [menuOpen, setMenuOpen] = useState(false);
   const [authError, setAuthError] = useState('');
 
