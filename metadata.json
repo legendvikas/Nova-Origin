@@ -1,6 +1,6 @@
 {
-  "name": "SimpliSchool",
-  "description": "A clean, minimal school management system focused on core modules: Dashboard, Students, Attendance, Fees, Results, and Parent access.",
+  "name": "NOVA Origin",
+  "description": "A competitive esports platform for NOVA Origin teams, tournaments, announcements and community updates.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["Esports team profiles", "Tournament management", "Announcements", "Community updates", "Admin control room"]
 }
