@@ -35,8 +35,8 @@ function App() {
           const signedInUser = await currentUser(session.access_token);
           setUser(signedInUser);
           const [roles, organizers] = await Promise.all([
-            api<any[]>('user_roles', { select: 'role', user_id: \`eq.\${signedInUser.id}\` }).catch(() => []),
-            api<any[]>('organizers', { select: 'status', user_id: \`eq.\${signedInUser.id}\` }).catch(() => []),
+            api<any[]>('user_roles', { select: 'role', user_id: `eq.${signedInUser.id}` }).catch(() => []),
+            api<any[]>('organizers', { select: 'status', user_id: `eq.${signedInUser.id}` }).catch(() => []),
           ]);
           setRole(roles[0]?.role || null);
           setOrganizerStatus(organizers[0]?.status || null);
@@ -149,7 +149,7 @@ function App() {
           <div className="section-head"><div><div className="section-kicker">03 / THE CIRCUIT</div><h2>BUILT FOR<br/><em>BIG MOMENTS.</em></h2></div><p>Follow the action, find your next<br/>challenge and stay in the loop.</p></div>
           <div className="event-grid">
             {data.tournaments.map((event: any) => <article className="event-card" key={event.id}>
-              <div className="event-visual" style={event.banner_url ? { backgroundImage: \`linear-gradient(180deg, transparent, #111), url(\${event.banner_url})\` } : undefined}><span className="event-status"><i className="live-dot"/>{event.status.replaceAll('_', ' ')}</span><Trophy size={42}/><span className="event-format">{event.format?.replaceAll('_', ' ')}</span></div>
+              <div className="event-visual" style={event.banner_url ? { backgroundImage: `linear-gradient(180deg, transparent, #111), url(${event.banner_url})` } : undefined}><span className="event-status"><i className="live-dot"/>{event.status.replaceAll('_', ' ')}</span><Trophy size={42}/><span className="event-format">{event.format?.replaceAll('_', ' ')}</span></div>
               <div className="event-body"><small>{event.game?.name || 'NOVA COMPETITION'}</small><h3>{event.title}</h3><p>{event.summary || 'Competition starts here.'}</p><div className="event-foot"><span>{event.starts_at ? new Date(event.starts_at).toLocaleDateString() : 'DATE TO BE ANNOUNCED'}</span><span>{event.team_size} PLAYER FORMAT</span></div></div>
             </article>)}
             {!loading && data.tournaments.length === 0 && <div className="empty-state event-empty"><CalendarDays size={26}/><b>THE NEXT EVENT IS LOADING.</b><span>New tournaments will be announced here.</span></div>}
