@@ -1,0 +1,224 @@
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ArrowRight, ArrowUpRight, Menu, X, Gamepad2, Trophy, Users, CalendarDays,
+  Radio, Instagram, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
+  Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
+} from 'lucide-react';
+import { api } from '../lib/supabase';
+
+type Props = {
+  data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[] };
+  loading: boolean;
+  onOpenAdmin: () => void;
+};
+type ExtraData = { matches: any[]; players: any[]; members: any[]; sponsors: any[]; results: any[] };
+
+const NAV = [
+  ['HOME', '/'], ['ABOUT', '/about'], ['GAMES', '/games'], ['TEAMS', '/teams'],
+  ['PLAYERS', '/players'], ['TOURNAMENTS', '/tournaments'], ['MATCHES', '/matches'],
+  ['NEWS', '/news'], ['COMMUNITY', '/community']
+] as const;
+
+const clean = (value: unknown) => String(value ?? '').replaceAll('_', ' ');
+const dateLabel = (value?: string) => value ? new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'DATE TBA';
+const slugOf = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const safeHref = (value?: string) => value && /^https?:\/\//i.test(value) ? value : undefined;
+
+export function PublicSite({ data, loading, onOpenAdmin }: Props) {
+  const [path, setPath] = useState(window.location.pathname.replace(/\/$/, '') || '/');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [extra, setExtra] = useState<ExtraData>({ matches: [], players: [], members: [], sponsors: [], results: [] });
+  const [extraLoading, setExtraLoading] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onPop = () => { setPath(window.location.pathname.replace(/\/$/, '') || '/'); setMenuOpen(false); };
+    const onScroll = () => setScrolled(window.scrollY > 18);
+    window.addEventListener('popstate', onPop);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { window.removeEventListener('popstate', onPop); window.removeEventListener('scroll', onScroll); };
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    const read = async (table: string, query: Record<string, string>) => {
+      try { return await api<any[]>(table, query); } catch { return []; }
+    };
+    (async () => {
+      const [matches, players, members, sponsors, results] = await Promise.all([
+        read('matches', { select: 'id,tournament_id,match_number,stage,round_name,scheduled_at,status,result_status,tournament:tournaments(title,game:games(name))', order: 'scheduled_at.asc.nullslast', limit: '12' }),
+        read('player_game_stats', { select: 'id,player_id,game_id,kd_ratio,average_damage,matches_played,wins,eliminations,source_label,player:profiles(username,display_name,avatar_url,bio),game:games(name)', source_label: 'eq.verified', order: 'matches_played.desc', limit: '12' }),
+        read('team_members', { select: 'id,team_id,user_id,team_role', limit: '250' }),
+        read('sponsors', { select: 'id,name,logo_url,website_url,description,status', status: 'eq.active', order: 'created_at.desc', limit: '12' }),
+        read('match_results', { select: 'id,match_id,team_id,player_id,placement,eliminations,points,status,verified_at,team:teams(name,team_tag),player:profiles(username,display_name)', status: 'eq.verified', order: 'created_at.desc', limit: '30' })
+      ]);
+      if (live) { setExtra({ matches, players, members, sponsors, results }); setExtraLoading(false); }
+    })();
+    return () => { live = false; };
+  }, []);
+
+  const navigate = (to: string) => {
+    window.history.pushState({}, '', to);
+    setPath(to.replace(/\/$/, '') || '/');
+    setMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  const link = (to: string, label: string, className = '') => (
+    <a className={className} href={to} onClick={e => { e.preventDefault(); navigate(to); }}>{label}</a>
+  );
+
+  const activeTeams = data.teams.length;
+  const liveEvents = data.tournaments.filter(t => t.status === 'live').length;
+  const gamesCount = data.games.length;
+  const matchCount = extra.matches.length;
+  const route = path.split('/').filter(Boolean);
+  const slug = route[1] || '';
+  const currentGame = route[0] === 'games' && slug ? data.games.find(x => x.slug === slug || slugOf(x.name) === slug) : null;
+  const currentTeam = route[0] === 'teams' && slug ? data.teams.find(x => x.slug === slug || slugOf(x.name) === slug || x.id === slug) : null;
+  const currentTournament = route[0] === 'tournaments' && slug ? data.tournaments.find(x => x.slug === slug || x.id === slug) : null;
+  const currentPlayer = route[0] === 'players' && slug ? extra.players.find(x => x.player?.username === slug || x.player_id === slug) : null;
+  const currentNews = route[0] === 'news' && slug ? data.announcements.find(x => slugOf(x.title) === slug || x.id === slug) : null;
+
+  const sectionTitle = (index: string, kicker: string, first: string, accent: string, copy: string) => (
+    <div className="no-section-head">
+      <div><span className="no-kicker">{index} / {kicker}</span><h2>{first}<br/><em>{accent}</em></h2></div>
+      <p>{copy}</p>
+    </div>
+  );
+
+  const gameCards = (items = data.games) => (
+    <div className="no-game-grid">
+      {items.map((game: any, i: number) => (
+        <a className="no-game-card" href={'/games/' + (game.slug || slugOf(game.name))} key={game.id} onClick={e => { e.preventDefault(); navigate('/games/' + (game.slug || slugOf(game.name))); }}>
+          <div className={'no-game-art no-art-' + (i % 4)}><span className="no-index">0{i + 1}</span><div className="no-game-glyph"><Gamepad2 size={34}/></div><span className="no-art-orbit"/></div>
+          <div className="no-card-foot"><div><small>{game.publisher || 'COMPETITIVE TITLE'}</small><h3>{game.name}</h3></div><ArrowUpRight/></div>
+        </a>
+      ))}
+      {!loading && !items.length && <Empty text="Game titles will appear here once they are published."/>}
+    </div>
+  );
+
+  const teamCards = (items = data.teams) => (
+    <div className="no-team-list">
+      {items.map((team: any, i: number) => {
+        const count = extra.members.filter(m => m.team_id === team.id).length;
+        return <a className="no-team-row" key={team.id} href={'/teams/' + (team.slug || slugOf(team.name))} onClick={e => { e.preventDefault(); navigate('/teams/' + (team.slug || slugOf(team.name))); }}>
+          <span className="no-row-num">0{i + 1}</span><span className="no-team-logo">{team.logo_url ? <img src={team.logo_url} alt=""/> : (team.team_tag || 'N').slice(0, 3)}</span>
+          <span className="no-team-name"><b>{team.name}</b><small>{team.description || 'NOVA ORIGIN COMPETITIVE ROSTER'}</small></span>
+          <span className="no-team-meta">{team.game?.name || data.games.find(g => g.id === team.game_id)?.name || 'ESPORTS'}<small>{count ? count + ' PLAYERS' : 'ROSTER'}</small></span>
+          <span className="no-team-tag">{team.team_tag || 'NOVA'}</span><ArrowUpRight className="no-row-arrow"/>
+        </a>;
+      })}
+      {!loading && !items.length && <Empty text="The roster is being prepared. Team profiles will appear here soon."/>}
+    </div>
+  );
+
+  const eventCards = (items = data.tournaments) => (
+    <div className="no-event-grid">
+      {items.map((event: any) => <article className="no-event-card" key={event.id}>
+        <div className="no-event-art" style={safeHref(event.banner_url) ? { backgroundImage: 'linear-gradient(180deg,#080a0988,#080a09dd),url(' + event.banner_url + ')' } : undefined}>
+          <span className={'no-event-status ' + (event.status === 'live' ? 'is-live' : '')}><i/> {clean(event.status)}</span><Trophy size={38}/><span className="no-event-format">{clean(event.format || 'TOURNAMENT')}</span>
+        </div>
+        <div className="no-event-body"><small>{event.game?.name || 'NOVA COMPETITION'}</small><h3>{event.title}</h3><p>{event.summary || 'The next challenge starts here.'}</p><div className="no-event-foot"><span>{dateLabel(event.starts_at)}</span><b>{event.prize_description || (event.team_size ? event.team_size + ' PLAYER FORMAT' : 'DETAILS INSIDE')}</b></div>
+          <button onClick={() => navigate('/tournaments/' + (event.slug || event.id))}>VIEW EVENT <ArrowUpRight size={15}/></button>
+        </div>
+      </article>)}
+      {!loading && !items.length && <Empty text="No published tournaments yet. Check back for the next event."/>}
+    </div>
+  );
+
+  const playerCards = (items = extra.players) => (
+    <div className="no-player-grid">
+      {items.map((stat: any, i: number) => <a className="no-player-card" href={'/players/' + (stat.player?.username || stat.player_id)} key={stat.id} onClick={e => { e.preventDefault(); navigate('/players/' + (stat.player?.username || stat.player_id)); }}>
+        <div className="no-player-photo">{stat.player?.avatar_url ? <img src={stat.player.avatar_url} alt=""/> : <Users size={34}/>}<span>0{i + 1}</span></div>
+        <small>{stat.game?.name || 'NOVA PLAYER'}</small><h3>{stat.player?.display_name || stat.player?.username || 'PLAYER'}</h3>
+        <div className="no-player-stats"><span><b>{stat.kd_ratio ?? '—'}</b>K/D</span><span><b>{stat.matches_played ?? '—'}</b>MATCHES</span><span><b>{stat.wins ?? '—'}</b>WINS</span></div>
+      </a>)}
+      {!extraLoading && !items.length && <Empty text="Verified public player profiles will appear here."/>}
+    </div>
+  );
+
+  const newsCards = () => (
+    <div className="no-news-grid">
+      {data.announcements.map((item: any) => <a className="no-news-card" href={'/news/' + slugOf(item.title)} key={item.id} onClick={e => { e.preventDefault(); navigate('/news/' + slugOf(item.title)); }}>
+        <span className="no-news-label">NOVA TRANSMISSION</span><h3>{item.title}</h3><p>{item.body}</p><div><small>{dateLabel(item.published_at || item.created_at)}</small><b>READ STORY <ArrowUpRight size={14}/></b></div>
+      </a>)}
+      {!loading && !data.announcements.length && <Empty text="No public announcements yet."/>}
+    </div>
+  );
+
+  const matchCards = () => (
+    <div className="no-match-list">
+      {extra.matches.map((match: any) => <article className="no-match-card" key={match.id}>
+        <div><small>{match.tournament?.title || 'NOVA MATCH CENTER'}</small><h3>{match.round_name || match.stage || 'MATCH ' + match.match_number}</h3><span>{dateLabel(match.scheduled_at)}</span></div>
+        <div className="no-match-versus"><b>NOVA</b><span>VS</span><b>OPPONENT</b></div>
+        <span className={'no-match-status ' + (match.status === 'live' ? 'is-live' : '')}>{clean(match.status)}</span>
+      </article>)}
+      {!extraLoading && !extra.matches.length && <Empty text="Match schedules will appear here when published."/>}
+    </div>
+  );
+
+  const sponsors = () => <div className="no-sponsor-grid">{extra.sponsors.map(s => <a key={s.id} href={safeHref(s.website_url) || '#partners'} target={safeHref(s.website_url) ? '_blank' : undefined} rel="noreferrer">{s.logo_url ? <img src={s.logo_url} alt={s.name}/> : <b>{s.name}</b>}</a>)}{!extraLoading && !extra.sponsors.length && <p className="no-muted">Partner announcements coming soon.</p>}</div>;
+
+  const contentPage = () => {
+    if (currentGame) return <DetailShell kicker="GAME PROFILE" title={currentGame.name} copy={currentGame.publisher || 'A NOVA ORIGIN competitive title.'}><div className="no-detail-grid"><div className="no-detail-emblem"><Gamepad2 size={70}/></div><div><span className="no-kicker">THE ARENA / {currentGame.slug}</span><p>Competitive action. Shared purpose. Explore the NOVA teams and events playing {currentGame.name}.</p><button className="no-btn" onClick={() => navigate('/teams')}>VIEW TEAMS <ArrowUpRight size={16}/></button></div></div></DetailShell>;
+    if (currentTeam) return <DetailShell kicker="TEAM PROFILE" title={currentTeam.name} copy={currentTeam.description || 'One roster. One standard. Built to rise.'}><div className="no-detail-grid"><div className="no-detail-emblem">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt=""/> : <Shield size={70}/>}</div><div><span className="no-kicker">{currentTeam.team_tag || 'NOVA'} / {data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS'}</span><p>Meet the roster, follow tournament appearances and discover the players representing this team.</p><button className="no-btn" onClick={() => navigate('/players')}>MEET THE PLAYERS <ArrowUpRight size={16}/></button></div></div></DetailShell>;
+    if (currentTournament) return <DetailShell kicker="TOURNAMENT / EVENT" title={currentTournament.title} copy={currentTournament.description || currentTournament.summary || 'The next battle begins.'}><div className="no-detail-grid"><div className="no-detail-emblem"><Trophy size={70}/></div><div><span className="no-kicker">{clean(currentTournament.status)} / {currentTournament.game?.name || 'NOVA EVENT'}</span><p>{currentTournament.prize_description || 'Event details and schedule will be published here.'}</p><p className="no-muted">Starts {dateLabel(currentTournament.starts_at)} · {currentTournament.team_size || '—'} player format</p><a className="no-btn" href="mailto:hello@novaorigin.gg?subject=NOVA%20Tournament%20Enquiry">EVENT ENQUIRY <ArrowUpRight size={16}/></a></div></div></DetailShell>;
+    if (currentPlayer) return <DetailShell kicker="PLAYER PROFILE" title={currentPlayer.player?.display_name || currentPlayer.player?.username || 'NOVA PLAYER'} copy={currentPlayer.player?.bio || 'A competitor in the NOVA Origin ecosystem.'}><div className="no-detail-grid"><div className="no-detail-emblem">{currentPlayer.player?.avatar_url ? <img src={currentPlayer.player.avatar_url} alt=""/> : <Users size={70}/>}</div><div><span className="no-kicker">{currentPlayer.game?.name || 'COMPETITIVE PLAYER'} / VERIFIED STATS</span><div className="no-player-stats"><span><b>{currentPlayer.kd_ratio}</b>K/D</span><span><b>{currentPlayer.matches_played}</b>MATCHES</span><span><b>{currentPlayer.wins}</b>WINS</span></div></div></div></DetailShell>;
+    if (currentNews) return <DetailShell kicker="NOVA TRANSMISSION" title={currentNews.title} copy={currentNews.body}><p className="no-muted">{dateLabel(currentNews.published_at || currentNews.created_at)}</p></DetailShell>;
+    const pages: Record<string, { kicker: string; title: string; accent: string; copy: string }> = {
+      about: { kicker: 'THE NOVA STORY', title: 'MORE THAN', accent: 'A MOVEMENT.', copy: 'We are a collective of players, creators and competitors building a culture around commitment, community and competition.' },
+      games: { kicker: 'OUR ARENA', title: 'THE GAMES', accent: 'WE PLAY.', copy: 'Different battlegrounds. One standard: excellence.' },
+      teams: { kicker: 'THE COLLECTIVE', title: 'BUILT AS ONE.', accent: 'PLAY AS MANY.', copy: 'Every role matters. Every player moves the team forward.' },
+      players: { kicker: 'THE ROSTER', title: 'MEET THE', accent: 'PLAYERS.', copy: 'Public player profiles and verified competitive statistics.' },
+      tournaments: { kicker: 'THE CIRCUIT', title: 'THE NEXT', accent: 'BATTLE BEGINS.', copy: 'Discover upcoming and live competitions from the NOVA ecosystem.' },
+      matches: { kicker: 'LIVE COMPETITION', title: 'MATCH', accent: 'CENTER.', copy: 'Schedules and confirmed match status from the competition database.' },
+      news: { kicker: 'TRANSMISSIONS', title: 'LATEST', accent: 'INTELLIGENCE.', copy: 'Official announcements and updates from across NOVA Origin.' },
+      community: { kicker: 'THE COLLECTIVE', title: 'FIND YOUR', accent: 'PLACE HERE.', copy: 'Join the conversation and follow NOVA Origin across our community channels.' },
+      contact: { kicker: 'MAKE CONTACT', title: 'LET’S BUILD', accent: 'WHAT’S NEXT.', copy: 'For team enquiries, partnerships, media and general questions.' },
+      join: { kicker: 'YOUR NEXT CHAPTER', title: 'RISE WITH', accent: 'NOVA ORIGIN.', copy: 'Tell us how you would like to be part of the NOVA Origin community.' }
+    };
+    const page = pages[route[0] || ''] || pages.about;
+    return <><PageHero {...page}/>{route[0] === 'games' && gameCards()}{route[0] === 'teams' && teamCards()}{route[0] === 'players' && playerCards()}{route[0] === 'tournaments' && eventCards()}{route[0] === 'matches' && matchCards()}{route[0] === 'news' && newsCards()}{route[0] === 'about' && <AboutStory/>}{route[0] === 'community' && <CommunityBlock posts={data.posts} navigate={navigate}/ >}{route[0] === 'contact' && <ContactBlock/>}{route[0] === 'join' && <ContactBlock join/>}</>;
+  };
+
+  const home = () => <>
+    <section className="no-hero">
+      <div className="no-hero-grid"/><div className="no-hero-glow"/><div className="no-hero-geometry"><span/><span/><span/><b>N</b></div>
+      <div className="no-hero-content"><span className="no-kicker"><i/> THE NEXT WAVE OF COMPETITION</span><div className="no-hero-badge"><Sparkles size={12}/> INDEPENDENT ESPORTS COLLECTIVE / INDIA</div>
+        <h1>BUILT TO<br/><em>RISE.</em> READY<br/>TO <span>DOMINATE.</span></h1>
+        <p>More than a team. A collective of players, creators and competitors building something that lasts.</p>
+        <div className="no-hero-actions"><button className="no-btn" onClick={() => navigate('/teams')}>MEET THE ROSTER <ArrowUpRight size={16}/></button><button className="no-btn ghost" onClick={() => navigate('/tournaments')}>EXPLORE EVENTS <ArrowRight size={16}/></button></div>
+        <div className="no-hero-meta"><span><i/> COMMUNITY ONLINE</span><span>INDIA / GLOBAL</span><span>EST. 2024</span></div>
+      </div>
+      <div className="no-hero-index"><span>NO / 001</span><b>26°50' N<br/>80°56' E</b><small>SCROLL TO EXPLORE ↓</small></div>
+    </section>
+    <section className="no-stats"><div><b>{activeTeams.toString().padStart(2,'0')}</b><span>PUBLIC TEAMS</span></div><div><b>{liveEvents.toString().padStart(2,'0')}</b><span>LIVE EVENTS</span></div><div><b>{gamesCount.toString().padStart(2,'0')}</b><span>GAME TITLES</span></div><div><b>{matchCount.toString().padStart(2,'0')}</b><span>SCHEDULED MATCHES</span></div></section>
+    <section className="no-section">{sectionTitle('01','OUR ARENA','THE GAMES','WE PLAY.','Different battlegrounds. One standard: excellence.')}{gameCards(data.games.slice(0,3))}<div className="no-section-link">{link('/games','EXPLORE ALL GAMES')}<ArrowUpRight size={15}/></div></section>
+    <section className="no-band"><div className="no-section">{sectionTitle('02','THE COLLECTIVE','BUILT AS ONE.','PLAY AS MANY.','Every role matters. Every player moves the team forward.')}{teamCards(data.teams.slice(0,5))}<div className="no-section-link">{link('/teams','VIEW THE FULL ROSTER')}<ArrowUpRight size={15}/></div></div></section>
+    <section className="no-section">{sectionTitle('03','THE CIRCUIT','THE NEXT','BATTLE BEGINS.','Follow the action, find your next challenge and stay in the loop.')}{eventCards(data.tournaments.slice(0,3))}<div className="no-section-link">{link('/tournaments','ALL TOURNAMENTS')}<ArrowUpRight size={15}/></div></section>
+    <section className="no-band"><div className="no-section">{sectionTitle('04','PLAYER PROFILES','MEET THE','COMPETITORS.','Public profiles with verified stats only.')}{playerCards(extra.players.slice(0,4))}</div></section>
+    <section className="no-section">{sectionTitle('05','MATCH CENTER','THE GAME','IS ON.','Schedules and confirmed status. No invented live scores.')}{matchCards()}</section>
+    <section className="no-band"><div className="no-section">{sectionTitle('06','TRANSMISSIONS','LATEST','UPDATES.','Official announcements and community highlights.')}{newsCards()}</div></section>
+    <section className="no-section no-partners">{sectionTitle('07','BACKED BY','OUR','PARTNERS.','The organisations helping the NOVA journey move forward.')}{sponsors()}</section>
+    <section className="no-join"><span className="no-kicker">YOUR NEXT CHAPTER STARTS HERE</span><h2>READY TO<br/><em>RISE WITH US?</em></h2><p>Find your place in the origin.</p><div><button className="no-btn" onClick={() => navigate('/join')}>JOIN NOVA ORIGIN <ArrowUpRight size={16}/></button><button className="no-btn ghost" onClick={() => navigate('/contact')}>CONTACT THE TEAM <Mail size={16}/></button></div></section>
+  </>;
+
+  return <div className="nova-public">
+    <div className="no-topline"><span><i/> NOVA ORIGIN</span><span>BUILT FOR THE NEXT LEVEL</span><span>INDIA · ESPORTS</span></div>
+    <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
+      <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark">N<i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
+      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{NAV.map(([label, to]) => <a key={to} href={to} className={path === to ? 'active' : ''} onClick={e => {e.preventDefault();navigate(to);}}>{label}</a>)}</nav>
+      <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
+    </header>
+    <main>{path === '/' ? home() : contentPage()}</main>
+    <footer className="no-footer"><div className="no-footer-main"><button className="no-brand" onClick={() => navigate('/')}><span className="no-brand-mark">N<i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="no-footer-social"><a href="https://instagram.com" aria-label="Instagram"><Instagram/></a><a href="https://youtube.com" aria-label="YouTube"><Youtube/></a><a href="https://discord.com" aria-label="Discord"><Disc3/></a></div></div><div className="no-footer-links"><div><b>EXPLORE</b>{NAV.slice(1,6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>COMPETE</b>{NAV.slice(6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>CONTACT</b><a href="mailto:hello@novaorigin.gg">hello@novaorigin.gg</a><button onClick={onOpenAdmin}>ADMIN ACCESS <ArrowUpRight size={13}/></button></div></div><div className="no-footer-bottom"><span>© {new Date().getFullYear()} NOVA ORIGIN. ALL SYSTEMS NOMINAL.</span><span>THE NEXT WAVE OF COMPETITION.</span></div></footer>
+  </div>;
+}
+
+function Empty({ text }: { text: string }) { return <div className="no-empty">{text}</div>; }
+function PageHero({ kicker, title, accent, copy }: { kicker: string; title: string; accent: string; copy: string }) { return <section className="no-page-hero"><span className="no-kicker">{kicker}</span><h1>{title}<br/><em>{accent}</em></h1><p>{copy}</p></section>; }
+function DetailShell({ kicker, title, copy, children }: { kicker: string; title: string; copy: string; children: React.ReactNode }) { return <><PageHero kicker={kicker} title={title} accent="" copy={copy}/><section className="no-section">{children}</section></>; }
+function AboutStory() { return <section className="no-section no-about-grid"><div><span className="no-kicker">OUR PHILOSOPHY / 001</span><h2>MORE THAN A NAME.<br/><em>A MOVEMENT.</em></h2></div><div><p>We believe competition is stronger when community comes first. NOVA Origin brings players, creators and supporters together around a shared standard: show up, improve, respect the game and build something that lasts.</p><div className="no-values"><span><b>01</b> DISCIPLINE</span><span><b>02</b> UNITY</span><span><b>03</b> EVOLUTION</span></div></div></section>; }
+function CommunityBlock({ posts, navigate }: { posts: any[]; navigate: (to:string)=>void }) { return <section className="no-section"><div className="no-community-panel"><span className="no-kicker">FIND YOUR PLACE IN THE ORIGIN</span><h2>THE ORIGIN<br/><em>IS EVERYONE.</em></h2><p>Follow the journey, share the moments and meet the people behind the tag.</p><div><a className="no-btn" href="https://discord.com" target="_blank" rel="noreferrer">JOIN THE COMMUNITY <ExternalLink size={15}/></a><a className="no-btn ghost" href="https://instagram.com" target="_blank" rel="noreferrer">FOLLOW UPDATES <Instagram size={15}/></a></div></div><h3 className="no-subhead">COMMUNITY TRANSMISSIONS</h3><div className="no-news-grid">{posts.map(p=><article className="no-news-card" key={p.id}><span className="no-news-label">COMMUNITY UPDATE</span><p>{p.content}</p><small>{dateLabel(p.created_at)}</small></article>)}{!posts.length && <Empty text="Community posts will appear here when published."/>}</div></section>; }
+function ContactBlock({ join = false }: { join?: boolean }) { const [name,setName]=useState(''); const [email,setEmail]=useState(''); const [kind,setKind]=useState(join?'Player application':'General enquiry'); const [message,setMessage]=useState(''); const [error,setError]=useState(''); const submit=(e:React.FormEvent)=>{e.preventDefault();if(!name.trim()||!email.includes('@')||!message.trim()){setError('Please complete all fields with a valid email.');return;}const subject=encodeURIComponent('NOVA Origin — '+kind);const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nEnquiry: '+kind+'\n\n'+message);window.location.href='mailto:hello@novaorigin.gg?subject='+subject+'&body='+body;};return <section className="no-section"><form className="no-contact-form" onSubmit={submit}><div><span className="no-kicker">{join?'APPLICATION ENQUIRY':'CONTACT NOVA ORIGIN'}</span><h2>{join?'TELL US YOUR':'START THE'}<br/><em>{join?'STORY.':'CONVERSATION.'}</em></h2><p>Complete the form and your email app will open with the details ready to send. This form does not store personal data in the website database.</p></div><div className="no-form-fields"><label>YOUR NAME<input value={name} onChange={e=>setName(e.target.value)} required maxLength={80}/></label><label>EMAIL ADDRESS<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required maxLength={160}/></label><label>ENQUIRY TYPE<select value={kind} onChange={e=>setKind(e.target.value)}><option>Player application</option><option>Team application</option><option>Partnership inquiry</option><option>General enquiry</option></select></label><label>YOUR MESSAGE<textarea rows={5} value={message} onChange={e=>setMessage(e.target.value)} required maxLength={2000}/></label>{error&&<span className="no-form-error">{error}</span>}<button className="no-btn" type="submit">PREPARE EMAIL <ArrowUpRight size={16}/></button></div></form></section>; }
