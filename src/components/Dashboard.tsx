@@ -30,7 +30,7 @@ export function Dashboard({ user, role, organizerStatus, onBack, onLogin, onLogo
       api<any[]>('tournaments', { select: '*,game:games(name)', order: 'created_at.desc' }).catch(() => []),
       api<any[]>('announcements', { select: '*', order: 'created_at.desc' }).catch(() => []),
       api<any[]>('social_posts', { select: '*', order: 'created_at.desc' }).catch(() => []),
-      api<any[]>('organizers', { select: 'id,organization_name,status,user_id', user_id: \`eq.\${user.id}\` }).catch(() => []),
+      api<any[]>('organizers', { select: 'id,organization_name,status,user_id', user_id: `eq.${user.id}` }).catch(() => []),
     ]);
     setGames(g); setTeams(t); setTournaments(e); setAnnouncements(a); setPosts(p); setOrganizer(o[0] || null);
     if (!team.game_id && g[0]) setTeam(v => ({ ...v, game_id: g[0].id }));
@@ -48,7 +48,7 @@ export function Dashboard({ user, role, organizerStatus, onBack, onLogin, onLogo
   const saveTeam = async (e: FormEvent) => {
     e.preventDefault();
     if (editing) {
-      await run(() => api('teams', { id: \`eq.\${editing}\` }, { method: 'PATCH', body: { name: team.name, team_tag: team.team_tag, description: team.description, logo_url: team.logo_url, updated_at: new Date().toISOString() }, prefer: 'return=minimal' }), 'Team profile updated.');
+      await run(() => api('teams', { id: `eq.${editing}` }, { method: 'PATCH', body: { name: team.name, team_tag: team.team_tag, description: team.description, logo_url: team.logo_url, updated_at: new Date().toISOString() }, prefer: 'return=minimal' }), 'Team profile updated.');
     } else {
       await run(() => api('teams', {}, { method: 'POST', body: { ...team, owner_id: user!.id, is_public: true, status: 'active' }, prefer: 'return=minimal' }), 'Team profile created.');
     }
@@ -58,7 +58,7 @@ export function Dashboard({ user, role, organizerStatus, onBack, onLogin, onLogo
   const saveEvent = async (e: FormEvent) => {
     e.preventDefault();
     if (!organizer?.id) { setNotice('Your organizer profile is not linked. Ask a platform admin to approve your organizer account.'); return; }
-    const modes = await api<any[]>('game_modes', { select: 'id', game_id: \`eq.\${event.game_id}\`, is_active: 'eq.true', limit: '1' }).catch(() => []);
+    const modes = await api<any[]>('game_modes', { select: 'id', game_id: `eq.${event.game_id}`, is_active: 'eq.true', limit: '1' }).catch(() => []);
     if (!modes[0]?.id) { setNotice('No active game mode exists for this game yet.'); return; }
     const slug = event.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString().slice(-5);
     await run(() => api('tournaments', {}, { method: 'POST', body: { organizer_id: organizer.id, game_id: event.game_id, game_mode_id: modes[0].id, title: event.title, slug, summary: event.summary, description: event.description, banner_url: event.banner_url || null, starts_at: event.starts_at ? new Date(event.starts_at).toISOString() : null, team_size: Number(event.team_size), max_entries: Number(event.max_entries), entry_type: 'free', status: 'draft', format: 'custom' }, prefer: 'return=minimal' }), 'Tournament saved as draft.');
