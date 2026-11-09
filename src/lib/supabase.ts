@@ -32,6 +32,47 @@ export async function api<T = any>(table: string, query: Record<string, string> 
   return (text ? JSON.parse(text) : null) as T;
 }
 
+async function authRequest(path: string, body: Record<string, unknown>) {
+  if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/${path}`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.msg || payload.message || payload.error_description || payload.error || 'Authentication request failed.');
+  return payload;
+}
+
+export async function signUpWithEmail(email: string, password: string, fullName: string) {
+  const payload = await authRequest('signup?redirect_to=' + encodeURIComponent(window.location.origin), {
+    email: email.trim().toLowerCase(), password, data: { full_name: fullName.trim() },
+  });
+  if (payload.access_token) {
+    saveSession({ access_token: payload.access_token, refresh_token: payload.refresh_token, expires_at: Math.floor(Date.now()/1000) + Number(payload.expires_in || 3600) });
+  }
+  return payload;
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  const payload = await authRequest('token?grant_type=password', { email: email.trim().toLowerCase(), password });
+  saveSession({ access_token: payload.access_token, refresh_token: payload.refresh_token, expires_at: Math.floor(Date.now()/1000) + Number(payload.expires_in || 3600) });
+  return payload;
+}
+
+export async function getValidSession(): Promise<NovaSession | null> {
+  const session = getSession();
+  if (!session?.access_token) return null;
+  if (!session.expires_at || session.expires_at > Math.floor(Date.now()/1000) + 60) return session;
+  if (!session.refresh_token) { clearSession(); return null; }
+  try {
+    const payload = await authRequest('token?grant_type=refresh_token', { refresh_token: session.refresh_token });
+    const next = { access_token: payload.access_token, refresh_token: payload.refresh_token || session.refresh_token, expires_at: Math.floor(Date.now()/1000) + Number(payload.expires_in || 3600) };
+    saveSession(next);
+    return next;
+  } catch { clearSession(); return null; }
+}
+
 export async function currentUser(token: string): Promise<NovaUser> {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
