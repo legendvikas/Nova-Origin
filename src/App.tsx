@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Menu, X, Shield, Trophy, Users, Gamepad2, Zap, ChevronRight, Radio, CalendarDays, Swords, Instagram, Youtube, Disc3, LogIn, Settings2 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
-import { api, currentUser, getSession, hasSupabaseConfig, loadPublicData, NovaUser, saveSession, signInWithGoogle, signOut } from './lib/supabase';
+import { api, completeAuthCallback, currentUser, hasSupabaseConfig, loadPublicData, NovaUser, refreshAuthSession, sendAdminLoginLink, signInWithGoogle, signOut } from './lib/supabase';
 import './index.css';
 
 type PublicData = Awaited<ReturnType<typeof loadPublicData>>;
@@ -23,26 +23,24 @@ function App() {
 
   useEffect(() => {
     const boot = async () => {
-      const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-      const accessToken = hash.get('access_token');
-      if (accessToken) {
-        saveSession({ access_token: accessToken, refresh_token: hash.get('refresh_token') || undefined, expires_at: Number(hash.get('expires_at') || 0) || undefined });
-        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-      }
-      const session = getSession();
-      if (session?.access_token) {
-        try {
+      try {
+        await completeAuthCallback();
+        const session = await refreshAuthSession();
+        if (session?.access_token) {
           const signedInUser = await currentUser(session.access_token);
           setUser(signedInUser);
           const [roles, organizers] = await Promise.all([
-            api<any[]>('user_roles', { select: 'role', user_id: `eq.${signedInUser.id}` }).catch(() => []),
+            api<any[]>('user_roles', { select: 'role', user_id: `eq.${signedInUser.id}` }),
             api<any[]>('organizers', { select: 'status', user_id: `eq.${signedInUser.id}` }).catch(() => []),
           ]);
           setRole(roles[0]?.role || null);
           setOrganizerStatus(organizers[0]?.status || null);
-        } catch { signOut(); }
+        }
+      } catch (e: any) {
+        setAuthError(e.message || 'Sign-in could not be completed. Please try again.');
+      } finally {
+        await refresh();
       }
-      await refresh();
     };
     boot();
   }, []);
@@ -58,6 +56,7 @@ function App() {
         organizerStatus={organizerStatus}
         onBack={() => setPage('home')}
         onLogin={async () => { setAuthError(''); try { signInWithGoogle(); } catch (e: any) { setAuthError(e.message); } }}
+        onEmailLogin={async (email: string) => { setAuthError(''); try { await sendAdminLoginLink(email); setAuthError('Login link sent. Email inbox check karo, phir same browser mein link open karo.'); } catch (e: any) { setAuthError(e.message); } }}
         onLogout={() => { signOut(); setUser(null); setRole(null); }}
         authError={authError}
         canManage={canManage}
