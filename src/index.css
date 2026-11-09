@@ -77,3 +77,12 @@
 .no-auth-notice{border:1px solid #b7ff5a44;color:#d7ffab;background:#b7ff5a0b}
 .no-auth-switch{margin-top:20px;padding:0;border:0;background:none;color:#b7ff5a;font:10px 'DM Mono',monospace;letter-spacing:.8px;cursor:pointer;text-align:left}
 @media(max-width:760px){.no-auth-btn{padding:9px 10px;font-size:9px}.no-header-actions{gap:8px}}
+
+
+/* Restored public roster cards — retain the existing NOVA visual system. */
+.no-legacy-player-photo{background:radial-gradient(circle at 50% 42%,#252b26 0,#111613 58%,#090c0a 100%);border:1px solid #b7ff5a20}
+.no-legacy-player-photo:before{content:"";position:absolute;inset:12% 18%;border:1px solid #b7ff5a25;transform:skew(-8deg)}
+.no-legacy-player-photo strong{font:900 clamp(70px,10vw,112px)/1 'Barlow Condensed';letter-spacing:-5px;color:#b7ff5a;text-shadow:0 0 35px #b7ff5a22}
+.no-legacy-player-photo span{left:10px;right:auto;top:10px;color:#b7ff5a;font:8px 'DM Mono';letter-spacing:1px}
+.no-legacy-player-card>small{letter-spacing:1.4px}
+.no-legacy-player-tag{border-top:1px solid #ffffff17;padding-top:12px;color:#a5aca0;font:8px 'DM Mono';letter-spacing:1.8px}
