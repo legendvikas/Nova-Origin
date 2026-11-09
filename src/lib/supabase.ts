@@ -45,7 +45,7 @@ async function createPkcePair() {
   const bytes = crypto.getRandomValues(new Uint8Array( verifierLength ));
   const verifier = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
   localStorage.setItem(PKCE_KEY, verifier);
   return challenge;
 }
