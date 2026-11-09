@@ -9,8 +9,8 @@ export function hasSupabaseConfig() { return Boolean(SUPABASE_URL && SUPABASE_KE
 export function getSession(): NovaSession | null {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch { return null; }
 }
-export function saveSession(session: NovaSession) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
-export function clearSession() { localStorage.removeItem(SESSION_KEY); }
+export function saveSession(session: NovaSession) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); window.dispatchEvent(new Event('nova-auth-changed')); }
+export function clearSession() { localStorage.removeItem(SESSION_KEY); window.dispatchEvent(new Event('nova-auth-changed')); }
 
 export async function api<T = any>(table: string, query: Record<string, string> = {}, options: { method?: string; body?: unknown; token?: string; prefer?: string } = {}): Promise<T> {
   if (!hasSupabaseConfig()) throw new Error('Supabase is not configured. Add the VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY environment variables.');
