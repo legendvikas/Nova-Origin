@@ -115,9 +115,11 @@ export function Dashboard(props: Props) {
     finally{setBusy(false);}
   };
   const toggleStatus = async (row:any) => {
-    if(!active.table || !active.statusField || !active.statusValues) return;
+    if(!active.table || !active.statusField) return;
     const key=active.statusField; const current=row[key];
-    const next=key==='is_active' || key==='is_public' || key==='is_published' ? !current : active.statusValues[(active.statusValues.indexOf(current)+1)%active.statusValues.length];
+    const booleanField = ['is_active','is_public','is_published'].includes(key);
+    if(!booleanField && (!active.statusValues || active.statusValues.length===0)) return;
+    const next=booleanField ? !current : active.statusValues![(active.statusValues!.indexOf(current)+1)%active.statusValues!.length];
     if(!window.confirm('Change status for this record?')) return;
     setBusy(true);setError('');
     try{await api(active.table,{id:'eq.'+row.id},{method:'PATCH',body:{[key]:next},prefer:'return=minimal'});setNotice('Status updated.');await load();await onRefresh();}
@@ -133,7 +135,7 @@ export function Dashboard(props: Props) {
   };
   const nav = (items:Module[]) => items.filter(m=>m.label.toLowerCase().includes(navQuery.toLowerCase()));
   const visibleGroups = grouped.map(g=>({name:g,items:nav(modules.filter(m=>m.group===g))})).filter(g=>g.items.length);
-  const statModules = [{id:'members',label:'Registered members',icon:Users,accent:'lime'},{id:'teams',label:'Active teams',icon:ShieldCheck,accent:'violet'},{id:'players',label:'Player profiles',icon:Zap,accent:'cyan'},{id:'tournaments',label:'Tournaments',icon:Trophy,accent:'lime'},{id:'matches',label:'Matches',icon:Swords,accent:'violet'},{id:'applications',label:'Registrations',icon:BookOpen,accent:'cyan'}];
+  const statModules = [{id:'members',label:'Registered members',icon:Users,accent:'lime'},{id:'teams',label:'Teams',icon:ShieldCheck,accent:'violet'},{id:'players',label:'Player profiles',icon:Zap,accent:'cyan'},{id:'tournaments',label:'Tournaments',icon:Trophy,accent:'lime'},{id:'matches',label:'Matches',icon:Swords,accent:'violet'},{id:'applications',label:'Registrations',icon:BookOpen,accent:'cyan'}];
 
   if(!hasSupabaseConfig()) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / CONNECTION REQUIRED</span><h1>Connect the<br/><em>control center.</em></h1><p>Supabase URL and publishable key are missing from this deployment. Add the existing project's browser-safe variables to Vercel.</p><code>VITE_SUPABASE_URL</code><code>VITE_SUPABASE_PUBLISHABLE_KEY</code><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Website</button></div></div>;
   if(!user) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / SECURE ACCESS</span><h1>Enter the<br/><em>command center.</em></h1><p>Sign in with an authorized NOVA Origin account. Access is checked against existing Supabase roles and RLS policies.</p>{authError&&<div className="admin-error">{authError}</div>}<button className="admin-signin" onClick={onLogin}><ShieldCheck size={18}/> Continue with Google</button><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Back to website</button></div></div>;
