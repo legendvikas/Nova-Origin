@@ -264,4 +264,36 @@ function PageHero({ kicker, title, accent, copy }: { kicker: string; title: stri
 function DetailShell({ kicker, title, copy, children }: { kicker: string; title: string; copy: string; children: ReactNode }) { return <><PageHero kicker={kicker} title={title} accent="" copy={copy}/><section className="no-section">{children}</section></>; }
 function AboutStory() { return <section className="no-section no-about-grid"><div><span className="no-kicker">OUR PHILOSOPHY / 001</span><h2>MORE THAN A NAME.<br/><em>A MOVEMENT.</em></h2></div><div><p>We believe competition is stronger when community comes first. NOVA Origin brings players, creators and supporters together around a shared standard: show up, improve, respect the game and build something that lasts.</p><div className="no-values"><span><b>01</b> DISCIPLINE</span><span><b>02</b> UNITY</span><span><b>03</b> EVOLUTION</span></div></div></section>; }
 function CommunityBlock({ posts, navigate }: { posts: any[]; navigate: (to:string)=>void }) { return <section className="no-section"><div className="no-community-panel"><span className="no-kicker">FIND YOUR PLACE IN THE ORIGIN</span><h2>THE ORIGIN<br/><em>IS EVERYONE.</em></h2><p>Follow the journey, share the moments and meet the people behind the tag.</p><div><a className="no-btn" href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Community">JOIN THE COMMUNITY <Mail size={15}/></a><a className="no-btn ghost" href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Updates">FOLLOW UPDATES <Mail size={15}/></a></div></div><h3 className="no-subhead">COMMUNITY TRANSMISSIONS</h3><div className="no-news-grid">{posts.map(p=><article className="no-news-card" key={p.id}><span className="no-news-label">COMMUNITY UPDATE</span><p>{p.content}</p><small>{dateLabel(p.created_at)}</small></article>)}{!posts.length && <Empty text="Community posts will appear here when published."/>}</div></section>; }
-function ContactBlock({ join = false }: { join?: boolean }) { const [name,setName]=useState(''); const [email,setEmail]=useState(''); const [kind,setKind]=useState(join?'Player application':'General enquiry'); const [message,setMessage]=useState(''); const [error,setError]=useState(''); const submit=(e:FormEvent)=>{e.preventDefault();if(!name.trim()||!email.includes('@')||!message.trim()){setError('Please complete all fields with a valid email.');return;}const subject=encodeURIComponent('NOVA Origin — '+kind);const body=encodeURIComponent('Name: '+name+'\nEmail: '+email+'\nEnquiry: '+kind+'\n\n'+message);window.location.href='mailto:hello@novaorigin.gg?subject='+subject+'&body='+body;};return <section className="no-section"><form className="no-contact-form" onSubmit={submit}><div><span className="no-kicker">{join?'APPLICATION ENQUIRY':'CONTACT NOVA ORIGIN'}</span><h2>{join?'TELL US YOUR':'START THE'}<br/><em>{join?'STORY.':'CONVERSATION.'}</em></h2><p>Complete the form and your email app will open with the details ready to send. This form does not store personal data in the website database.</p></div><div className="no-form-fields"><label>YOUR NAME<input value={name} onChange={e=>setName(e.target.value)} required maxLength={80}/></label><label>EMAIL ADDRESS<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required maxLength={160}/></label><label>ENQUIRY TYPE<select value={kind} onChange={e=>setKind(e.target.value)}><option>Player application</option><option>Team application</option><option>Partnership inquiry</option><option>General enquiry</option></select></label><label>YOUR MESSAGE<textarea rows={5} value={message} onChange={e=>setMessage(e.target.value)} required maxLength={2000}/></label>{error&&<span className="no-form-error">{error}</span>}<button className="no-btn" type="submit">PREPARE EMAIL <ArrowUpRight size={16}/></button></div></form></section>; }
+function ContactBlock({ join = false }: { join?: boolean }) {
+  const [name,setName]=useState('');
+  const [email,setEmail]=useState('');
+  const [kind,setKind]=useState(join?'Player application':'General enquiry');
+  const [message,setMessage]=useState('');
+  const [website,setWebsite]=useState('');
+  const [error,setError]=useState('');
+  const [sending,setSending]=useState(false);
+  const [sent,setSent]=useState(false);
+  const submit=async(e:FormEvent)=>{
+    e.preventDefault(); setError('');
+    if(website.trim()) return;
+    if(name.trim().length<2||!/^\S+@\S+\.\S+$/.test(email.trim())||message.trim().length<10){setError('Enter your name, a valid email and a message of at least 10 characters.');return;}
+    setSending(true);
+    try {
+      await api('public_inquiries',{}, {method:'POST',body:{name:name.trim(),email:email.trim().toLowerCase(),enquiry_type:kind,message:message.trim()},prefer:'return=minimal'});
+      setSent(true); setName(''); setEmail(''); setMessage(''); setWebsite('');
+    } catch { setError('Submission could not be saved. Please try again in a moment.'); }
+    finally { setSending(false); }
+  };
+  return <section className="no-section"><form className="no-contact-form" onSubmit={submit}>
+    <div><span className="no-kicker">{join?'APPLICATION ENQUIRY':'CONTACT NOVA ORIGIN'}</span><h2>{join?'TELL US YOUR':'START THE'}<br/><em>{join?'STORY.':'CONVERSATION.'}</em></h2><p>Your enquiry is securely submitted to NOVA Origin. We only collect the details needed to respond to your message.</p>{sent&&<p className="no-form-success" role="status">ENQUIRY RECEIVED — THANK YOU. YOUR MESSAGE HAS BEEN SAVED.</p>}</div>
+    <div className="no-form-fields">
+      <label>YOUR NAME<input value={name} onChange={e=>setName(e.target.value)} required minLength={2} maxLength={80} autoComplete="name"/></label>
+      <label>EMAIL ADDRESS<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required maxLength={160} autoComplete="email"/></label>
+      <label>ENQUIRY TYPE<select value={kind} onChange={e=>setKind(e.target.value)}><option>Player application</option><option>Team application</option><option>Partnership inquiry</option><option>General enquiry</option></select></label>
+      <label>YOUR MESSAGE<textarea rows={5} value={message} onChange={e=>setMessage(e.target.value)} required minLength={10} maxLength={2000}/></label>
+      <label className="no-honeypot" aria-hidden="true">WEBSITE<input value={website} onChange={e=>setWebsite(e.target.value)} tabIndex={-1} autoComplete="off"/></label>
+      {error&&<span className="no-form-error" role="alert">{error}</span>}
+      <button className="no-btn" type="submit" disabled={sending}>{sending?'SENDING…':sent?'SEND ANOTHER ENQUIRY':'SUBMIT ENQUIRY'} <ArrowUpRight size={16}/></button>
+    </div>
+  </form></section>;
+}
