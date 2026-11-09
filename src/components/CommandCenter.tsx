@@ -45,7 +45,7 @@ const modules: Module[] = [
   {id:'theme',label:'Theme & Appearance',group:'WEBSITE',icon:SlidersHorizontal,description:'Admin appearance is local to this control center. Website-wide theme publishing needs a shared settings schema.'},
   {id:'integrations',label:'Integrations',group:'SYSTEM',icon:Database,description:'No external delivery, analytics or media integrations are configured in the current project.'},
   {id:'security',label:'Security & Audit Logs',group:'SYSTEM',icon:Lock,table:'audit_logs',order:'created_at',readOnly:true,fields:[{key:'actor_id',label:'Actor'},{key:'action',label:'Action'},{key:'entity_type',label:'Entity'},{key:'entity_id',label:'Entity ID'},{key:'created_at',label:'Timestamp'}]},
-  {id:'settings',label:'System Settings',group:'SYSTEM',icon:Settings,description:'System-level settings require a protected configuration table and server-side settings endpoints.'}
+  {id:'settings',label:'System Settings',group:'SYSTEM',icon:Settings,table:'site_settings',order:'updated_at',fields:[{key:'setting_key',label:'Setting key',required:true,hint:'e.g. contact_email'},{key:'setting_value',label:'Setting value',type:'textarea',required:true},{key:'description',label:'Description',type:'textarea'}],description:'Manage non-secret NOVA site configuration values. Never store passwords, API keys or private tokens here.'}
 ];
 
 const chartData = [{day:'Mon',value:0},{day:'Tue',value:0},{day:'Wed',value:0},{day:'Thu',value:0},{day:'Fri',value:0},{day:'Sat',value:0},{day:'Sun',value:0}];
@@ -109,6 +109,7 @@ export function Dashboard(props: Props) {
     setBusy(true);setNotice('');setError('');
     try {
       const payload=toPayload(form,active.fields);
+      if(active.id==='settings'){payload.updated_by=user!.id;payload.updated_at=new Date().toISOString();}
       if(!editing && active.id==='teams') payload.owner_id=user!.id;
       if(!editing && active.id==='community') payload.author_id=user!.id;
       if(!editing && active.id==='news') payload.created_by=user!.id;
