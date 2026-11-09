@@ -50,3 +50,11 @@
 .no-article-body{padding:34px 0;color:#d4d8d0;font-size:clamp(15px,1.5vw,18px);line-height:1.95;white-space:normal}
 .no-article-body p{margin:0 0 22px}.no-article-end{padding-top:22px;border-top:1px solid #ffffff18}.no-article-end>span{color:#777e75}
 @media(max-width:600px){.no-article{padding:20px}.no-article-meta{align-items:flex-start;flex-direction:column}}
+
+.no-event-meta{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.no-event-meta span{border:1px solid #ffffff18;padding:7px 9px;color:#aab0a4;font:9px 'DM Mono',monospace;letter-spacing:.8px;text-transform:uppercase}
+.no-tournament-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:22px 0}
+.no-tournament-facts span{display:flex;flex-direction:column;gap:7px;padding:13px;border:1px solid #ffffff18;background:#ffffff04;min-width:0}
+.no-tournament-facts small{color:#92978f;font:9px 'DM Mono',monospace;letter-spacing:1px}
+.no-tournament-facts b{color:#f4f5ef;font:600 12px Manrope,sans-serif;text-transform:uppercase;overflow-wrap:anywhere}
+@media(max-width:560px){.no-tournament-facts{grid-template-columns:1fr 1fr}.no-event-meta span{font-size:8px}}
