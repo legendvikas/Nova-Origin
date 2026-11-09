@@ -49,6 +49,8 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [authUser, setAuthUser] = useState<NovaUser|null>(null);
   const [managedNavigation, setManagedNavigation] = useState<any[]>([]);
   const [managedSeo, setManagedSeo] = useState<any[]>([]);
+  const [homepageSections, setHomepageSections] = useState<any[]>([]);
+  const [customPages, setCustomPages] = useState<any[]>([]);
 
   useEffect(() => {
     const onPop = () => { setPath(window.location.pathname.replace(/\/$/, '') || '/'); setMenuOpen(false); };
@@ -60,7 +62,12 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
 
   useEffect(() => {
     let live=true;
-    Promise.all([api<any[]>('site_navigation',{select:'id,label,href,display_order,is_visible',is_visible:'eq.true',order:'display_order.asc'}).catch(()=>[]),api<any[]>('seo_metadata',{select:'route_path,page_title,meta_description,canonical_url,og_image_url,robots_index'}).catch(()=>[])]).then(([nav,seo])=>{if(live){setManagedNavigation(nav);setManagedSeo(seo);}});
+    Promise.all([
+      api<any[]>('site_navigation',{select:'id,label,href,display_order,is_visible,open_in_new_tab',is_visible:'eq.true',order:'display_order.asc'}).catch(()=>[]),
+      api<any[]>('seo_metadata',{select:'route_path,page_title,meta_description,canonical_url,og_image_url,robots_index'}).catch(()=>[]),
+      api<any[]>('homepage_sections',{select:'id,section_key,title,subtitle,body,image_url,button_label,button_url,display_order,is_visible',is_visible:'eq.true',order:'display_order.asc'}).catch(()=>[]),
+      api<any[]>('site_pages',{select:'id,title,slug,excerpt,content_markdown,seo_title,seo_description,published_at',status:'eq.published',order:'published_at.desc'}).catch(()=>[])
+    ]).then(([nav,seo,sections,pages])=>{if(live){setManagedNavigation(nav);setManagedSeo(seo);setHomepageSections(sections);setCustomPages(pages);}});
     return ()=>{live=false;};
   }, []);
 
@@ -178,6 +185,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const currentTournament = route[0] === 'tournaments' && slug ? data.tournaments.find(x => x.slug === slug || x.id === slug) : null;
   const currentPlayer = route[0] === 'players' && slug ? extra.players.find(x => x.player?.username === slug || x.player_id === slug) : null;
   const currentNews = route[0] === 'news' && slug ? data.announcements.find(x => slugOf(x.title) === slug || x.id === slug) : null;
+  const currentCustomPage = route.length === 1 ? customPages.find((page:any) => page.slug === route[0]) : null;
 
   const sectionTitle = (index: string, kicker: string, first: string, accent: string, copy: string) => (
     <div className="no-section-head">
@@ -345,6 +353,9 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       </DetailShell>
       <section className="no-section"><div className="no-section-head"><div><span className="no-kicker">MORE TRANSMISSIONS</span><h2>STAY IN<br/><em>THE LOOP.</em></h2></div><p>More official updates from NOVA Origin.</p></div><div className="no-news-grid">{relatedNews.map((item:any)=><a className="no-news-card" href={'/news/'+slugOf(item.title)} key={item.id} onClick={e=>{e.preventDefault();navigate('/news/'+slugOf(item.title));}}><span className="no-news-label">NOVA TRANSMISSION</span><h3>{item.title}</h3><p>{item.body}</p><div><small>{dateLabel(item.published_at||item.created_at)}</small><b>READ STORY <ArrowUpRight size={14}/></b></div></a>)}{!relatedNews.length&&<Empty text="More official updates will appear here when published."/>}</div></section></>;
     }
+    if (currentCustomPage) {
+      return <><PageHero kicker="NOVA ORIGIN / CUSTOM PAGE" title={currentCustomPage.title} accent="NOVA ORIGIN." copy={currentCustomPage.excerpt || 'Explore this official NOVA Origin page.'}/><section className="no-section"><article className="no-article"><div className="no-article-body">{(currentCustomPage.content_markdown || '').split(/\\n{2,}/).map((block:string,i:number)=>{const value=block.trim();if(!value)return null;if(value.startsWith('### '))return <h3 key={i}>{value.slice(4)}</h3>;if(value.startsWith('## '))return <h2 key={i}>{value.slice(3)}</h2>;if(value.startsWith('# '))return <h2 key={i}>{value.slice(2)}</h2>;if(value.split('\\n').every((line:string)=>/^[-*]\\s+/.test(line)))return <ul key={i}>{value.split('\\n').map((line:string,j:number)=><li key={j}>{line.replace(/^[-*]\\s+/,'')}</li>)}</ul>;return <p key={i}>{value.split('\\n').map((line:string,j:number)=><span key={j}>{j>0&&<br/>}{line}</span>)}</p>;})}</div></article></section></>;
+    }
     const pages: Record<string, { kicker: string; title: string; accent: string; copy: string }> = {
       about: { kicker: 'THE NOVA STORY', title: 'MORE THAN', accent: 'A MOVEMENT.', copy: 'We are a collective of players, creators and competitors building a culture around commitment, community and competition.' },
       games: { kicker: 'OUR ARENA', title: 'THE GAMES', accent: 'WE PLAY.', copy: 'Different battlegrounds. One standard: excellence.' },
@@ -373,6 +384,12 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       <div className="no-hero-index"><span>NO / 001</span><b>26°50' N<br/>80°56' E</b><small>SCROLL TO EXPLORE ↓</small></div>
     </section>
     <section className="no-stats">{[{value:activeTeams,label:'PUBLIC TEAMS'},{value:liveEvents,label:'LIVE EVENTS'},{value:gamesCount,label:'GAME TITLES'},{value:matchCount,label:'SCHEDULED MATCHES'}].filter(item=>item.value>0).map(item=><div key={item.label}><b>{item.value.toString().padStart(2,'0')}</b><span>{item.label}</span></div>)}</section>
+    {homepageSections.map((section:any) => <section className="no-section" key={section.id}>
+      <div className="no-section-head"><div><span className="no-kicker">{clean(section.section_key).toUpperCase()} / NOVA ORIGIN</span><h2>{section.title}</h2></div><p>{section.subtitle}</p></div>
+      {section.image_url && safeHref(section.image_url) && <div className="no-detail-emblem"><img src={section.image_url} alt={section.title}/></div>}
+      {section.body && <article className="no-article"><div className="no-article-body">{section.body.split(/\\n{2,}/).map((paragraph:string,i:number)=><p key={i}>{paragraph}</p>)}</div></article>}
+      {section.button_label && section.button_url && <div className="no-section-link">{link(section.button_url,section.button_label)}<ArrowUpRight size={15}/></div>}
+    </section>)}
     <section className="no-section">{sectionTitle('01','OUR ARENA','THE GAMES','WE PLAY.','Different battlegrounds. One standard: excellence.')}{gameCards(data.games.slice(0,3))}<div className="no-section-link">{link('/games','EXPLORE ALL GAMES')}<ArrowUpRight size={15}/></div></section>
     <section className="no-band"><div className="no-section">{sectionTitle('02','THE COLLECTIVE','BUILT AS ONE.','PLAY AS MANY.','Every role matters. Every player moves the team forward.')}{teamCards(data.teams.slice(0,5))}<div className="no-section-link">{link('/teams','VIEW THE FULL ROSTER')}<ArrowUpRight size={15}/></div></div></section>
     <section className="no-section">{sectionTitle('03','THE CIRCUIT','THE NEXT','BATTLE BEGINS.','Follow the action, find your next challenge and stay in the loop.')}{eventCards(data.tournaments.slice(0,3))}<div className="no-section-link">{link('/tournaments','ALL TOURNAMENTS')}<ArrowUpRight size={15}/></div></section>
