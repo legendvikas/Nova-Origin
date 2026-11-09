@@ -45,7 +45,7 @@ async function createPkcePair() {
   const bytes = crypto.getRandomValues(new Uint8Array( verifierLength ));
   const verifier = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
   localStorage.setItem(PKCE_KEY, verifier);
   return challenge;
 }
@@ -61,7 +61,7 @@ export async function signInWithGoogle() {
 export async function sendAdminLoginLink(email: string) {
   if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
   const cleanEmail = email.trim().toLowerCase();
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) throw new Error('Valid email address enter karo.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error('Valid email address enter karo.');
   const challenge = await createPkcePair();
   const response = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(window.location.origin)}`, {
     method: 'POST',
@@ -79,7 +79,7 @@ export async function completeAuthCallback() {
   const url = new URL(window.location.href);
   const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
   const hashError = hash.get('error_description') || hash.get('error');
-  if (hashError) throw new Error(decodeURIComponent(hashError.replace(/\\+/g, ' ')));
+  if (hashError) throw new Error(decodeURIComponent(hashError.replace(/\+/g, ' ')));
   const code = url.searchParams.get('code');
   if (code) {
     const verifier = localStorage.getItem(PKCE_KEY);
