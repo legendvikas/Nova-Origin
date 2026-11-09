@@ -89,8 +89,9 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     };
     const [title, description] = seo[route] || [`NOVA ORIGIN — ${routeLabel.toUpperCase()}`, 'Explore this NOVA Origin esports profile, event or update.'];
     const managed = managedSeo.find(item=>item.route_path===path || item.route_path==='/'+route || (route==='home' && item.route_path==='/'));
-    const finalTitle=managed?.page_title || title;
-    const finalDescription=managed?.meta_description || description;
+    const customPage = route !== 'home' && path.split('/').filter(Boolean).length === 1 ? customPages.find((item:any)=>item.slug===route) : null;
+    const finalTitle=managed?.page_title || customPage?.seo_title || customPage?.title || title;
+    const finalDescription=managed?.meta_description || customPage?.seo_description || customPage?.excerpt || description;
     document.title = finalTitle;
     const setMeta = (selector: string, attr: 'content', value: string, create: () => HTMLElement) => {
       let el = document.querySelector(selector) as HTMLMetaElement | null;
@@ -104,7 +105,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
     canonical.href = 'https://nova-origin-esports.vercel.app' + (path === '/' ? '/' : path);
-  }, [path, managedSeo]);
+  }, [path, managedSeo, customPages]);
 
   useEffect(() => {
     let live = true;
