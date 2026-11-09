@@ -136,8 +136,28 @@ export function Dashboard(props: Props) {
   const remove = async (row:any) => {
     if(!active.table || !isAdmin || !window.confirm('Permanently delete this record? This cannot be undone.')) return;
     setBusy(true);setError('');
-    try{await api(active.table,{id:'eq.'+row.id},{method:'DELETE',prefer:'return=minimal'});setNotice('Record deleted.');await load();await onRefresh();}
-    catch(e:any){setError(e.message||'Delete rejected by database policies.');}
+    try{
+      if(active.id==='games'){
+        const dependencies = await Promise.all(['game_modes','teams','tournaments'].map(async table => {
+          const rows = await api<any[]>(table,{select:'id',game_id:'eq.'+row.id,limit:'1'});
+          return rows?.length ? table : null;
+        }));
+        const linked = dependencies.filter(Boolean);
+        if(linked.length){
+          const labels:Record<string,string>={game_modes:'game modes',teams:'teams',tournaments:'tournaments'};
+          setError('This game is still in use by '+linked.map(x=>labels[x!]||x).join(', ')+'. Delete or reassign those linked records first. You can also switch this game to inactive instead of deleting it.');
+          return;
+        }
+      }
+      await api(active.table,{id:'eq.'+row.id},{method:'DELETE',prefer:'return=minimal'});
+      setNotice('Record deleted.');await load();await onRefresh();
+    }
+    catch(e:any){
+      const msg=String(e.message||'');
+      if(msg.includes('23503')||msg.toLowerCase().includes('foreign key')||msg.toLowerCase().includes('still referenced')){
+        setError('This record is linked to other data and cannot be deleted yet. Remove or reassign the linked records first; if you only want to hide it, change its status to inactive.');
+      } else setError(msg||'Delete rejected by database policies.');
+    }
     finally{setBusy(false);}
   };
   const nav = (items:Module[]) => items.filter(m=>m.label.toLowerCase().includes(navQuery.toLowerCase()));
