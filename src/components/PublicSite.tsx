@@ -40,6 +40,19 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   }, []);
 
   useEffect(() => {
+    const routeLabel = path.split('/').filter(Boolean).join(' / ').replaceAll('-', ' ');
+    const title = routeLabel ? 'NOVA ORIGIN — ' + routeLabel.toUpperCase() : 'NOVA ORIGIN — Built to Rise';
+    document.title = title;
+    const description = 'NOVA Origin is an esports collective built around competition, teams, players, tournaments and community.';
+    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
+    meta.content = description;
+    let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+    canonical.href = 'https://nova-origin-esports.vercel.app' + (path === '/' ? '/' : path);
+  }, [path]);
+
+  useEffect(() => {
     let live = true;
     const read = async (table: string, query: Record<string, string>) => {
       try { return await api<any[]>(table, query); } catch { return []; }
