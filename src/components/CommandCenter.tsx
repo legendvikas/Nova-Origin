@@ -8,7 +8,7 @@ import {
   Trophy, Upload, Users, X, Zap
 } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { api, hasSupabaseConfig, type NovaUser } from '../lib/supabase';
+import { api, hasSupabaseConfig, mediaPublicUrl, uploadMediaFile, deleteMediaFile, type NovaUser } from '../lib/supabase';
 
 type Props = { user: NovaUser | null; role: string | null; organizerStatus: string | null; onBack: () => void; onLogin: () => void; onPasswordLogin: (email: string, password: string) => Promise<void>; onLogout: () => void; authError: string; canManage: boolean; onRefresh: () => Promise<void> };
 type Field = { key: string; label: string; type?: 'text'|'textarea'|'number'|'date'|'datetime-local'|'url'|'boolean'|'select'; options?: string[]; required?: boolean; hint?: string };
@@ -77,7 +77,33 @@ export function Dashboard(props: Props) {
   const [loginEmail,setLoginEmail] = useState('');
   const [loginPassword,setLoginPassword] = useState('');
   const [pageNo,setPageNo] = useState(0);
+  const [mediaCategory,setMediaCategory] = useState('general');
 
+  const uploadMedia = async (file?: File) => {
+    if(!file || !isAdmin) return;
+    const allowed=['image/jpeg','image/png','image/webp','image/gif','video/mp4','video/webm','application/pdf'];
+    if(!allowed.includes(file.type)){setError('Unsupported file type. Use JPG, PNG, WEBP, GIF, MP4, WEBM or PDF.');return;}
+    if(file.size>50*1024*1024){setError('File is larger than the 50 MB limit.');return;}
+    setBusy(true);setError('');setNotice('');
+    try{
+      const safeName=file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/^-+|-+$/g,'').slice(-100)||'asset';
+      const path=mediaCategory+'/'+Date.now()+'-'+safeName;
+      await uploadMediaFile(file,path);
+      await api('media_assets',{}, {method:'POST',body:{bucket_id:'nova-media',object_path:path,file_name:file.name,mime_type:file.type,file_size:file.size,category:mediaCategory,uploaded_by:user!.id},prefer:'return=minimal'});
+      setNotice('File uploaded successfully.');await load();
+    }catch(e:any){setError(e.message||'Upload failed.');}
+    finally{setBusy(false);}
+  };
+  const removeMedia = async (row:any) => {
+    if(!isAdmin || !window.confirm('Delete this media file permanently?')) return;
+    setBusy(true);setError('');setNotice('');
+    try{
+      await deleteMediaFile(row.object_path);
+      await api('media_assets',{id:'eq.'+row.id},{method:'DELETE',prefer:'return=minimal'});
+      setNotice('Media file deleted.');await load();
+    }catch(e:any){setError(e.message||'Media deletion failed.');}
+    finally{setBusy(false);}
+  };
   const load = async () => {
     if (!user) return;
     setLoading(true); setError('');
@@ -183,7 +209,19 @@ export function Dashboard(props: Props) {
     <div className="nc-manager-head"><div><span className="nc-kicker">{active.group} / CONTENT CONTROL</span><h1>{active.label}</h1><p>{active.description || 'Manage records stored in your NOVA Origin database.'}</p></div><div className="nc-manager-actions"><button className="nc-btn ghost" onClick={()=>load()}><RefreshCw size={14}/> Refresh</button>{active.table&&active.fields&&!active.readOnly&&<button className="nc-btn primary" onClick={openCreate}><Plus size={15}/> Add new</button>}</div></div>
     {active.description&&<div className="nc-capability"><AlertCircle size={17}/><div><b>Configuration requirement</b><p>{active.description}</p></div></div>}
     {editor&&active.fields&&<section className="nc-panel nc-editor"><div className="nc-panel-head"><div><span className="nc-kicker">{editing?'UPDATE RECORD':'NEW RECORD'}</span><h2>{editing?'Edit':'Create'} {active.label}</h2></div><button className="nc-icon-btn" onClick={()=>setEditor(false)}><X size={17}/></button></div><form onSubmit={save} className="nc-form">{active.fields.map(f=><label key={f.key} className={f.type==='textarea'?'wide':''}><span>{f.label}{f.required?' *':''}</span>{f.type==='textarea'?<textarea required={f.required} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})}/>:f.type==='select'?<select required={f.required} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})}><option value="">Choose…</option>{f.options?.map(o=><option key={o} value={o}>{o}</option>)}</select>:f.type==='boolean'?<input type="checkbox" checked={!!form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.checked})}/>:<input required={f.required} type={f.type||'text'} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.hint||f.label}/>}</label>)}<div className="nc-form-actions"><button type="button" className="nc-btn ghost" onClick={()=>setEditor(false)}>Cancel</button><button className="nc-btn primary" disabled={busy}><Check size={15}/>{busy?'Saving…':'Save record'}</button></div></form></section>}
-    {active.table&&<section className="nc-panel"><div className="nc-list-toolbar"><div className="nc-search"><Search size={15}/><input value={query} onChange={e=>{setQuery(e.target.value);setPageNo(0)}} placeholder={'Search '+active.label.toLowerCase()+'…'}/></div><div className="nc-toolbar-right"><span>{filtered.length} records</span><button className="nc-icon-btn" onClick={()=>setPageSize(pageSize===10?25:10)} title="Change page size"><ArrowDownUp size={15}/></button></div></div><div className="nc-table-wrap"><table className="nc-table"><thead><tr><th>Record</th>{(active.fields||[]).slice(0,4).map(f=><th key={f.key}>{f.label}</th>)}<th>Status</th><th>Actions</th></tr></thead><tbody>{paged.map((row:any)=><tr key={row.id}><td><b>{row.name||row.title||row.display_name||row.username||row.content?.slice(0,36)||row.id?.slice(0,8)||'Record'}</b><small>{row.id?.slice(0,12)}</small></td>{(active.fields||[]).slice(0,4).map(f=><td key={f.key}>{pretty(row[f.key])}</td>)}<td><span className="nc-status">{pretty(active.statusField?row[active.statusField]:row.status||row.is_published)}</span></td><td><div className="nc-row-actions">{!active.readOnly&&<button className="nc-icon-btn" onClick={()=>openEdit(row)} title="Edit"><SlidersHorizontal size={14}/></button>}{active.statusField&&(active.statusValues||['is_active','is_public','is_published'].includes(active.statusField))&&<button className="nc-icon-btn" onClick={()=>toggleStatus(row)} title="Change status"><ArrowDownUp size={14}/></button>}{isAdmin&&!active.readOnly&&<button className="nc-icon-btn danger" onClick={()=>remove(row)} title="Delete"><Archive size={14}/></button>}</div></td></tr>)}{!paged.length&&<tr><td colSpan={(active.fields?.length||0)+3}><div className="nc-empty">{loading?'Loading records…':(moduleErrors[tab] ? 'Records unavailable: '+moduleErrors[tab] : 'No records found. Add a record or adjust your search.')}</div></td></tr>}</tbody></table></div><div className="nc-pagination"><span>Showing {filtered.length? pageNo*pageSize+1:0}–{Math.min((pageNo+1)*pageSize,filtered.length)} of {filtered.length}</span><div><button className="nc-icon-btn" disabled={pageNo===0} onClick={()=>setPageNo(v=>Math.max(0,v-1))}><ChevronLeft size={15}/></button><button className="nc-icon-btn" disabled={(pageNo+1)*pageSize>=filtered.length} onClick={()=>setPageNo(v=>v+1)}><ChevronRight size={15}/></button></div></div></section>}
+    {active.id==='media'&&<section className="nc-panel">
+      <div className="nc-panel-head"><div><span className="nc-kicker">NOVA STORAGE / ASSETS</span><h2>Upload media</h2><p>Files are publicly viewable; only platform admins can upload or delete.</p></div><FileImage size={20}/></div>
+      <div className="nc-form">
+        <label><span>Asset category</span><select value={mediaCategory} onChange={e=>setMediaCategory(e.target.value)}><option value="general">General</option><option value="brand">Brand</option><option value="player">Player</option><option value="team">Team</option><option value="tournament">Tournament</option><option value="news">News</option><option value="homepage">Homepage</option><option value="document">Document</option><option value="video">Video</option></select></label>
+        <label className="wide"><span>Choose file (max 50 MB)</span><input type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,application/pdf" disabled={busy||!isAdmin} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadMedia(file);e.currentTarget.value='';}}/></label>
+      </div>
+      <div className="nc-media-grid">{paged.map((row:any)=><article className="nc-media-card" key={row.id}>
+        {row.mime_type?.startsWith('image/')?<img src={mediaPublicUrl(row.object_path)} alt={row.alt_text||row.file_name}/>:<div className="nc-media-file"><FileText size={28}/><span>{row.mime_type}</span></div>}
+        <b>{row.file_name}</b><small>{row.category} · {Math.max(1,Math.round(row.file_size/1024))} KB</small>
+        <div className="nc-row-actions"><button className="nc-icon-btn" onClick={()=>navigator.clipboard?.writeText(mediaPublicUrl(row.object_path))} title="Copy public URL"><ArrowUpRight size={14}/></button><button className="nc-icon-btn danger" disabled={busy} onClick={()=>removeMedia(row)} title="Delete media"><Archive size={14}/></button></div>
+      </article>)}{!paged.length&&<div className="nc-empty">{loading?'Loading media…':'No media uploaded yet.'}</div>}</div>
+    </section>}
+    {active.table&&active.id!=='media'&&<section className="nc-panel"><div className="nc-list-toolbar"><div className="nc-search"><Search size={15}/><input value={query} onChange={e=>{setQuery(e.target.value);setPageNo(0)}} placeholder={'Search '+active.label.toLowerCase()+'…'}/></div><div className="nc-toolbar-right"><span>{filtered.length} records</span><button className="nc-icon-btn" onClick={()=>setPageSize(pageSize===10?25:10)} title="Change page size"><ArrowDownUp size={15}/></button></div></div><div className="nc-table-wrap"><table className="nc-table"><thead><tr><th>Record</th>{(active.fields||[]).slice(0,4).map(f=><th key={f.key}>{f.label}</th>)}<th>Status</th><th>Actions</th></tr></thead><tbody>{paged.map((row:any)=><tr key={row.id}><td><b>{row.name||row.title||row.display_name||row.username||row.content?.slice(0,36)||row.id?.slice(0,8)||'Record'}</b><small>{row.id?.slice(0,12)}</small></td>{(active.fields||[]).slice(0,4).map(f=><td key={f.key}>{pretty(row[f.key])}</td>)}<td><span className="nc-status">{pretty(active.statusField?row[active.statusField]:row.status||row.is_published)}</span></td><td><div className="nc-row-actions">{!active.readOnly&&<button className="nc-icon-btn" onClick={()=>openEdit(row)} title="Edit"><SlidersHorizontal size={14}/></button>}{active.statusField&&(active.statusValues||['is_active','is_public','is_published'].includes(active.statusField))&&<button className="nc-icon-btn" onClick={()=>toggleStatus(row)} title="Change status"><ArrowDownUp size={14}/></button>}{isAdmin&&!active.readOnly&&<button className="nc-icon-btn danger" onClick={()=>remove(row)} title="Delete"><Archive size={14}/></button>}</div></td></tr>)}{!paged.length&&<tr><td colSpan={(active.fields?.length||0)+3}><div className="nc-empty">{loading?'Loading records…':(moduleErrors[tab] ? 'Records unavailable: '+moduleErrors[tab] : 'No records found. Add a record or adjust your search.')}</div></td></tr>}</tbody></table></div><div className="nc-pagination"><span>Showing {filtered.length? pageNo*pageSize+1:0}–{Math.min((pageNo+1)*pageSize,filtered.length)} of {filtered.length}</span><div><button className="nc-icon-btn" disabled={pageNo===0} onClick={()=>setPageNo(v=>Math.max(0,v-1))}><ChevronLeft size={15}/></button><button className="nc-icon-btn" disabled={(pageNo+1)*pageSize>=filtered.length} onClick={()=>setPageNo(v=>v+1)}><ChevronRight size={15}/></button></div></div></section>}
     {!active.table&&<section className="nc-panel nc-placeholder"><div className="nc-placeholder-icon"><active.icon size={27}/></div><h2>{active.label}</h2><p>{active.description}</p><div className="nc-requirement">No unsupported save controls are shown. This section becomes editable once the required database schema and public-site integration are implemented.</div></section>}
     {active.readOnly&&<div className="nc-note bottom-note"><ShieldCheck size={15}/> Read-only view. Database permissions and RLS determine what can be changed; this screen does not grant additional privileges.</div>}
   </div>;
