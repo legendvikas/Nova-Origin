@@ -45,7 +45,7 @@ function App() {
     boot();
   }, []);
 
-  const canManage = role === 'super_admin' || role === 'platform_admin' || (role === 'organizer' && organizerStatus === 'approved');
+  const canManage = role === 'super_admin' || role === 'platform_admin';
   const openAdmin = () => { setPage('admin'); setMenuOpen(false); };
 
   if (page === 'admin') {
