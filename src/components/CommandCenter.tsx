@@ -54,7 +54,7 @@ const toInput = (v:any, type?:string) => type === 'datetime-local' && v ? new Da
 const toPayload = (value:any, fields:Field[]) => Object.fromEntries(fields.filter(f => value[f.key] !== '' && value[f.key] !== undefined).map(f => [f.key, f.type === 'number' ? Number(value[f.key]) : f.type === 'datetime-local' && value[f.key] ? new Date(value[f.key]).toISOString() : value[f.key]]));
 
 export function Dashboard(props: Props) {
-  const {user,role,organizerStatus,onBack,onLogin,onEmailLogin,onLogout,authError,canManage,onRefresh} = props;
+  const {user,role,organizerStatus,onBack,onLogout,authError,canManage,onRefresh} = props;
   const [tab,setTab] = useState('overview');
   const [records,setRecords] = useState<Record<string,any[]>>({});
   const [counts,setCounts] = useState<Record<string,number|null>>({});
