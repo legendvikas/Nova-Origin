@@ -177,8 +177,24 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const sponsors = () => <div className="no-sponsor-grid">{extra.sponsors.map(s => <a key={s.id} href={safeHref(s.website_url) || '#partners'} target={safeHref(s.website_url) ? '_blank' : undefined} rel="noreferrer">{s.logo_url ? <img src={s.logo_url} alt={s.name}/> : <b>{s.name}</b>}</a>)}{!extraLoading && !extra.sponsors.length && <p className="no-muted">Partner announcements coming soon.</p>}</div>;
 
   const contentPage = () => {
-    if (currentGame) return <DetailShell kicker="GAME PROFILE" title={currentGame.name} copy={currentGame.publisher || 'A NOVA ORIGIN competitive title.'}><div className="no-detail-grid"><div className="no-detail-emblem"><Gamepad2 size={70}/></div><div><span className="no-kicker">THE ARENA / {currentGame.slug}</span><p>Competitive action. Shared purpose. Explore the NOVA teams and events playing {currentGame.name}.</p><button className="no-btn" onClick={() => navigate('/teams')}>VIEW TEAMS <ArrowUpRight size={16}/></button></div></div></DetailShell>;
-    if (currentTeam) return <DetailShell kicker="TEAM PROFILE" title={currentTeam.name} copy={currentTeam.description || 'One roster. One standard. Built to rise.'}><div className="no-detail-grid"><div className="no-detail-emblem">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt=""/> : <Shield size={70}/>}</div><div><span className="no-kicker">{currentTeam.team_tag || 'NOVA'} / {data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS'}</span><p>Meet the roster, follow tournament appearances and discover the players representing this team.</p><button className="no-btn" onClick={() => navigate('/players')}>MEET THE PLAYERS <ArrowUpRight size={16}/></button></div></div></DetailShell>;
+    if (currentGame) {
+      const gameTeams = data.teams.filter((t:any) => t.game_id === currentGame.id);
+      const gameEvents = data.tournaments.filter((t:any) => t.game_id === currentGame.id);
+      return <DetailShell kicker="GAME PROFILE" title={currentGame.name} copy={currentGame.publisher || 'A NOVA ORIGIN competitive title.'}>
+        <div className="no-detail-grid"><div className="no-detail-emblem"><Gamepad2 size={70}/></div><div><span className="no-kicker">THE ARENA / {currentGame.slug}</span><p>Competitive action. Shared purpose. Explore the NOVA teams and events playing {currentGame.name}.</p><p className="no-muted">{gameTeams.length} public teams · {gameEvents.length} published events</p><button className="no-btn" onClick={() => navigate('/teams')}>VIEW TEAMS <ArrowUpRight size={16}/></button></div></div>
+        <div className="no-detail-section"><span className="no-kicker">TEAMS IN THIS ARENA</span>{teamCards(gameTeams)}</div>
+        <div className="no-detail-section"><span className="no-kicker">TOURNAMENTS</span>{eventCards(gameEvents)}</div>
+      </DetailShell>;
+    }
+    if (currentTeam) {
+      const teamResults = extra.results.filter((r:any) => r.team_id === currentTeam.id && r.verified_at);
+      const teamMatches = extra.matches.filter((m:any) => teamResults.some((r:any) => r.match_id === m.id));
+      return <DetailShell kicker="TEAM PROFILE" title={currentTeam.name} copy={currentTeam.description || 'One roster. One standard. Built to rise.'}>
+        <div className="no-detail-grid"><div className="no-detail-emblem">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt=""/> : <Shield size={70}/>}</div><div><span className="no-kicker">{currentTeam.team_tag || 'NOVA'} / {data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS'}</span><p>Follow this roster's published appearances and verified competitive results.</p><p className="no-muted">{teamResults.length} verified result records</p><button className="no-btn" onClick={() => navigate('/players')}>EXPLORE PLAYERS <ArrowUpRight size={16}/></button></div></div>
+        <div className="no-detail-section"><span className="no-kicker">RECENT MATCHES</span><div className="no-match-list">{teamMatches.map((m:any)=><article className="no-match-card" key={m.id}><div><small>{m.tournament?.title || 'NOVA MATCH'}</small><h3>{m.round_name || m.stage || 'MATCH '+m.match_number}</h3><span>{dateLabel(m.scheduled_at)}</span></div><span className={'no-match-status '+(m.status==='live'?'is-live':'')}>{clean(m.status)}</span></article>)}{!teamMatches.length && <Empty text="No published match appearances for this team yet."/>}</div></div>
+        <div className="no-detail-section"><span className="no-kicker">VERIFIED RESULTS</span><div className="no-result-grid">{teamResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{currentTeam.name}</span><b>{r.placement ? 'PLACE #'+r.placement : (r.points ?? '—')+' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!teamResults.length && <Empty text="Verified team achievements will appear here when recorded."/>}</div></div>
+      </DetailShell>;
+    }
     if (currentTournament) {
       const eventMatches = extra.matches.filter((m:any) => m.tournament_id === currentTournament.id);
       const eventResults = extra.results.filter((r:any) => r.match?.tournament_id === currentTournament.id && r.verified_at);
