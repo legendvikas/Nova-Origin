@@ -36,8 +36,8 @@ function App() {
           const signedInUser = await currentUser(session.access_token);
           setUser(signedInUser);
           const [roles, organizers] = await Promise.all([
-            api<any[]>('user_roles', { select: 'role', user_id: \`eq.\${signedInUser.id}\` }).catch(() => []),
-            api<any[]>('organizers', { select: 'status', user_id: \`eq.\${signedInUser.id}\` }).catch(() => []),
+            api<any[]>('user_roles', { select: 'role', user_id: `eq.${signedInUser.id}` }).catch(() => []),
+            api<any[]>('organizers', { select: 'status', user_id: `eq.${signedInUser.id}` }).catch(() => []),
           ]);
           setRole(roles[0]?.role || null);
           setOrganizerStatus(organizers[0]?.status || null);
