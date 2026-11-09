@@ -1,6 +1,7 @@
 const SUPABASE_URL = (import.meta as any).env?.VITE_SUPABASE_URL || '';
 const SUPABASE_KEY = (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 const SESSION_KEY = 'nova-origin-session';
+const PKCE_KEY = 'nova-origin-pkce-verifier';
 
 export type NovaSession = { access_token: string; refresh_token?: string; expires_at?: number };
 export type NovaUser = { id: string; email?: string; user_metadata?: { full_name?: string; name?: string; avatar_url?: string } };
@@ -40,13 +41,82 @@ export async function currentUser(token: string): Promise<NovaUser> {
   return response.json();
 }
 
-export function signInWithGoogle() {
+async function createPkcePair() {
+  const bytes = crypto.getRandomValues(new Uint8Array( verifierLength ));
+  const verifier = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  const challenge = btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+  localStorage.setItem(PKCE_KEY, verifier);
+  return challenge;
+}
+const verifierLength = 32;
+
+export async function signInWithGoogle() {
   if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
-  const redirect = encodeURIComponent(window.location.origin);
-  window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirect}`;
+  const challenge = await createPkcePair();
+  const params = new URLSearchParams({ provider: 'google', redirect_to: window.location.origin, code_challenge: challenge, code_challenge_method: 's256' });
+  window.location.assign(`${SUPABASE_URL}/auth/v1/authorize?${params.toString()}`);
 }
 
-export function signOut() { clearSession(); window.location.assign('/'); }
+export async function sendAdminLoginLink(email: string) {
+  if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
+  const cleanEmail = email.trim().toLowerCase();
+  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) throw new Error('Valid email address enter karo.');
+  const challenge = await createPkcePair();
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: cleanEmail, create_user: false, gotrue_meta_security: {}, code_challenge: challenge, code_challenge_method: 's256', redirect_to: window.location.origin }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    localStorage.removeItem(PKCE_KEY);
+    throw new Error(body.msg || body.message || body.error_description || 'Login link send nahi hua. Supabase Email Auth configuration check karo.');
+  }
+}
+
+export async function completeAuthCallback() {
+  const url = new URL(window.location.href);
+  const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+  const hashError = hash.get('error_description') || hash.get('error');
+  if (hashError) throw new Error(decodeURIComponent(hashError.replace(/\\+/g, ' ')));
+  const code = url.searchParams.get('code');
+  if (code) {
+    const verifier = localStorage.getItem(PKCE_KEY);
+    if (!verifier) throw new Error('Login callback verifier missing. Login dobara start karo.');
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=pkce`, {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ auth_code: code, code_verifier: verifier }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.msg || body.message || body.error_description || 'Login code exchange failed.');
+    saveSession({ access_token: body.access_token, refresh_token: body.refresh_token, expires_at: body.expires_at || (Math.floor(Date.now()/1000) + (body.expires_in || 3600)) });
+    localStorage.removeItem(PKCE_KEY);
+    window.history.replaceState({}, document.title, url.pathname + url.search.replace(/([?&])code=[^&]+&?/, '$1').replace(/[?&]$/, ''));
+    return;
+  }
+  const accessToken = hash.get('access_token');
+  if (accessToken) {
+    saveSession({ access_token: accessToken, refresh_token: hash.get('refresh_token') || undefined, expires_at: Number(hash.get('expires_at') || 0) || undefined });
+    window.history.replaceState({}, document.title, url.pathname + url.search);
+  }
+}
+
+export async function refreshAuthSession() {
+  const session = getSession();
+  if (!session?.refresh_token || !session.expires_at || session.expires_at > Math.floor(Date.now()/1000) + 60) return session;
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: session.refresh_token }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) { clearSession(); throw new Error(body.msg || 'Session expired. Please sign in again.'); }
+  const next = { access_token: body.access_token, refresh_token: body.refresh_token, expires_at: body.expires_at || (Math.floor(Date.now()/1000)+(body.expires_in||3600)) };
+  saveSession(next); return next;
+}
+
+export function signOut() { clearSession(); localStorage.removeItem(PKCE_KEY); window.location.assign('/'); }
 
 export async function loadPublicData() {
   const read = async (table: string, query: Record<string, string>) => {
