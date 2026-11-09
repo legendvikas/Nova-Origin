@@ -38,3 +38,6 @@
 
 .no-result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.no-result-card{min-height:150px;padding:22px;background:#111613;border:1px solid #ffffff18;display:flex;flex-direction:column;align-items:flex-start;gap:9px}.no-result-card svg{color:var(--no-lime)}.no-result-card span{font:800 19px 'Barlow Condensed';color:var(--no-white)}.no-result-card b{font:800 24px 'Barlow Condensed';color:var(--no-lime)}.no-result-card small{font:8px 'DM Mono';color:#8b9585;letter-spacing:.6px}.no-match-side{display:flex;align-items:center;gap:12px}.no-match-side i{font:8px 'DM Mono';font-style:normal;color:var(--no-lime)}.no-match-side b,.no-match-pending{font:800 14px 'Barlow Condensed';color:#e5ebdf}.no-match-pending{font-size:10px;color:#929b8c;letter-spacing:.7px}
 @media(max-width:760px){.no-result-grid{grid-template-columns:1fr 1fr}.no-result-card{padding:16px}.no-result-card span{font-size:16px}.no-match-versus{gap:8px;flex-wrap:wrap}.no-match-side{gap:7px}}
+
+
+.no-detail-section{margin-top:58px}.no-detail-section>.no-kicker{margin-bottom:22px;display:inline-flex}.no-detail-section .no-team-list,.no-detail-section .no-event-grid{margin-top:8px}
