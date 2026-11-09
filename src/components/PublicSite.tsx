@@ -104,7 +104,12 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     setMeta('meta[name="twitter:card"]', 'content', 'summary_large_image', () => { const e=document.createElement('meta'); e.name='twitter:card'; return e; });
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-    canonical.href = 'https://nova-origin-esports.vercel.app' + (path === '/' ? '/' : path);
+    canonical.href = managed?.canonical_url || ('https://nova-origin-esports.vercel.app' + (path === '/' ? '/' : path));
+    if (managed?.og_image_url) {
+      setMeta('meta[property="og:image"]', 'content', managed.og_image_url, () => { const e=document.createElement('meta'); e.setAttribute('property','og:image'); return e; });
+      setMeta('meta[name="twitter:image"]', 'content', managed.og_image_url, () => { const e=document.createElement('meta'); e.name='twitter:image'; return e; });
+    }
+    setMeta('meta[name="robots"]', 'content', managed?.robots_index === false ? 'noindex, nofollow' : 'index, follow', () => { const e=document.createElement('meta'); e.name='robots'; return e; });
   }, [path, managedSeo, customPages]);
 
   useEffect(() => {
@@ -408,7 +413,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <div className="no-topline"><span><i/> NOVA ORIGIN</span><span>BUILT FOR THE NEXT LEVEL</span><span>INDIA · ESPORTS</span></div>
     <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
       <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark">N<i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
-      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>[item.label,item.href] as [string,string]) : NAV).map(([label, to]) => <a key={to} href={to} className={path === to ? 'active' : ''} onClick={e => {e.preventDefault();navigate(to);}}>{label}</a>)}</nav>
+      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>({label:item.label,href:item.href,external:!!item.open_in_new_tab})) : NAV.map(([label,href])=>({label,href,external:false}))).map(item => <a key={item.href} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} className={path === item.href ? 'active' : ''} onClick={e => {if(!item.external){e.preventDefault();navigate(item.href);}}}>{item.label}</a>)}</nav>
       <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-auth-btn" onClick={()=>{setAuthOpen(true);setAuthError('');setAuthNotice('');}}>{authUser ? (authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'ACCOUNT') : 'SIGN IN'} <ArrowUpRight size={13}/></button><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
     <main>{path === '/' ? home() : contentPage()}</main>
