@@ -47,6 +47,8 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [authError, setAuthError] = useState('');
   const [authNotice, setAuthNotice] = useState('');
   const [authUser, setAuthUser] = useState<NovaUser|null>(null);
+  const [managedNavigation, setManagedNavigation] = useState<any[]>([]);
+  const [managedSeo, setManagedSeo] = useState<any[]>([]);
 
   useEffect(() => {
     const onPop = () => { setPath(window.location.pathname.replace(/\/$/, '') || '/'); setMenuOpen(false); };
@@ -54,6 +56,12 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     window.addEventListener('popstate', onPop);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => { window.removeEventListener('popstate', onPop); window.removeEventListener('scroll', onScroll); };
+  }, []);
+
+  useEffect(() => {
+    let live=true;
+    Promise.all([api<any[]>('site_navigation',{select:'id,label,href,display_order,is_visible',is_visible:'eq.true',order:'display_order.asc'}).catch(()=>[]),api<any[]>('seo_metadata',{select:'route_path,page_title,meta_description,canonical_url,og_image_url,robots_index'}).catch(()=>[])]).then(([nav,seo])=>{if(live){setManagedNavigation(nav);setManagedSeo(seo);}});
+    return ()=>{live=false;};
   }, []);
 
   useEffect(() => {
@@ -73,20 +81,23 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       join: ['Join NOVA ORIGIN', 'Send an application enquiry to become part of the NOVA Origin esports community.']
     };
     const [title, description] = seo[route] || [`NOVA ORIGIN — ${routeLabel.toUpperCase()}`, 'Explore this NOVA Origin esports profile, event or update.'];
-    document.title = title;
+    const managed = managedSeo.find(item=>item.route_path===path || item.route_path==='/'+route || (route==='home' && item.route_path==='/'));
+    const finalTitle=managed?.page_title || title;
+    const finalDescription=managed?.meta_description || description;
+    document.title = finalTitle;
     const setMeta = (selector: string, attr: 'content', value: string, create: () => HTMLElement) => {
       let el = document.querySelector(selector) as HTMLMetaElement | null;
       if (!el) { el = create() as HTMLMetaElement; document.head.appendChild(el); }
       el.setAttribute(attr, value);
     };
-    setMeta('meta[name="description"]', 'content', description, () => { const e=document.createElement('meta'); e.name='description'; return e; });
-    setMeta('meta[property="og:title"]', 'content', title, () => { const e=document.createElement('meta'); e.setAttribute('property','og:title'); return e; });
-    setMeta('meta[property="og:description"]', 'content', description, () => { const e=document.createElement('meta'); e.setAttribute('property','og:description'); return e; });
+    setMeta('meta[name="description"]', 'content', finalDescription, () => { const e=document.createElement('meta'); e.name='description'; return e; });
+    setMeta('meta[property="og:title"]', 'content', finalTitle, () => { const e=document.createElement('meta'); e.setAttribute('property','og:title'); return e; });
+    setMeta('meta[property="og:description"]', 'content', finalDescription, () => { const e=document.createElement('meta'); e.setAttribute('property','og:description'); return e; });
     setMeta('meta[name="twitter:card"]', 'content', 'summary_large_image', () => { const e=document.createElement('meta'); e.name='twitter:card'; return e; });
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
     canonical.href = 'https://nova-origin-esports.vercel.app' + (path === '/' ? '/' : path);
-  }, [path]);
+  }, [path, managedSeo]);
 
   useEffect(() => {
     let live = true;
@@ -379,7 +390,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <div className="no-topline"><span><i/> NOVA ORIGIN</span><span>BUILT FOR THE NEXT LEVEL</span><span>INDIA · ESPORTS</span></div>
     <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
       <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark">N<i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
-      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{NAV.map(([label, to]) => <a key={to} href={to} className={path === to ? 'active' : ''} onClick={e => {e.preventDefault();navigate(to);}}>{label}</a>)}</nav>
+      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>[item.label,item.href] as [string,string]) : NAV).map(([label, to]) => <a key={to} href={to} className={path === to ? 'active' : ''} onClick={e => {e.preventDefault();navigate(to);}}>{label}</a>)}</nav>
       <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-auth-btn" onClick={()=>{setAuthOpen(true);setAuthError('');setAuthNotice('');}}>{authUser ? (authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'ACCOUNT') : 'SIGN IN'} <ArrowUpRight size={13}/></button><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
     <main>{path === '/' ? home() : contentPage()}</main>
