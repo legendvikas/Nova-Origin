@@ -11,7 +11,7 @@ type Props = {
   loading: boolean;
   onOpenAdmin: () => void;
 };
-type ExtraData = { matches: any[]; players: any[]; members: any[]; sponsors: any[]; results: any[] };
+type ExtraData = { matches: any[]; players: any[]; members: any[]; profiles: any[]; sponsors: any[]; results: any[] };
 
 const NAV = [
   ['HOME', '/'], ['ABOUT', '/about'], ['GAMES', '/games'], ['TEAMS', '/teams'],
@@ -27,7 +27,7 @@ const safeHref = (value?: string) => value && /^https?:\/\//i.test(value) ? valu
 export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [path, setPath] = useState(window.location.pathname.replace(/\/$/, '') || '/');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [extra, setExtra] = useState<ExtraData>({ matches: [], players: [], members: [], sponsors: [], results: [] });
+  const [extra, setExtra] = useState<ExtraData>({ matches: [], players: [], members: [], profiles: [], sponsors: [], results: [] });
   const [extraLoading, setExtraLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
 
@@ -60,12 +60,14 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     (async () => {
       const [matches, players, members, sponsors, results] = await Promise.all([
         read('matches', { select: 'id,tournament_id,match_number,stage,round_name,scheduled_at,status,result_status,tournament:tournaments(title,game:games(name))', order: 'scheduled_at.asc.nullslast', limit: '12' }),
-        read('player_game_stats', { select: 'id,player_id,game_id,kd_ratio,average_damage,matches_played,wins,eliminations,source_label,player:profiles(username,display_name,avatar_url,bio),game:games(name)', verified_at: 'not.is.null', order: 'matches_played.desc', limit: '12' }),
+        read('player_game_stats', { select: 'id,player_id,game_id,kd_ratio,average_damage,matches_played,wins,eliminations,source_label,player:profiles(username,display_name,avatar_url,bio),game:games(name)', source_label: 'eq.verified', order: 'matches_played.desc', limit: '12' }),
         read('team_members', { select: 'id,team_id,user_id,team_role', limit: '250' }),
         read('sponsors', { select: 'id,name,logo_url,website_url,description,status', status: 'eq.active', order: 'created_at.desc', limit: '12' }),
         read('match_results', { select: 'id,match_id,team_id,player_id,placement,eliminations,points,status,verified_at,team:teams(name,team_tag),player:profiles(username,display_name),match:matches(tournament_id,match_number,round_name,scheduled_at)', status: 'eq.verified', order: 'created_at.desc', limit: '30' })
       ]);
-      if (live) { setExtra({ matches, players, members, sponsors, results }); setExtraLoading(false); }
+      const profileIds = [...new Set(members.map((m: any) => m.user_id).filter(Boolean))];
+      const profiles = profileIds.length ? await read('profiles', { select: 'id,username,display_name,avatar_url,bio', id: 'in.(' + profileIds.join(',') + ')', limit: '250' }) : [];
+      if (live) { setExtra({ matches, players, members, profiles, sponsors, results }); setExtraLoading(false); }
     })();
     return () => { live = false; };
   }, []);
@@ -188,12 +190,10 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     }
     if (currentTeam) {
       const teamResults = extra.results.filter((r:any) => r.team_id === currentTeam.id && r.verified_at);
-      const teamMatches = extra.matches.filter((m:any) => teamResults.some((r:any) => r.match_id === m.id));
-      return <DetailShell kicker="TEAM PROFILE" title={currentTeam.name} copy={currentTeam.description || 'One roster. One standard. Built to rise.'}>
-        <div className="no-detail-grid"><div className="no-detail-emblem">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt=""/> : <Shield size={70}/>}</div><div><span className="no-kicker">{currentTeam.team_tag || 'NOVA'} / {data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS'}</span><p>Follow this roster's published appearances and verified competitive results.</p><p className="no-muted">{teamResults.length} verified result records</p><button className="no-btn" onClick={() => navigate('/players')}>EXPLORE PLAYERS <ArrowUpRight size={16}/></button></div></div>
-        <div className="no-detail-section"><span className="no-kicker">RECENT MATCHES</span><div className="no-match-list">{teamMatches.map((m:any)=><article className="no-match-card" key={m.id}><div><small>{m.tournament?.title || 'NOVA MATCH'}</small><h3>{m.round_name || m.stage || 'MATCH '+m.match_number}</h3><span>{dateLabel(m.scheduled_at)}</span></div><span className={'no-match-status '+(m.status==='live'?'is-live':'')}>{clean(m.status)}</span></article>)}{!teamMatches.length && <Empty text="No published match appearances for this team yet."/>}</div></div>
-        <div className="no-detail-section"><span className="no-kicker">VERIFIED RESULTS</span><div className="no-result-grid">{teamResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{currentTeam.name}</span><b>{r.placement ? 'PLACE #'+r.placement : (r.points ?? '—')+' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!teamResults.length && <Empty text="Verified team achievements will appear here when recorded."/>}</div></div>
-      </DetailShell>;
+      const roster = extra.members.filter((m:any) => m.team_id === currentTeam.id).map((m:any) => ({ ...m, profile: extra.profiles.find((p:any) => p.id === m.user_id) })).filter((m:any) => m.profile);
+      return <><DetailShell kicker="TEAM PROFILE" title={currentTeam.name} copy={currentTeam.description || 'One roster. One standard. Built to rise.'}>
+        <div className="no-detail-grid"><div className="no-detail-emblem">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt=""/> : <Shield size={70}/>}</div><div><span className="no-kicker">{currentTeam.team_tag || 'NOVA'} / {data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS'}</span><p>Follow this roster's published appearances and verified competitive results.</p><p className="no-muted">{roster.length} public roster members · {teamResults.length} verified result records</p></div></div>
+      </DetailShell><section className="no-section"><div className="no-section-head"><div><span className="no-kicker">TEAM / ROSTER</span><h2>THE PEOPLE<br/><em>BEHIND THE TAG.</em></h2></div><p>Public roster members only.</p></div><div className="no-player-grid">{roster.map((m:any,i:number)=><article className="no-player-card" key={m.id}><div className="no-player-photo">{m.profile.avatar_url ? <img src={m.profile.avatar_url} alt=""/> : <Users size={34}/>}<span>0{i+1}</span></div><small>{clean(m.team_role)}</small><h3>{m.profile.display_name || m.profile.username}</h3>{m.profile.username && <a className="no-section-link" href={'/players/'+m.profile.username} onClick={e=>{e.preventDefault();navigate('/players/'+m.profile.username);}}>PLAYER PROFILE <ArrowUpRight size={14}/></a>}</article>)}{!extraLoading && !roster.length && <Empty text="No public roster members are listed yet."/>}</div></section></>;
     }
     if (currentTournament) {
       const eventMatches = extra.matches.filter((m:any) => m.tournament_id === currentTournament.id);
