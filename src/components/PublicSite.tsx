@@ -92,8 +92,9 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   }, []);
 
   const navigate = (to: string) => {
-    window.history.pushState({}, '', to);
-    setPath(to.replace(/\/$/, '') || '/');
+    const target = new URL(to, window.location.origin);
+    window.history.pushState({}, '', target.pathname + target.search + target.hash);
+    setPath(target.pathname.replace(/\/$/, '') || '/');
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -153,7 +154,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         <div className="no-event-art" style={safeHref(event.banner_url) ? { backgroundImage: 'linear-gradient(180deg,#080a0988,#080a09dd),url(' + event.banner_url + ')' } : undefined}>
           <span className={'no-event-status ' + (event.status === 'live' ? 'is-live' : '')}><i/> {clean(event.status)}</span><Trophy size={38}/><span className="no-event-format">{clean(event.format || 'TOURNAMENT')}</span>
         </div>
-        <div className="no-event-body"><small>{event.game?.name || 'NOVA COMPETITION'}</small><h3>{event.title}</h3><p>{event.summary || 'The next challenge starts here.'}</p><div className="no-event-foot"><span>{dateLabel(event.starts_at)}</span><b>{event.prize_description || (event.team_size ? event.team_size + ' PLAYER FORMAT' : 'DETAILS INSIDE')}</b></div>
+        <div className="no-event-body"><small>{event.game?.name || 'NOVA COMPETITION'}</small><h3>{event.title}</h3><p>{event.summary || 'The next challenge starts here.'}</p><div className="no-event-foot"><span>{dateLabel(event.starts_at)}</span><b>{event.prize_description || (event.team_size ? event.team_size + ' PLAYER FORMAT' : 'DETAILS INSIDE')}</b></div><div className="no-event-meta"><span>{event.max_entries} MAX ENTRIES</span><span>{clean(event.entry_type || 'free')} ENTRY</span><span>{clean(event.game_mode?.name || event.format || 'TOURNAMENT')}</span></div>
           <button onClick={() => navigate('/tournaments/' + (event.slug || event.id))}>VIEW EVENT <ArrowUpRight size={15}/></button>
         </div>
       </article>)}
@@ -224,7 +225,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       const eventMatches = extra.matches.filter((m:any) => m.tournament_id === currentTournament.id);
       const eventResults = extra.results.filter((r:any) => r.match?.tournament_id === currentTournament.id && r.verified_at);
       return <DetailShell kicker="TOURNAMENT / EVENT" title={currentTournament.title} copy={currentTournament.description || currentTournament.summary || 'The next battle begins.'}>
-        <div className="no-detail-grid"><div className="no-detail-emblem">{safeHref(currentTournament.banner_url) ? <img src={currentTournament.banner_url} alt="" /> : <Trophy size={70}/>}</div><div><span className="no-kicker">{clean(currentTournament.status)} / {currentTournament.game?.name || 'NOVA EVENT'}</span><p>{currentTournament.prize_description || 'Event details and schedule will be published here.'}</p><p className="no-muted">Starts {dateLabel(currentTournament.starts_at)} · {currentTournament.team_size || '—'} player format</p><p className="no-muted">Registration: {currentTournament.status === 'registration_open' ? 'Open according to published event status' : 'Not currently open'}</p><a className="no-btn" href="mailto:hello@novaorigin.gg?subject=NOVA%20Tournament%20Enquiry">EVENT ENQUIRY <ArrowUpRight size={16}/></a></div></div>
+        <div className="no-detail-grid"><div className="no-detail-emblem">{safeHref(currentTournament.banner_url) ? <img src={currentTournament.banner_url} alt="" /> : <Trophy size={70}/>}</div><div><span className="no-kicker">{clean(currentTournament.status)} / {currentTournament.game?.name || 'NOVA EVENT'}</span><p>{currentTournament.prize_description || 'Event details and schedule will be published here.'}</p><div className="no-tournament-facts"><span><small>GAME MODE</small><b>{currentTournament.game_mode?.name || clean(currentTournament.format || 'TOURNAMENT')}</b></span><span><small>TEAM SIZE</small><b>{currentTournament.team_size || '—'} PLAYERS</b></span><span><small>MAX ENTRIES</small><b>{currentTournament.max_entries || '—'}</b></span><span><small>ENTRY</small><b>{clean(currentTournament.entry_type || 'free')}</b></span><span><small>EVENT START</small><b>{dateLabel(currentTournament.starts_at)}</b></span><span><small>EVENT END</small><b>{dateLabel(currentTournament.ends_at)}</b></span><span><small>REGISTRATION OPENS</small><b>{dateLabel(currentTournament.registration_opens_at)}</b></span><span><small>REGISTRATION CLOSES</small><b>{dateLabel(currentTournament.registration_closes_at)}</b></span></div><p className="no-muted">Registration status: {currentTournament.status === 'registration_open' ? 'Open according to the published event status' : currentTournament.status === 'registration_closed' ? 'Closed' : 'Not currently open'}</p><button className="no-btn" onClick={()=>navigate('/contact?message='+encodeURIComponent('I would like to enquire about tournament: '+currentTournament.title+'. Please share the event and registration details.'))}>EVENT ENQUIRY <ArrowUpRight size={16}/></button></div></div>
         <div className="no-detail-section"><span className="no-kicker">EVENT SCHEDULE / {eventMatches.length.toString().padStart(2,'0')} MATCHES</span><div className="no-match-list">{eventMatches.map((m:any)=><article className="no-match-card" key={m.id}><div><small>{currentTournament.title}</small><h3>{m.round_name || m.stage || 'MATCH '+m.match_number}</h3><span>{dateLabel(m.scheduled_at)}</span></div><span className={'no-match-status '+(m.status==='live'?'is-live':'')}>{clean(m.status)}</span></article>)}{!eventMatches.length && <Empty text="The tournament schedule has not been published yet."/>}</div></div>
         <div className="no-detail-section"><span className="no-kicker">VERIFIED RESULTS / {eventResults.length.toString().padStart(2,'0')}</span><div className="no-result-grid">{eventResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{r.team?.name || r.player?.display_name || r.player?.username || 'COMPETITOR'}</span><b>{r.placement ? 'PLACE #'+r.placement : (r.points ?? '—')+' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!eventResults.length && <Empty text="Verified results will appear here when matches are completed and reviewed."/>}</div></div>
       </DetailShell>;
@@ -318,7 +319,7 @@ function ContactBlock({ join = false }: { join?: boolean }) {
   const [name,setName]=useState('');
   const [email,setEmail]=useState('');
   const [kind,setKind]=useState(join?'Player application':'General enquiry');
-  const [message,setMessage]=useState('');
+  const [message,setMessage]=useState(()=>new URLSearchParams(window.location.search).get('message') || '');
   const [website,setWebsite]=useState('');
   const [error,setError]=useState('');
   const [sending,setSending]=useState(false);
