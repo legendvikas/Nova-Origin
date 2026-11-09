@@ -4,7 +4,7 @@ import {
   Radio, Instagram, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
-import { api } from '../lib/supabase';
+import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, type NovaUser } from '../lib/supabase';
 
 type Props = {
   data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[] };
@@ -30,6 +30,15 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [extra, setExtra] = useState<ExtraData>({ matches: [], players: [], members: [], profiles: [], sponsors: [], results: [] });
   const [extraLoading, setExtraLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin'|'signup'>('signin');
+  const [authName, setAuthName] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [authNotice, setAuthNotice] = useState('');
+  const [authUser, setAuthUser] = useState<NovaUser|null>(null);
 
   useEffect(() => {
     const onPop = () => { setPath(window.location.pathname.replace(/\/$/, '') || '/'); setMenuOpen(false); };
@@ -90,6 +99,41 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     })();
     return () => { live = false; };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const session = await getValidSession();
+      if (!session) return;
+      try { const user = await currentUser(session.access_token); if (active) setAuthUser(user); }
+      catch { signOut(); }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  const submitAuth = async (e: FormEvent) => {
+    e.preventDefault(); setAuthError(''); setAuthNotice(''); setAuthBusy(true);
+    try {
+      if (authMode === 'signup') {
+        const result = await signUpWithEmail(authEmail, authPassword, authName);
+        if (result.access_token) {
+          const session = await getValidSession();
+          if (session) setAuthUser(await currentUser(session.access_token));
+          setAuthNotice('Your NOVA account is ready.');
+        } else {
+          setAuthNotice('Check your email and confirm your address to finish creating your account, then sign in.');
+          setAuthMode('signin');
+        }
+      } else {
+        const result = await signInWithEmail(authEmail, authPassword);
+        setAuthUser(await currentUser(result.access_token));
+        setAuthNotice('You are signed in.');
+      }
+      setAuthPassword('');
+    } catch (error: any) {
+      setAuthError(error?.message || 'Could not complete sign in. Please try again.');
+    } finally { setAuthBusy(false); }
+  };
 
   const navigate = (to: string) => {
     const target = new URL(to, window.location.origin);
@@ -303,9 +347,31 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
       <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark">N<i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
       <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{NAV.map(([label, to]) => <a key={to} href={to} className={path === to ? 'active' : ''} onClick={e => {e.preventDefault();navigate(to);}}>{label}</a>)}</nav>
-      <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
+      <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-auth-btn" onClick={()=>{setAuthOpen(true);setAuthError('');setAuthNotice('');}}>{authUser ? (authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'ACCOUNT') : 'SIGN IN'} <ArrowUpRight size={13}/></button><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
     <main>{path === '/' ? home() : contentPage()}</main>
+    {authOpen && <div className="no-auth-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setAuthOpen(false);}}>
+      <section className="no-auth-dialog" role="dialog" aria-modal="true" aria-labelledby="no-auth-title">
+        <button className="no-auth-close" onClick={()=>setAuthOpen(false)} aria-label="Close sign in"><X size={20}/></button>
+        {authUser ? <>
+          <span className="no-kicker">NOVA ID / ACCOUNT</span><h2 id="no-auth-title">WELCOME<br/><em>BACK.</em></h2>
+          <p className="no-auth-copy">{authUser.email || 'Signed-in NOVA member'}</p>
+          <button className="no-btn" onClick={()=>{signOut();setAuthUser(null);setAuthOpen(false);}}>SIGN OUT <ArrowUpRight size={15}/></button>
+        </> : <>
+          <span className="no-kicker">NOVA ID / PLAYER ACCESS</span><h2 id="no-auth-title">{authMode==='signin'?'SIGN IN TO':'CREATE YOUR'}<br/><em>NOVA ID.</em></h2>
+          <p className="no-auth-copy">Use your email to access your NOVA Origin account. Tournament entry is subject to each event's published rules.</p>
+          <form className="no-auth-form" onSubmit={submitAuth}>
+            {authMode==='signup' && <label>DISPLAY NAME<input value={authName} onChange={e=>setAuthName(e.target.value)} required minLength={2} maxLength={60} autoComplete="name"/></label>}
+            <label>EMAIL ADDRESS<input type="email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} required autoComplete="email"/></label>
+            <label>PASSWORD<input type="password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} required minLength={8} autoComplete={authMode==='signin'?'current-password':'new-password'}/></label>
+            {authError && <p className="no-auth-error" role="alert">{authError}</p>}
+            {authNotice && <p className="no-auth-notice" role="status">{authNotice}</p>}
+            <button className="no-btn" type="submit" disabled={authBusy}>{authBusy?'PLEASE WAIT…':authMode==='signin'?'SIGN IN':'CREATE ACCOUNT'} <ArrowUpRight size={15}/></button>
+          </form>
+          <button className="no-auth-switch" onClick={()=>{setAuthMode(authMode==='signin'?'signup':'signin');setAuthError('');setAuthNotice('');}}>{authMode==='signin'?'NEW TO NOVA? CREATE AN ACCOUNT':'ALREADY HAVE AN ACCOUNT? SIGN IN'}</button>
+        </>}
+      </section>
+    </div>}
     <footer className="no-footer"><div className="no-footer-main"><button className="no-brand" onClick={() => navigate('/')}><span className="no-brand-mark">N<i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="no-footer-social"><a href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Social" aria-label="Social enquiries"><Instagram/></a><a href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Media" aria-label="Media enquiries"><Youtube/></a><a href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Community" aria-label="Community enquiries"><Disc3/></a></div></div><div className="no-footer-links"><div><b>EXPLORE</b>{NAV.slice(1,6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>COMPETE</b>{NAV.slice(6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>CONTACT</b><a href="mailto:hello@novaorigin.gg">hello@novaorigin.gg</a><button onClick={onOpenAdmin}>ADMIN ACCESS <ArrowUpRight size={13}/></button></div></div><div className="no-footer-bottom"><span>© {new Date().getFullYear()} NOVA ORIGIN. ALL SYSTEMS NOMINAL.</span><span>THE NEXT WAVE OF COMPETITION.</span></div></footer>
   </div>;
 }
