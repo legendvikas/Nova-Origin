@@ -101,8 +101,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         read('sponsors', { select: 'id,name,logo_url,website_url,description,status', status: 'eq.active', order: 'created_at.desc', limit: '12' }),
         read('match_results', { select: 'id,match_id,team_id,player_id,placement,eliminations,points,status,verified_at,team:teams(name,team_tag),player:profiles(username,display_name),match:matches(tournament_id,match_number,round_name,scheduled_at)', status: 'eq.verified', order: 'created_at.desc', limit: '30' })
       ]);
-      const profileIds = [...new Set(members.map((m: any) => m.user_id).filter(Boolean))];
-      const profiles = profileIds.length ? await read('profiles', { select: 'id,username,display_name,avatar_url,bio', id: 'in.(' + profileIds.join(',') + ')', limit: '250' }) : [];
+      const profiles = await read('profiles', { select: 'id,username,display_name,avatar_url,bio', order: 'created_at.asc', limit: '100' });
       if (live) { setExtra({ matches, players, members, profiles, sponsors, results }); setExtraLoading(false); }
     })();
     return () => { live = false; };
@@ -288,6 +287,25 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         <div className="no-detail-section"><span className="no-kicker">EVENT SCHEDULE / {eventMatches.length.toString().padStart(2,'0')} MATCHES</span><div className="no-match-list">{eventMatches.map((m:any)=><article className="no-match-card" key={m.id}><div><small>{currentTournament.title}</small><h3>{m.round_name || m.stage || 'MATCH '+m.match_number}</h3><span>{dateLabel(m.scheduled_at)}</span></div><span className={'no-match-status '+(m.status==='live'?'is-live':'')}>{clean(m.status)}</span></article>)}{!eventMatches.length && <Empty text="The tournament schedule has not been published yet."/>}</div></div>
         <div className="no-detail-section"><span className="no-kicker">VERIFIED RESULTS / {eventResults.length.toString().padStart(2,'0')}</span><div className="no-result-grid">{eventResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{r.team?.name || r.player?.display_name || r.player?.username || 'COMPETITOR'}</span><b>{r.placement ? 'PLACE #'+r.placement : (r.points ?? '—')+' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!eventResults.length && <Empty text="Verified results will appear here when matches are completed and reviewed."/>}</div></div>
       </DetailShell>;
+    }
+    if (route[0] === 'players' && !slug) {
+      return <>
+        <PageHero kicker="NOVA ROSTER / PLAYER DIRECTORY" title="MEET THE" accent="PLAYERS." copy="Public NOVA Origin member profiles. Competitive statistics appear only when verified." />
+        <section className="no-section">
+          <div className="no-player-grid">
+            {extra.profiles.map((profile:any) => {
+              const stats = extra.players.filter((item:any) => item.player_id === profile.id);
+              return <a className="no-player-card" key={profile.id} href={'/players/' + (profile.username || profile.id)} onClick={e => { e.preventDefault(); navigate('/players/' + (profile.username || profile.id)); }}>
+                <div className="no-player-photo">{profile.avatar_url ? <img src={profile.avatar_url} alt="" /> : <Users size={34}/>}<span> NOVA MEMBER </span></div>
+                <small>PLAYER PROFILE</small><h3>{profile.display_name || profile.username || 'NOVA PLAYER'}</h3>
+                {profile.bio && <p>{profile.bio}</p>}
+                {stats.length > 0 && <div className="no-player-stats"><span><b>{stats.length}</b>VERIFIED RECORDS</span></div>}
+              </a>;
+            })}
+            {!extraLoading && !extra.profiles.length && <Empty text="No public player profiles are available yet."/>}
+          </div>
+        </section>
+      </>;
     }
     if (currentPlayer) {
       const playerId = currentPlayer.player_id;
