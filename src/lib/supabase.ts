@@ -63,10 +63,10 @@ export async function sendAdminLoginLink(email: string) {
   const cleanEmail = email.trim().toLowerCase();
   if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) throw new Error('Valid email address enter karo.');
   const challenge = await createPkcePair();
-  const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(window.location.origin)}`, {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: cleanEmail, create_user: false, gotrue_meta_security: {}, code_challenge: challenge, code_challenge_method: 's256', redirect_to: window.location.origin }),
+    body: JSON.stringify({ email: cleanEmail, create_user: false, gotrue_meta_security: {}, code_challenge: challenge, code_challenge_method: 's256' }),
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
