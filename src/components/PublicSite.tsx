@@ -24,6 +24,14 @@ const dateLabel = (value?: string) => value ? new Date(value).toLocaleDateString
 const slugOf = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const safeHref = (value?: string) => value && /^https?:\/\//i.test(value) ? value : undefined;
 
+// Restored legacy NOVA roster: public team labels only, with no invented statistics.
+const LEGACY_ROSTER = [
+  { name: 'VIKAS', tag: 'NOVA VIKAS', role: 'IGL', number: '01', initial: 'V' },
+  { name: 'DEEPAK', tag: 'NOVA DEEPAK', role: 'RUSHER', number: '02', initial: 'D' },
+  { name: 'SATYAM', tag: 'NOVA SATYAM', role: 'SNIPER', number: '03', initial: 'S' },
+  { name: 'ANIKET', tag: 'NOVA ANIKET', role: 'SECONDARY RUSHER', number: '04', initial: 'A' }
+];
+
 export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [path, setPath] = useState(window.location.pathname.replace(/\/$/, '') || '/');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -211,12 +219,16 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
 
   const playerCards = (items = extra.players) => (
     <div className="no-player-grid">
-      {items.map((stat: any, i: number) => <a className="no-player-card" href={'/players/' + (stat.player?.username || stat.player_id)} key={stat.id} onClick={e => { e.preventDefault(); navigate('/players/' + (stat.player?.username || stat.player_id)); }}>
-        <div className="no-player-photo">{stat.player?.avatar_url ? <img src={stat.player.avatar_url} alt=""/> : <Users size={34}/>}<span>0{i + 1}</span></div>
+      {LEGACY_ROSTER.map(player => <article className="no-player-card no-legacy-player-card" key={player.number}>
+        <div className="no-player-photo no-legacy-player-photo"><strong>{player.initial}</strong><span>PLAYER {player.number}</span></div>
+        <small>{player.role}</small><h3>{player.name}</h3>
+        <div className="no-legacy-player-tag">{player.tag}</div>
+      </article>)}
+      {items.map((stat: any) => <a className="no-player-card" href={'/players/' + (stat.player?.username || stat.player_id)} key={stat.id} onClick={e => { e.preventDefault(); navigate('/players/' + (stat.player?.username || stat.player_id)); }}>
+        <div className="no-player-photo">{stat.player?.avatar_url ? <img src={stat.player.avatar_url} alt=""/> : <Users size={34}/>}<span>VERIFIED</span></div>
         <small>{stat.game?.name || 'NOVA PLAYER'}</small><h3>{stat.player?.display_name || stat.player?.username || 'PLAYER'}</h3>
         <div className="no-player-stats"><span><b>{stat.kd_ratio ?? '—'}</b>K/D</span><span><b>{stat.matches_played ?? '—'}</b>MATCHES</span><span><b>{stat.wins ?? '—'}</b>WINS</span></div>
       </a>)}
-      {!extraLoading && !items.length && <Empty text="Verified public player profiles will appear here."/>}
     </div>
   );
 
@@ -308,7 +320,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       about: { kicker: 'THE NOVA STORY', title: 'MORE THAN', accent: 'A MOVEMENT.', copy: 'We are a collective of players, creators and competitors building a culture around commitment, community and competition.' },
       games: { kicker: 'OUR ARENA', title: 'THE GAMES', accent: 'WE PLAY.', copy: 'Different battlegrounds. One standard: excellence.' },
       teams: { kicker: 'THE COLLECTIVE', title: 'BUILT AS ONE.', accent: 'PLAY AS MANY.', copy: 'Every role matters. Every player moves the team forward.' },
-      players: { kicker: 'THE ROSTER', title: 'MEET THE', accent: 'PLAYERS.', copy: 'Public player profiles and verified competitive statistics.' },
+      players: { kicker: 'THE ROSTER', title: 'MEET THE', accent: 'PLAYERS.', copy: 'The NOVA Origin team roster, alongside verified competitive statistics.' },
       tournaments: { kicker: 'THE CIRCUIT', title: 'THE NEXT', accent: 'BATTLE BEGINS.', copy: 'Discover upcoming and live competitions from the NOVA ecosystem.' },
       matches: { kicker: 'LIVE COMPETITION', title: 'MATCH', accent: 'CENTER.', copy: 'Schedules and confirmed match status from the competition database.' },
       news: { kicker: 'TRANSMISSIONS', title: 'LATEST', accent: 'INTELLIGENCE.', copy: 'Official announcements and updates from across NOVA Origin.' },
@@ -335,7 +347,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <section className="no-section">{sectionTitle('01','OUR ARENA','THE GAMES','WE PLAY.','Different battlegrounds. One standard: excellence.')}{gameCards(data.games.slice(0,3))}<div className="no-section-link">{link('/games','EXPLORE ALL GAMES')}<ArrowUpRight size={15}/></div></section>
     <section className="no-band"><div className="no-section">{sectionTitle('02','THE COLLECTIVE','BUILT AS ONE.','PLAY AS MANY.','Every role matters. Every player moves the team forward.')}{teamCards(data.teams.slice(0,5))}<div className="no-section-link">{link('/teams','VIEW THE FULL ROSTER')}<ArrowUpRight size={15}/></div></div></section>
     <section className="no-section">{sectionTitle('03','THE CIRCUIT','THE NEXT','BATTLE BEGINS.','Follow the action, find your next challenge and stay in the loop.')}{eventCards(data.tournaments.slice(0,3))}<div className="no-section-link">{link('/tournaments','ALL TOURNAMENTS')}<ArrowUpRight size={15}/></div></section>
-    <section className="no-band"><div className="no-section">{sectionTitle('04','PLAYER PROFILES','MEET THE','COMPETITORS.','Public profiles with verified stats only.')}{playerCards(extra.players.slice(0,4))}</div></section>
+    <section className="no-band"><div className="no-section">{sectionTitle('04','THE ROSTER','MEET THE','PLAYERS.','The NOVA Origin squad. Verified competitive records appear separately when available.')}{playerCards(extra.players.slice(0,4))}</div></section>
     <section className="no-section">{sectionTitle('05','MATCH CENTER','THE GAME','IS ON.','Schedules and confirmed status. No invented live scores.')}{matchCards()}</section>
     <section className="no-band"><div className="no-section">{sectionTitle('06','VERIFIED RESULTS','THE TROPHY','ROOM.','Milestones from verified match records only.')}
       <div className="no-result-grid">{extra.results.filter((r:any)=>r.verified_at).slice(0,6).map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={22}/><span>{r.team?.name || r.player?.display_name || r.player?.username || 'COMPETITOR'}</span><b>{r.placement ? 'PLACE #' + r.placement : (r.points ?? '—') + ' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!extraLoading && !extra.results.some((r:any)=>r.verified_at) && <Empty text="Verified achievements will appear here once match results are approved."/>}</div>
