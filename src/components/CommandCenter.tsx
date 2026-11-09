@@ -72,7 +72,8 @@ export function Dashboard(props: Props) {
   const [editing,setEditing] = useState<any|null>(null);
   const [form,setForm] = useState<Record<string,any>>({});
   const [busy,setBusy] = useState(false);
-  const [pageSize,setPageSize] = useState(10);\n  const [loginEmail,setLoginEmail] = useState('');
+  const [pageSize,setPageSize] = useState(10);
+  const [loginEmail,setLoginEmail] = useState('');
   const [pageNo,setPageNo] = useState(0);
 
   const load = async () => {
