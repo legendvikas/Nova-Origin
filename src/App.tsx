@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Menu, X, Shield, Trophy, Users, Gamepad2, Zap, ChevronRight, Radio, CalendarDays, Swords, Instagram, Youtube, Disc3, LogIn, Settings2 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
-import { api, completeAuthCallback, currentUser, hasSupabaseConfig, loadPublicData, NovaUser, refreshAuthSession, sendAdminLoginLink, signInWithGoogle, signInWithPassword, signOut } from './lib/supabase';
+import { api, completeAuthCallback, currentUser, hasSupabaseConfig, loadPublicData, NovaUser, refreshAuthSession, signInWithGoogle, signInWithPassword, signOut } from './lib/supabase';
 import './index.css';
 
 type PublicData = Awaited<ReturnType<typeof loadPublicData>>;
