@@ -54,7 +54,7 @@ export async function loadPublicData() {
   };
   const [games, tournaments, teams, announcements, posts] = await Promise.all([
     read('games', { select: 'id,name,slug,publisher,is_active', is_active: 'eq.true', order: 'name.asc' }),
-    read('tournaments', { select: 'id,title,slug,summary,description,banner_url,format,team_size,max_entries,status,starts_at,prize_description,game_id,game:games(name)', status: 'in.(published,registration_open,registration_closed,live)', order: 'starts_at.asc.nullslast', limit: '6' }),
+    read('tournaments', { select: 'id,title,slug,summary,description,banner_url,format,team_size,max_entries,entry_type,status,registration_opens_at,registration_closes_at,starts_at,ends_at,prize_description,game_id,game:games(name),game_mode:game_modes(name)', status: 'in.(published,registration_open,registration_closed,live,completed)', order: 'starts_at.asc.nullslast', limit: '12' }),
     read('teams', { select: 'id,name,team_tag,description,logo_url,game_id,game:games(name)', is_public: 'eq.true', status: 'eq.active', order: 'created_at.desc', limit: '8' }),
     read('announcements', { select: 'id,title,body,audience,published_at,created_at', status: 'eq.published', order: 'published_at.desc.nullslast', limit: '4' }),
     read('social_posts', { select: 'id,content,media_url,media_type,created_at', is_published: 'eq.true', order: 'created_at.desc', limit: '3' }),
