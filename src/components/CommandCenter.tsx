@@ -10,7 +10,7 @@ import {
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { api, hasSupabaseConfig, type NovaUser } from '../lib/supabase';
 
-type Props = { user: NovaUser | null; role: string | null; organizerStatus: string | null; onBack: () => void; onLogin: () => void; onLogout: () => void; authError: string; canManage: boolean; onRefresh: () => Promise<void> };
+type Props = { user: NovaUser | null; role: string | null; organizerStatus: string | null; onBack: () => void; onLogin: () => void; onEmailLogin: (email: string) => Promise<void>; onLogout: () => void; authError: string; canManage: boolean; onRefresh: () => Promise<void> };
 type Field = { key: string; label: string; type?: 'text'|'textarea'|'number'|'date'|'datetime-local'|'url'|'boolean'|'select'; options?: string[]; required?: boolean; hint?: string };
 type Module = { id: string; label: string; group: string; icon: any; table?: string; fields?: Field[]; readOnly?: boolean; description?: string; order?: string; statusField?: string; statusValues?: string[] };
 const modules: Module[] = [
@@ -54,7 +54,7 @@ const toInput = (v:any, type?:string) => type === 'datetime-local' && v ? new Da
 const toPayload = (value:any, fields:Field[]) => Object.fromEntries(fields.filter(f => value[f.key] !== '' && value[f.key] !== undefined).map(f => [f.key, f.type === 'number' ? Number(value[f.key]) : f.type === 'datetime-local' && value[f.key] ? new Date(value[f.key]).toISOString() : value[f.key]]));
 
 export function Dashboard(props: Props) {
-  const {user,role,organizerStatus,onBack,onLogin,onLogout,authError,canManage,onRefresh} = props;
+  const {user,role,organizerStatus,onBack,onLogin,onEmailLogin,onLogout,authError,canManage,onRefresh} = props;
   const [tab,setTab] = useState('overview');
   const [records,setRecords] = useState<Record<string,any[]>>({});
   const [counts,setCounts] = useState<Record<string,number|null>>({});
@@ -72,7 +72,7 @@ export function Dashboard(props: Props) {
   const [editing,setEditing] = useState<any|null>(null);
   const [form,setForm] = useState<Record<string,any>>({});
   const [busy,setBusy] = useState(false);
-  const [pageSize,setPageSize] = useState(10);
+  const [pageSize,setPageSize] = useState(10);\n  const [loginEmail,setLoginEmail] = useState('');
   const [pageNo,setPageNo] = useState(0);
 
   const load = async () => {
@@ -141,7 +141,7 @@ export function Dashboard(props: Props) {
   const statModules = [{id:'members',label:'Registered members',icon:Users,accent:'lime'},{id:'teams',label:'Teams',icon:ShieldCheck,accent:'violet'},{id:'players',label:'Player profiles',icon:Zap,accent:'cyan'},{id:'tournaments',label:'Tournaments',icon:Trophy,accent:'lime'},{id:'matches',label:'Matches',icon:Swords,accent:'violet'},{id:'applications',label:'Registrations',icon:BookOpen,accent:'cyan'}];
 
   if(!hasSupabaseConfig()) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / CONNECTION REQUIRED</span><h1>Connect the<br/><em>control center.</em></h1><p>Supabase URL and publishable key are missing from this deployment. Add the existing project's browser-safe variables to Vercel.</p><code>VITE_SUPABASE_URL</code><code>VITE_SUPABASE_PUBLISHABLE_KEY</code><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Website</button></div></div>;
-  if(!user) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / SECURE ACCESS</span><h1>Enter the<br/><em>command center.</em></h1><p>Sign in with an authorized NOVA Origin account. Access is checked against existing Supabase roles and RLS policies.</p>{authError&&<div className="admin-error">{authError}</div>}<button className="admin-signin" onClick={onLogin}><ShieldCheck size={18}/> Continue with Google</button><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Back to website</button></div></div>;
+  if(!user) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / SECURE ACCESS</span><h1>Enter the<br/><em>command center.</em></h1><p>Authorized NOVA Origin accounts only. Continue with Google or request a secure email sign-in link.</p>{authError&&<div className="admin-error">{authError}</div>}<button className="admin-signin" onClick={onLogin}><ShieldCheck size={18}/> Continue with Google</button><div className="admin-login-divider"><span>OR USE EMAIL</span></div><form className="admin-email-login" onSubmit={e=>{e.preventDefault();if(loginEmail.trim()) void onEmailLogin(loginEmail);}}><input type="email" value={loginEmail} onChange={e=>setLoginEmail(e.target.value)} placeholder="Your authorized email address" autoComplete="email" required/><button className="admin-signin" type="submit"><ArrowUpRight size={18}/> Send secure login link</button></form><small className="admin-login-note">Email login works only for an account that already exists in Supabase. Admin access still requires an approved platform role.</small><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Back to website</button></div></div>;
   if(!canManage) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo"><Lock/></div><span className="admin-kicker">ACCESS NOT APPROVED</span><h1>Access<br/><em>restricted.</em></h1><p>Signed in as <b>{user.email}</b>. Your account does not currently have an approved platform role.</p><div className="access-status"><span>Platform role</span><b>{role||'No role assigned'}</b><span>Organizer status</span><b>{organizerStatus||'Not registered'}</b></div><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Website</button><button className="admin-back" onClick={onLogout}><LogOut size={16}/> Sign out</button></div></div>;
 
   const renderOverview=()=> <div className="nc-overview">
