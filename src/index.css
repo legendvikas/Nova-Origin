@@ -41,3 +41,5 @@
 
 
 .no-detail-section{margin-top:58px}.no-detail-section>.no-kicker{margin-bottom:22px;display:inline-flex}.no-detail-section .no-team-list,.no-detail-section .no-event-grid{margin-top:8px}
+
+.no-form-success{margin-top:18px;padding:14px 16px;border-left:2px solid #b7ff5a;background:#b7ff5a12;color:#c8f99a!important;font:9px 'DM Mono';letter-spacing:1px;line-height:1.8}.no-honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}.no-form-fields button:disabled{opacity:.55;cursor:wait}
