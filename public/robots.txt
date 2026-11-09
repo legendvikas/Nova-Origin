@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://nova-origin-esports.vercel.app/sitemap.xml
