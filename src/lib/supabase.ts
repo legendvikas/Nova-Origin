@@ -33,6 +33,37 @@ export async function api<T = any>(table: string, query: Record<string, string> 
   return (text ? JSON.parse(text) : null) as T;
 }
 
+export function mediaPublicUrl(path: string) {
+  return `${SUPABASE_URL}/storage/v1/object/public/nova-media/${path.split('/').map(encodeURIComponent).join('/')}`;
+}
+
+export async function uploadMediaFile(file: File, path: string) {
+  if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
+  const session = getSession();
+  if (!session?.access_token) throw new Error('Sign in again before uploading.');
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/nova-media/${path.split('/').map(encodeURIComponent).join('/')}`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': file.type, 'x-upsert': 'false' },
+    body: file,
+  });
+  const body = await response.text();
+  if (!response.ok) throw new Error(body || `Upload failed (${response.status})`);
+  return path;
+}
+
+export async function deleteMediaFile(path: string) {
+  if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
+  const session = getSession();
+  if (!session?.access_token) throw new Error('Sign in again before deleting.');
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/nova-media`, {
+    method: 'DELETE',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prefixes: [path] }),
+  });
+  const body = await response.text();
+  if (!response.ok) throw new Error(body || `Delete failed (${response.status})`);
+}
+
 export async function currentUser(token: string): Promise<NovaUser> {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
