@@ -102,13 +102,16 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
 
   useEffect(() => {
     let active = true;
-    (async () => {
+    const syncAccount = async () => {
       const session = await getValidSession();
-      if (!session) return;
+      if (!session) { if (active) setAuthUser(null); return; }
       try { const user = await currentUser(session.access_token); if (active) setAuthUser(user); }
-      catch { signOut(); }
-    })();
-    return () => { active = false; };
+      catch { signOut(); if (active) setAuthUser(null); }
+    };
+    const onAuthChange = () => { void syncAccount(); };
+    void syncAccount();
+    window.addEventListener('nova-auth-changed', onAuthChange);
+    return () => { active = false; window.removeEventListener('nova-auth-changed', onAuthChange); };
   }, []);
 
   const submitAuth = async (e: FormEvent) => {
