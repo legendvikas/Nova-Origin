@@ -131,3 +131,19 @@ export async function loadPublicData() {
   ]);
   return { games, tournaments, teams, announcements, posts };
 }
+
+
+export async function signInWithPassword(email: string, password: string) {
+  if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail || !password) throw new Error('Email aur password dono enter karo.');
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: cleanEmail, password }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.msg || body.message || body.error_description || 'Email ya password galat hai.');
+  saveSession({ access_token: body.access_token, refresh_token: body.refresh_token, expires_at: body.expires_at || (Math.floor(Date.now()/1000) + (body.expires_in || 3600)) });
+  return currentUser(body.access_token);
+}
