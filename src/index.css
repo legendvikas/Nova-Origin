@@ -68,7 +68,7 @@
 .no-auth-copy{color:#aeb4aa;font-size:13px;line-height:1.7;margin:0 0 20px}
 .no-auth-form{display:grid;gap:14px}
 .no-auth-form label{display:grid;gap:7px;color:#aeb4aa;font:10px 'DM Mono',monospace;letter-spacing:1px}
-.no-auth-form input{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #ffffff24;background:#070a08;color:#f4f5ef;font:14px inherit;outline:none}
+.no-auth-form input{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #ffffff24;background:#070a08;color:#f4f5ef;font:inherit;font-size:14px;outline:none}
 .no-auth-form input:focus{border-color:#b7ff5a99}
 .no-auth-form .no-btn{justify-content:center;width:100%;margin-top:4px}
 .no-auth-form .no-btn:disabled{opacity:.55;cursor:wait}
