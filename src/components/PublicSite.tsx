@@ -41,12 +41,31 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
 
   useEffect(() => {
     const routeLabel = path.split('/').filter(Boolean).join(' / ').replaceAll('-', ' ');
-    const title = routeLabel ? 'NOVA ORIGIN — ' + routeLabel.toUpperCase() : 'NOVA ORIGIN — Built to Rise';
+    const route = path.split('/').filter(Boolean)[0] || 'home';
+    const seo: Record<string, [string, string]> = {
+      home: ['NOVA ORIGIN — Built to Rise', 'NOVA Origin is an esports collective built around competition, teams, players, tournaments and community.'],
+      about: ['About NOVA ORIGIN — Our Story', 'Discover NOVA Origin, our esports vision, competitive values and the community behind the team.'],
+      games: ['Games — NOVA ORIGIN Esports', 'Explore the games and competitive titles supported by NOVA Origin.'],
+      teams: ['Teams — NOVA ORIGIN Esports', 'Meet NOVA Origin competitive teams, team divisions and active rosters.'],
+      players: ['Players — NOVA ORIGIN Esports', 'Discover NOVA Origin players and their verified competitive profiles and statistics.'],
+      tournaments: ['Tournaments — NOVA ORIGIN Esports', 'Explore NOVA Origin tournaments, event details, schedules and verified results.'],
+      matches: ['Match Center — NOVA ORIGIN Esports', 'Follow NOVA Origin match schedules, live status and verified match results.'],
+      news: ['News — NOVA ORIGIN Esports', 'Read official NOVA Origin announcements, esports updates and community news.'],
+      community: ['Community — NOVA ORIGIN Esports', 'Connect with the NOVA Origin community and follow official updates.'],
+      contact: ['Contact NOVA ORIGIN', 'Contact NOVA Origin for team enquiries, partnerships, media and general questions.'],
+      join: ['Join NOVA ORIGIN', 'Send an application enquiry to become part of the NOVA Origin esports community.']
+    };
+    const [title, description] = seo[route] || [`NOVA ORIGIN — ${routeLabel.toUpperCase()}`, 'Explore this NOVA Origin esports profile, event or update.'];
     document.title = title;
-    const description = 'NOVA Origin is an esports collective built around competition, teams, players, tournaments and community.';
-    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
-    if (!meta) { meta = document.createElement('meta'); meta.name = 'description'; document.head.appendChild(meta); }
-    meta.content = description;
+    const setMeta = (selector: string, attr: 'content', value: string, create: () => HTMLElement) => {
+      let el = document.querySelector(selector) as HTMLMetaElement | null;
+      if (!el) { el = create() as HTMLMetaElement; document.head.appendChild(el); }
+      el.setAttribute(attr, value);
+    };
+    setMeta('meta[name="description"]', 'content', description, () => { const e=document.createElement('meta'); e.name='description'; return e; });
+    setMeta('meta[property="og:title"]', 'content', title, () => { const e=document.createElement('meta'); e.setAttribute('property','og:title'); return e; });
+    setMeta('meta[property="og:description"]', 'content', description, () => { const e=document.createElement('meta'); e.setAttribute('property','og:description'); return e; });
+    setMeta('meta[name="twitter:card"]', 'content', 'summary_large_image', () => { const e=document.createElement('meta'); e.name='twitter:card'; return e; });
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
     if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
     canonical.href = 'https://nova-origin-esports.vercel.app' + (path === '/' ? '/' : path);
