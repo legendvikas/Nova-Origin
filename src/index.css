@@ -58,3 +58,22 @@
 .no-tournament-facts small{color:#92978f;font:9px 'DM Mono',monospace;letter-spacing:1px}
 .no-tournament-facts b{color:#f4f5ef;font:600 12px Manrope,sans-serif;text-transform:uppercase;overflow-wrap:anywhere}
 @media(max-width:560px){.no-tournament-facts{grid-template-columns:1fr 1fr}.no-event-meta span{font-size:8px}}
+
+.no-auth-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid #b7ff5a66;background:#b7ff5a0d;color:#d7ffab;padding:10px 13px;font:600 10px 'DM Mono',monospace;letter-spacing:1px;cursor:pointer;white-space:nowrap}
+.no-auth-backdrop{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:18px;background:#030504d9;backdrop-filter:blur(14px)}
+.no-auth-dialog{position:relative;width:min(100%,480px);max-height:min(88vh,760px);overflow:auto;padding:clamp(24px,5vw,42px);border:1px solid #b7ff5a38;background:linear-gradient(145deg,#151b16f5,#090c0af7);box-shadow:0 28px 100px #000b}
+.no-auth-dialog h2{margin:15px 0;font-size:clamp(38px,8vw,58px);line-height:.92;letter-spacing:-1px;color:#f4f5ef}
+.no-auth-dialog h2 em{color:#b7ff5a;font-style:normal}
+.no-auth-close{position:absolute;right:15px;top:15px;display:grid;place-items:center;width:36px;height:36px;border:1px solid #ffffff24;background:#ffffff08;color:#f4f5ef;cursor:pointer}
+.no-auth-copy{color:#aeb4aa;font-size:13px;line-height:1.7;margin:0 0 20px}
+.no-auth-form{display:grid;gap:14px}
+.no-auth-form label{display:grid;gap:7px;color:#aeb4aa;font:10px 'DM Mono',monospace;letter-spacing:1px}
+.no-auth-form input{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #ffffff24;background:#070a08;color:#f4f5ef;font:14px inherit;outline:none}
+.no-auth-form input:focus{border-color:#b7ff5a99}
+.no-auth-form .no-btn{justify-content:center;width:100%;margin-top:4px}
+.no-auth-form .no-btn:disabled{opacity:.55;cursor:wait}
+.no-auth-error,.no-auth-notice{padding:10px 12px;font-size:12px;line-height:1.5}
+.no-auth-error{border:1px solid #ff777744;color:#ffaaaa;background:#ff77740c}
+.no-auth-notice{border:1px solid #b7ff5a44;color:#d7ffab;background:#b7ff5a0b}
+.no-auth-switch{margin-top:20px;padding:0;border:0;background:none;color:#b7ff5a;font:10px 'DM Mono',monospace;letter-spacing:.8px;cursor:pointer;text-align:left}
+@media(max-width:760px){.no-auth-btn{padding:9px 10px;font-size:9px}.no-header-actions{gap:8px}}
