@@ -87,6 +87,17 @@
 .no-legacy-player-card>small{letter-spacing:1.4px}
 .no-legacy-player-tag{border-top:1px solid #ffffff17;padding-top:12px;color:#a5aca0;font:8px 'DM Mono';letter-spacing:1.8px}
 
-/* Restore compact legacy roster card proportions on mobile; preserve existing grid breakpoints. */
-@media(max-width:760px){.no-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.no-player-card{padding:9px}.no-player-photo{height:145px;aspect-ratio:auto}.no-player-card h3{font-size:19px}}
-@media(max-width:390px){.no-player-grid{grid-template-columns:1fr}.no-player-photo{height:210px}}
+/* Match the original NOVA roster reference: two substantial cards with square player artwork. */
+@media(max-width:760px){
+  .no-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .no-player-card{padding:28px;border-radius:34px}
+  .no-player-photo{height:auto;aspect-ratio:1/1;border-radius:16px}
+  .no-player-card>small{margin-top:28px;font-size:11px}
+  .no-player-card h3{font-size:clamp(28px,5vw,42px);margin:10px 0 16px}
+  .no-player-stats{gap:12px;padding-top:14px}
+}
+@media(max-width:390px){
+  .no-player-grid{grid-template-columns:1fr;gap:16px}
+  .no-player-card{padding:20px;border-radius:28px}
+  .no-player-photo{aspect-ratio:1/1}
+}
