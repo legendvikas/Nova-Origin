@@ -86,3 +86,7 @@
 .no-legacy-player-photo span{left:10px;right:auto;top:10px;color:#b7ff5a;font:8px 'DM Mono';letter-spacing:1px}
 .no-legacy-player-card>small{letter-spacing:1.4px}
 .no-legacy-player-tag{border-top:1px solid #ffffff17;padding-top:12px;color:#a5aca0;font:8px 'DM Mono';letter-spacing:1.8px}
+
+/* Restore compact legacy roster card proportions on mobile; preserve existing grid breakpoints. */
+@media(max-width:760px){.no-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.no-player-card{padding:9px}.no-player-photo{height:145px;aspect-ratio:auto}.no-player-card h3{font-size:19px}}
+@media(max-width:390px){.no-player-grid{grid-template-columns:1fr}.no-player-photo{height:210px}}
