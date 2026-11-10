@@ -173,7 +173,7 @@ export function Dashboard(props: Props) {
   const toggleStatus = async (row:any) => {
     if(!active.table || !active.statusField) return;
     const key=active.statusField; const current=row[key];
-    const booleanField = ['is_active','is_public','is_published'].includes(key);
+    const booleanField = typeof current === 'boolean' || ['is_active','is_public','is_published','is_visible','robots_index'].includes(key);
     if(!booleanField && (!active.statusValues || active.statusValues.length===0)) return;
     const next=booleanField ? !current : active.statusValues![(active.statusValues!.indexOf(current)+1)%active.statusValues!.length];
     if(!window.confirm('Change status for this record?')) return;
@@ -227,7 +227,7 @@ export function Dashboard(props: Props) {
 
   const renderManager=()=> <div className="nc-manager">
     <div className="nc-manager-head"><div><span className="nc-kicker">{active.group} / CONTENT CONTROL</span><h1>{active.label}</h1><p>{active.description || 'Manage records stored in your NOVA Origin database.'}</p></div><div className="nc-manager-actions"><button className="nc-btn ghost" onClick={()=>load()}><RefreshCw size={14}/> Refresh</button>{active.table&&active.fields&&!active.readOnly&&active.canCreate!==false&&<button className="nc-btn primary" onClick={openCreate}><Plus size={15}/> Add new</button>}</div></div>
-    {active.description&&<div className="nc-capability"><AlertCircle size={17}/><div><b>Configuration requirement</b><p>{active.description}</p></div></div>}
+    {active.description&&<div className="nc-capability"><AlertCircle size={17}/><div><b>Manager notes</b><p>{active.description}</p></div></div>}
     {editor&&active.fields&&<section className="nc-panel nc-editor"><div className="nc-panel-head"><div><span className="nc-kicker">{editing?'UPDATE RECORD':'NEW RECORD'}</span><h2>{editing?'Edit':'Create'} {active.label}</h2></div><button className="nc-icon-btn" onClick={()=>setEditor(false)}><X size={17}/></button></div><form onSubmit={save} className="nc-form">{active.fields.map(f=><label key={f.key} className={f.type==='textarea'?'wide':''}><span>{f.label}{f.required?' *':''}</span>{f.type==='textarea'?<textarea required={f.required} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})}/>:f.type==='select'?<select required={f.required} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})}><option value="">Choose…</option>{f.options?.map(o=><option key={o} value={o}>{o}</option>)}</select>:f.type==='boolean'?<input type="checkbox" checked={!!form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.checked})}/>:<input required={f.required} type={f.type||'text'} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.hint||f.label}/>}</label>)}<div className="nc-form-actions"><button type="button" className="nc-btn ghost" onClick={()=>setEditor(false)}>Cancel</button><button className="nc-btn primary" disabled={busy}><Check size={15}/>{busy?'Saving…':'Save record'}</button></div></form></section>}
     {active.id==='players'&&<section className="nc-panel">
       <div className="nc-panel-head"><div><span className="nc-kicker">PLAYER PROFILE / PORTRAITS</span><h2>Upload roster photos</h2><p>Choose a profile below and upload its portrait. The photo is saved to Storage and linked to that player's profile.</p></div><Users size={20}/></div>
