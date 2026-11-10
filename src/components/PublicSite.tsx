@@ -243,11 +243,20 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
 
   const playerCards = (items = extra.players) => (
     <div className="no-player-grid">
-      {LEGACY_ROSTER.map(player => <article className="no-player-card no-legacy-player-card" key={player.number}>
-        <div className="no-player-photo no-legacy-player-photo"><strong>{player.initial}</strong><span>PLAYER {player.number}</span></div>
-        <small>{player.role}</small><h3>{player.name}</h3>
-        <div className="no-legacy-player-tag">{player.tag}</div>
-      </article>)}
+      {LEGACY_ROSTER.map(player => {
+        const profile = extra.profiles.find((item: any) => {
+          const display = String(item.display_name || '').trim().toLowerCase();
+          const username = String(item.username || '').trim().toLowerCase();
+          const expected = player.name.toLowerCase();
+          return display === expected || username === expected || display.replace(/[^a-z0-9]/g, '') === expected.toLowerCase();
+        });
+        const photo = safeHref(profile?.avatar_url);
+        return <article className="no-player-card no-legacy-player-card" key={player.number}>
+          <div className="no-player-photo no-legacy-player-photo">{photo ? <img src={photo} alt={player.name + ' player portrait'} loading="lazy" referrerPolicy="no-referrer"/> : <strong>{player.initial}</strong>}<span>PLAYER {player.number}</span></div>
+          <small>{player.role}</small><h3>{profile?.display_name || player.name}</h3>
+          <div className="no-legacy-player-tag">{player.tag}</div>
+        </article>;
+      })}
       {items.map((stat: any) => <a className="no-player-card" href={'/players/' + (stat.player?.username || stat.player_id)} key={stat.id} onClick={e => { e.preventDefault(); navigate('/players/' + (stat.player?.username || stat.player_id)); }}>
         <div className="no-player-photo">{stat.player?.avatar_url ? <img src={stat.player.avatar_url} alt=""/> : <Users size={34}/>}<span>VERIFIED</span></div>
         <small>{stat.game?.name || 'NOVA PLAYER'}</small><h3>{stat.player?.display_name || stat.player?.username || 'PLAYER'}</h3>
@@ -412,7 +421,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   return <div className="nova-public">
     <div className="no-topline"><span><i/> NOVA ORIGIN</span><span>BUILT FOR THE NEXT LEVEL</span><span>INDIA · ESPORTS</span></div>
     <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
-      <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark">N<i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
+      <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 31V9L30 31V9" stroke="currentColor" strokeWidth="4" strokeLinecap="square" strokeLinejoin="miter"/><path d="M8 9H15L30 24" stroke="currentColor" strokeWidth="1.5" opacity=".55"/><path d="M27 9H32V14" stroke="currentColor" strokeWidth="2.5"/></svg><i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
       <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>({label:item.label,href:item.href,external:!!item.open_in_new_tab})) : NAV.map(([label,href])=>({label,href,external:false}))).map(item => <a key={item.href} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} className={path === item.href ? 'active' : ''} onClick={e => {if(!item.external){e.preventDefault();navigate(item.href);}}}>{item.label}</a>)}</nav>
       <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-auth-btn" onClick={()=>{setAuthOpen(true);setAuthError('');setAuthNotice('');}}>{authUser ? (authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'ACCOUNT') : 'SIGN IN'} <ArrowUpRight size={13}/></button><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
