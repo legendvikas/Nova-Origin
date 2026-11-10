@@ -90,14 +90,9 @@
 /* Match the original NOVA roster reference: two substantial cards with square player artwork. */
 @media(max-width:760px){
   .no-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-  .no-player-card{padding:28px;border-radius:34px}
+  .no-player-card{padding:clamp(12px,3.7vw,28px);border-radius:clamp(20px,4.5vw,34px)}
   .no-player-photo{height:auto;aspect-ratio:1/1;border-radius:16px}
-  .no-player-card>small{margin-top:28px;font-size:11px}
-  .no-player-card h3{font-size:clamp(28px,5vw,42px);margin:10px 0 16px}
+  .no-player-card>small{margin-top:clamp(14px,3.7vw,28px);font-size:clamp(8px,1.5vw,11px)}
+  .no-player-card h3{font-size:clamp(22px,5vw,42px);margin:10px 0 16px}
   .no-player-stats{gap:12px;padding-top:14px}
-}
-@media(max-width:390px){
-  .no-player-grid{grid-template-columns:1fr;gap:16px}
-  .no-player-card{padding:20px;border-radius:28px}
-  .no-player-photo{aspect-ratio:1/1}
 }
