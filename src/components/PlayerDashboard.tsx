@@ -68,7 +68,9 @@ export function PlayerDashboard({ user, onLogin, onLogout, onBack }: { user: Nov
     setBusy(true); setError(''); setNotice('');
     try {
       const payload = { username: String(profile.username || '').trim() || null, display_name: String(profile.display_name || '').trim() || null, bio: String(profile.bio || '').trim() || null, country_code: String(profile.country_code || '').trim().toUpperCase() || null, updated_at: new Date().toISOString() };
-      await api('profiles', { id: 'eq.' + user.id }, { method: 'PATCH', body: payload, prefer: 'return=minimal' });
+      const existing = await api<Row[]>('profiles', { select: 'id', id: 'eq.' + user.id, limit: '1' });
+      if (existing.length) await api('profiles', { id: 'eq.' + user.id }, { method: 'PATCH', body: payload, prefer: 'return=minimal' });
+      else await api('profiles', {}, { method: 'POST', body: { id: user.id, display_name: payload.display_name || 'Player', ...payload }, prefer: 'return=minimal' });
       setNotice('Profile saved successfully.'); setEditing(false); await load();
     } catch (e: any) { setError(e.message || 'Profile could not be saved.'); }
     finally { setBusy(false); }
@@ -82,7 +84,9 @@ export function PlayerDashboard({ user, onLogin, onLogout, onBack }: { user: Nov
       const path = 'players/' + user.id + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9._-]/g, '');
       await uploadMediaFile(file, path);
       const url = mediaPublicUrl(path);
-      await api('profiles', { id: 'eq.' + user.id }, { method: 'PATCH', body: { avatar_url: url, updated_at: new Date().toISOString() }, prefer: 'return=minimal' });
+      const existing = await api<Row[]>('profiles', { select: 'id', id: 'eq.' + user.id, limit: '1' });
+      if (existing.length) await api('profiles', { id: 'eq.' + user.id }, { method: 'PATCH', body: { avatar_url: url, updated_at: new Date().toISOString() }, prefer: 'return=minimal' });
+      else await api('profiles', {}, { method: 'POST', body: { id: user.id, display_name: displayName, avatar_url: url }, prefer: 'return=minimal' });
       setProfile({ ...profile, avatar_url: url }); setNotice('Profile photo updated.');
     } catch (e: any) { setError(e.message || 'Photo upload failed.'); }
     finally { setBusy(false); }
