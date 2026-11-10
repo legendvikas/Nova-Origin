@@ -248,7 +248,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
           const display = String(item.display_name || '').trim().toLowerCase();
           const username = String(item.username || '').trim().toLowerCase();
           const expected = player.name.toLowerCase();
-          return display === expected || username === expected || display.replace(/[^a-z0-9]/g, '') === expected.toLowerCase();
+          return display === expected || username === expected || username.startsWith(expected + '_') || username.startsWith(expected + '-') || display.startsWith(expected + ' ') || display.replace(/[^a-z0-9]/g, '') === expected.toLowerCase();
         });
         const photo = safeHref(profile?.avatar_url);
         return <article className="no-player-card no-legacy-player-card" key={player.number}>
