@@ -33,6 +33,21 @@ export async function api<T = any>(table: string, query: Record<string, string> 
   return (text ? JSON.parse(text) : null) as T;
 }
 
+
+export async function createPlayerAccount(input: { email: string; username: string; display_name: string; bio?: string; country_code?: string }) {
+  if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
+  const session = getSession();
+  if (!session?.access_token) throw new Error('Sign in again before creating a player.');
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/create-player`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error || 'Player account could not be created.');
+  return body as { ok: boolean; username: string; email: string; message: string };
+}
+
 export function mediaPublicUrl(path: string) {
   return `${SUPABASE_URL}/storage/v1/object/public/nova-media/${path.split('/').map(encodeURIComponent).join('/')}`;
 }
