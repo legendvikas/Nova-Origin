@@ -33,7 +33,7 @@ const modules: Module[] = [
   {id:'results',label:'Results & Standings',group:'COMPETITION',icon:BarChart3,table:'match_results',order:'created_at',fields:[{key:'match_id',label:'Match ID',required:true},{key:'team_id',label:'Team ID'},{key:'player_id',label:'Player ID'},{key:'placement',label:'Placement',type:'number'},{key:'eliminations',label:'Eliminations',type:'number'},{key:'points',label:'Points',type:'number'},{key:'status',label:'Status'}]},
   {id:'news',label:'News & Announcements',group:'PUBLISHING',icon:Newspaper,table:'announcements',order:'created_at',fields:[{key:'title',label:'Title',required:true},{key:'body',label:'Content',type:'textarea',required:true},{key:'audience',label:'Audience',type:'select',options:['all','players','organizers']},{key:'status',label:'Status',type:'select',options:['draft','published','archived']},{key:'published_at',label:'Publish date',type:'datetime-local'}],statusField:'status',statusValues:['draft','published','archived']},
   {id:'community',label:'Community & Social Posts',group:'PUBLISHING',icon:MessageSquare,table:'social_posts',order:'created_at',fields:[{key:'content',label:'Post caption',type:'textarea',required:true},{key:'media_url',label:'Media URL',type:'url'},{key:'media_type',label:'Media type',type:'select',options:['image','video']},{key:'is_published',label:'Published',type:'boolean'}],statusField:'is_published'},
-  {id:'media',label:'Media Library',group:'PUBLISHING',icon:FileImage,description:'Upload and manage images, videos and documents in the NOVA media library.'},
+  {id:'media',label:'Media Library',group:'PUBLISHING',icon:FileImage,table:'media_assets',order:'created_at',readOnly:true,description:'Upload and manage images, videos and documents in the NOVA media library.'},
   {id:'sponsors',label:'Sponsors & Partners',group:'PUBLISHING',icon:Sparkles,table:'sponsors',order:'created_at',fields:[{key:'name',label:'Sponsor name',required:true},{key:'logo_url',label:'Logo URL',type:'url'},{key:'website_url',label:'Website URL',type:'url'},{key:'description',label:'Description',type:'textarea'},{key:'status',label:'Status',type:'select',options:['pending','active','paused','ended']}],statusField:'status',statusValues:['pending','active','paused','ended']},
   ,
   {id:'organizers',label:'Organizer Applications',group:'PEOPLE',icon:ShieldCheck,table:'organizers',order:'created_at',fields:[{key:'user_id',label:'Account user ID',required:true},{key:'organization_name',label:'Organization',required:true},{key:'contact_email',label:'Contact email'},{key:'logo_url',label:'Logo URL',type:'url'},{key:'status',label:'Review status',type:'select',options:['pending','approved','rejected','suspended']}],statusField:'status',statusValues:['pending','approved','rejected','suspended'],description:'Review organizer applications and approve, reject or suspend access.'},
@@ -41,9 +41,6 @@ const modules: Module[] = [
   {id:'members',label:'Members & Users',group:'PEOPLE',icon:Users,table:'profiles',order:'created_at',readOnly:true,fields:[{key:'username',label:'Username'},{key:'display_name',label:'Display name'},{key:'country_code',label:'Country'},{key:'created_at',label:'Joined'}]},
   {id:'roles',label:'Roles & Permissions',group:'PEOPLE',icon:Shield,table:'user_roles',order:'created_at',readOnly:true,fields:[{key:'user_id',label:'User ID'},{key:'role',label:'Role'},{key:'granted_by',label:'Granted by'}],description:'PENDING — secure server-side role grant/revoke workflow is not available yet. This section stays read-only to prevent privilege escalation.'},
   {id:'notifications',label:'Notifications',group:'PEOPLE',icon:Bell,table:'notifications',order:'created_at',fields:[{key:'user_id',label:'Recipient user ID',required:true},{key:'title',label:'Title',required:true},{key:'body',label:'Message',type:'textarea',required:true},{key:'notification_type',label:'Type',type:'select',options:['general','system','tournament','team','security']},{key:'link_path',label:'Link path',type:'text'}],description:'Send a notification to a registered member. Use the recipient user ID from Members & Users.'},
-  {id:'analytics',label:'Analytics & Reports',group:'INSIGHTS',icon:Gauge,description:'Database-backed counts are available. Website visitor analytics are not configured, so traffic metrics are not shown.'},
-  {id:'theme',label:'Theme & Appearance',group:'WEBSITE',icon:SlidersHorizontal,description:'Admin appearance is local to this control center. Website-wide theme publishing needs a shared settings schema.'},
-  {id:'integrations',label:'Integrations',group:'SYSTEM',icon:Database,description:'No external delivery, analytics or media integrations are configured in the current project.'},
   {id:'security',label:'Security & Audit Logs',group:'SYSTEM',icon:Lock,table:'audit_logs',order:'created_at',readOnly:true,fields:[{key:'actor_id',label:'Actor'},{key:'action',label:'Action'},{key:'entity_type',label:'Entity'},{key:'entity_id',label:'Entity ID'},{key:'created_at',label:'Timestamp'}],description:'Read-only audit history. Logs are immutable by design.'},
   {id:'settings',label:'System Settings',group:'SYSTEM',icon:Settings,table:'site_settings',order:'updated_at',fields:[{key:'setting_key',label:'Setting key',required:true,hint:'e.g. contact_email'},{key:'setting_value',label:'Setting value',type:'textarea',required:true},{key:'description',label:'Description',type:'textarea'}],description:'Manage non-secret NOVA site configuration values. Never store passwords, API keys or private tokens here.'}
 ];
@@ -77,6 +74,27 @@ export function Dashboard(props: Props) {
   const [loginPassword,setLoginPassword] = useState('');
   const [pageNo,setPageNo] = useState(0);
   const [mediaCategory,setMediaCategory] = useState('general');
+
+  const uploadPlayerPhoto = async (player:any, file?:File) => {
+    if(!file || !isAdmin) return;
+    if(!file.type.startsWith('image/')) { setError('Player photo ke liye JPG, PNG, WEBP ya GIF image select karo.'); return; }
+    if(file.size > 10*1024*1024) { setError('Player photo 10 MB se chhoti honi chahiye.'); return; }
+    setBusy(true); setError(''); setNotice('');
+    let uploadedPath='';
+    try {
+      const safeName=file.name.normalize('NFKD').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-80)||'portrait';
+      uploadedPath='player/'+player.id+'/'+Date.now()+'-'+safeName;
+      await uploadMediaFile(file,uploadedPath);
+      const url=mediaPublicUrl(uploadedPath);
+      await api('profiles',{id:'eq.'+player.id},{method:'PATCH',body:{avatar_url:url},prefer:'return=minimal'});
+      try { await api('media_assets',{}, {method:'POST',body:{bucket_id:'nova-media',object_path:uploadedPath,file_name:file.name,mime_type:file.type,file_size:file.size,category:'player',uploaded_by:user!.id},prefer:'return=minimal'}); } catch { /* The profile image is already saved; the Media Library metadata can be reconciled later. */ }
+      setNotice('Player photo saved and linked to the profile.');
+      await load();
+    } catch(e:any) {
+      if(uploadedPath) { try { await deleteMediaFile(uploadedPath); } catch { /* Keep the original profile update error. */ } }
+      setError(e.message||'Player photo upload failed.');
+    } finally { setBusy(false); }
+  };
 
   const uploadMedia = async (file?: File) => {
     if(!file || !isAdmin) return;
@@ -211,6 +229,14 @@ export function Dashboard(props: Props) {
     <div className="nc-manager-head"><div><span className="nc-kicker">{active.group} / CONTENT CONTROL</span><h1>{active.label}</h1><p>{active.description || 'Manage records stored in your NOVA Origin database.'}</p></div><div className="nc-manager-actions"><button className="nc-btn ghost" onClick={()=>load()}><RefreshCw size={14}/> Refresh</button>{active.table&&active.fields&&!active.readOnly&&active.canCreate!==false&&<button className="nc-btn primary" onClick={openCreate}><Plus size={15}/> Add new</button>}</div></div>
     {active.description&&<div className="nc-capability"><AlertCircle size={17}/><div><b>Configuration requirement</b><p>{active.description}</p></div></div>}
     {editor&&active.fields&&<section className="nc-panel nc-editor"><div className="nc-panel-head"><div><span className="nc-kicker">{editing?'UPDATE RECORD':'NEW RECORD'}</span><h2>{editing?'Edit':'Create'} {active.label}</h2></div><button className="nc-icon-btn" onClick={()=>setEditor(false)}><X size={17}/></button></div><form onSubmit={save} className="nc-form">{active.fields.map(f=><label key={f.key} className={f.type==='textarea'?'wide':''}><span>{f.label}{f.required?' *':''}</span>{f.type==='textarea'?<textarea required={f.required} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})}/>:f.type==='select'?<select required={f.required} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})}><option value="">Choose…</option>{f.options?.map(o=><option key={o} value={o}>{o}</option>)}</select>:f.type==='boolean'?<input type="checkbox" checked={!!form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.checked})}/>:<input required={f.required} type={f.type||'text'} value={form[f.key]??''} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.hint||f.label}/>}</label>)}<div className="nc-form-actions"><button type="button" className="nc-btn ghost" onClick={()=>setEditor(false)}>Cancel</button><button className="nc-btn primary" disabled={busy}><Check size={15}/>{busy?'Saving…':'Save record'}</button></div></form></section>}
+    {active.id==='players'&&<section className="nc-panel">
+      <div className="nc-panel-head"><div><span className="nc-kicker">PLAYER PROFILE / PORTRAITS</span><h2>Upload roster photos</h2><p>Choose a profile below and upload its portrait. The photo is saved to Storage and linked to that player's profile.</p></div><Users size={20}/></div>
+      <div className="nc-media-grid">{activeRows.map((player:any)=><article className="nc-media-card" key={player.id}>
+        {player.avatar_url?<img src={player.avatar_url} alt={player.display_name||player.username||'Player'} loading="lazy"/>:<div className="nc-media-file"><Users size={28}/><span>No profile photo</span></div>}
+        <b>{player.display_name||player.username||'Player'}</b><small>@{player.username||'no-username'}</small>
+        <label className="nc-btn ghost"><Upload size={14}/> {player.avatar_url?'Replace photo':'Upload photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={busy||!isAdmin} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadPlayerPhoto(player,file);e.currentTarget.value='';}} hidden/></label>
+      </article>)}{!activeRows.length&&<div className="nc-empty">{loading?'Loading player profiles…':'No player profiles found yet.'}</div>}</div>
+    </section>}
     {active.id==='media'&&<section className="nc-panel">
       <div className="nc-panel-head"><div><span className="nc-kicker">NOVA STORAGE / ASSETS</span><h2>Upload media</h2><p>Files are publicly viewable; only platform admins can upload or delete.</p></div><FileImage size={20}/></div>
       <div className="nc-form">
