@@ -243,18 +243,19 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
 
   const playerCards = (items = extra.players) => (
     <div className="no-player-grid">
-      {LEGACY_ROSTER.map(player => {
-        const profile = extra.profiles.find((item: any) => {
-          const display = String(item.display_name || '').trim().toLowerCase();
-          const username = String(item.username || '').trim().toLowerCase();
+      {extra.profiles.map((profile: any, index: number) => {
+        const displayName = profile.display_name || profile.username || 'NOVA PLAYER';
+        const legacy = LEGACY_ROSTER.find(player => {
           const expected = player.name.toLowerCase();
-          return display === expected || username === expected || username.startsWith(expected + '_') || username.startsWith(expected + '-') || display.startsWith(expected + ' ') || display.replace(/[^a-z0-9]/g, '') === expected.toLowerCase();
+          const display = String(profile.display_name || '').trim().toLowerCase();
+          const username = String(profile.username || '').trim().toLowerCase();
+          return display === expected || username === expected || username.startsWith(expected + '_') || username.startsWith(expected + '-') || display.startsWith(expected + ' ');
         });
-        const photo = safeHref(profile?.avatar_url);
-        return <article className="no-player-card no-legacy-player-card" key={player.number}>
-          <div className="no-player-photo no-legacy-player-photo">{photo ? <img src={photo} alt={player.name + ' player portrait'} loading="lazy" referrerPolicy="no-referrer"/> : <strong>{player.initial}</strong>}<span>PLAYER {player.number}</span></div>
-          <small>{player.role}</small><h3>{profile?.display_name || player.name}</h3>
-          <div className="no-legacy-player-tag">{player.tag}</div>
+        const photo = safeHref(profile.avatar_url);
+        return <article className="no-player-card no-legacy-player-card" key={profile.id || profile.username || index}>
+          <div className="no-player-photo no-legacy-player-photo">{photo ? <img src={photo} alt={displayName + ' player portrait'} loading="lazy" referrerPolicy="no-referrer"/> : <strong>{displayName.slice(0,1).toUpperCase()}</strong>}<span>PLAYER {String(index + 1).padStart(2,'0')}</span></div>
+          <small>{legacy?.role || 'NOVA PLAYER'}</small><h3>{displayName}</h3>
+          <div className="no-legacy-player-tag">{legacy?.tag || (profile.username ? '@' + profile.username : 'NOVA ORIGIN')}</div>
         </article>;
       })}
       {items.map((stat: any) => <a className="no-player-card" href={'/players/' + (stat.player?.username || stat.player_id)} key={stat.id} onClick={e => { e.preventDefault(); navigate('/players/' + (stat.player?.username || stat.player_id)); }}>
