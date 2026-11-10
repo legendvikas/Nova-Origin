@@ -10,7 +10,7 @@ import {
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { api, hasSupabaseConfig, mediaPublicUrl, uploadMediaFile, deleteMediaFile, type NovaUser } from '../lib/supabase';
 
-type Props = { user: NovaUser | null; role: string | null; organizerStatus: string | null; onBack: () => void; onLogin: () => void; onPasswordLogin: (email: string, password: string) => Promise<void>; onLogout: () => void; authError: string; canManage: boolean; onRefresh: () => Promise<void> };
+type Props = { user: NovaUser | null; role: string | null; organizerStatus: string | null; onBack: () => void; onPasswordLogin: (email: string, password: string) => Promise<void>; onLogout: () => void; authError: string; canManage: boolean; onRefresh: () => Promise<void> };
 type Field = { key: string; label: string; type?: 'text'|'textarea'|'number'|'date'|'datetime-local'|'url'|'boolean'|'select'; options?: string[]; required?: boolean; hint?: string };
 type Module = { id: string; label: string; group: string; icon: any; table?: string; fields?: Field[]; readOnly?: boolean; description?: string; order?: string; statusField?: string; statusValues?: string[] };
 const modules: Module[] = [
