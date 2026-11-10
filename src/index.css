@@ -42,3 +42,5 @@
 .nc-media-card>b{overflow-wrap:anywhere;font-size:13px}
 .nc-media-card>small{color:var(--nc-muted,#98a39e);font-size:11px}
 .nc-media-card .nc-row-actions{display:flex;gap:8px;margin-top:4px}
+
+.nc-form-image-preview{display:block;width:min(100%,260px);max-height:150px;object-fit:contain;object-position:left center;margin-top:9px;border:1px solid var(--nc-line,rgba(255,255,255,.12));border-radius:10px;background:rgba(255,255,255,.035);padding:5px}
