@@ -44,3 +44,12 @@
 .nc-media-card .nc-row-actions{display:flex;gap:8px;margin-top:4px}
 
 .nc-form-image-preview{display:block;width:min(100%,260px);max-height:150px;object-fit:contain;object-position:left center;margin-top:9px;border:1px solid var(--nc-line,rgba(255,255,255,.12));border-radius:10px;background:rgba(255,255,255,.035);padding:5px}
+
+/* Universal data operations */
+.nc-table-sort{border:0;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer;padding:3px 0;text-align:left}
+.nc-table-sort:hover{color:#b6f36a}
+.nc-bulk-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;margin:12px 0;border:1px solid rgba(182,243,106,.25);border-radius:12px;background:rgba(182,243,106,.055)}
+.nc-bulk-bar>b{color:#b6f36a;font:10px 'DM Mono';letter-spacing:1px}
+.nc-bulk-bar select{min-width:160px;max-width:100%;background:#0b1110;color:inherit;border:1px solid var(--nc-line,rgba(255,255,255,.12));border-radius:8px;padding:9px}
+.nc-table input[type=checkbox]{accent-color:#b6f36a;width:15px;height:15px;cursor:pointer}
+@media(max-width:680px){.nc-bulk-bar{align-items:stretch}.nc-bulk-bar>*{flex:1}.nc-bulk-bar select{min-width:0}}
