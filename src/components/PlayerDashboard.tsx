@@ -16,6 +16,15 @@ export function PlayerDashboard({ user, onLogin, onLogout, onBack }: { user: Nov
   const [profile, setProfile] = useState<Row | null>(null);
   const [teams, setTeams] = useState<Row[]>([]);
   const [memberships, setMemberships] = useState<Row[]>([]);
+  const [invites, setInvites] = useState<Row[]>([]);
+  const [badgeRequests, setBadgeRequests] = useState<Row[]>([]);
+  const [games, setGames] = useState<Row[]>([]);
+  const [openTournaments, setOpenTournaments] = useState<Row[]>([]);
+  const [badgeGame, setBadgeGame] = useState('');
+  const [badgeIgn, setBadgeIgn] = useState('');
+  const [badgeEvidence, setBadgeEvidence] = useState('');
+  const [badgeNote, setBadgeNote] = useState('');
+  const [registering, setRegistering] = useState('');
   const [gameStats, setGameStats] = useState<Row[]>([]);
   const [matchStats, setMatchStats] = useState<Row[]>([]);
   const [registrations, setRegistrations] = useState<Row[]>([]);
@@ -28,16 +37,20 @@ export function PlayerDashboard({ user, onLogin, onLogout, onBack }: { user: Nov
     setLoading(true); setError('');
     const safe = async <T,>(promise: Promise<T>, fallback: T): Promise<T> => { try { return await promise; } catch { return fallback; } };
     try {
-      const [p, m, gs, ms, regs, notes] = await Promise.all([
+      const [p, m, gs, ms, regs, notes, inv, badges, gameRows, tournaments] = await Promise.all([
         safe(api<Row[]>('profiles', { select: '*', id: 'eq.' + user.id, limit: '1' }), []),
         safe(api<Row[]>('team_members', { select: 'id,team_id,user_id,team_role,joined_at', user_id: 'eq.' + user.id }), []),
         safe(api<Row[]>('player_game_stats', { select: '*', player_id: 'eq.' + user.id, order: 'updated_at.desc' }), []),
         safe(api<Row[]>('player_match_stats', { select: '*', player_id: 'eq.' + user.id, verified: 'eq.true', order: 'created_at.desc', limit: '30' }), []),
-        safe(api<Row[]>('registrations', { select: '*', or: '(player_id.eq.' + user.id + ',registered_by.eq.' + user.id + ')', order: 'created_at.desc' }), []),
+        safe(api<Row[]>('registrations', { select: 'id,tournament_id,team_id,player_id,registered_by,status,created_at,tournaments(title,starts_at,status)', or: '(player_id.eq.' + user.id + ',registered_by.eq.' + user.id + ')', order: 'created_at.desc' }), []),
         safe(api<Row[]>('notifications', { select: '*', user_id: 'eq.' + user.id, order: 'created_at.desc', limit: '30' }), []),
+        safe(api<Row[]>('team_invites', { select: 'id,team_id,invited_user_id,invited_by,status,expires_at,created_at,teams(name,team_tag,logo_url)', invited_user_id: 'eq.' + user.id, status: 'eq.pending', order: 'created_at.desc' }), []),
+        safe(api<Row[]>('player_badge_requests', { select: '*,games(name)', player_id: 'eq.' + user.id, order: 'created_at.desc' }), []),
+        safe(api<Row[]>('games', { select: 'id,name', is_active: 'eq.true', order: 'name.asc' }), []),
+        safe(api<Row[]>('tournaments', { select: 'id,title,game_id,team_size,status,registration_opens_at,registration_closes_at,starts_at', status: 'eq.registration_open', order: 'starts_at.asc' }), []),
       ]);
       setProfile(p[0] || { id: user.id, username: '', display_name: user.user_metadata?.full_name || user.user_metadata?.name || '', avatar_url: '', bio: '', country_code: '' });
-      setMemberships(m); setGameStats(gs); setMatchStats(ms); setRegistrations(regs); setNotifications(notes);
+      setMemberships(m); setGameStats(gs); setMatchStats(ms); setRegistrations(regs); setNotifications(notes); setInvites(inv); setBadgeRequests(badges); setGames(gameRows); setOpenTournaments(tournaments);
       if (m.length) {
         const ids = [...new Set(m.map(x => x.team_id).filter(Boolean))];
         if (ids.length) {
@@ -102,6 +115,40 @@ export function PlayerDashboard({ user, onLogin, onLogout, onBack }: { user: Nov
     finally { setBusy(false); }
   };
 
+  const respondInvite = async (invite: Row, status: 'accepted' | 'declined') => {
+    if (!user) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await api('team_invites', { id: 'eq.' + invite.id, invited_user_id: 'eq.' + user.id, status: 'eq.pending' }, { method: 'PATCH', body: { status }, prefer: 'return=minimal' });
+      if (status === 'accepted') {
+        await api('team_members', {}, { method: 'POST', body: { team_id: invite.team_id, user_id: user.id, team_role: 'player' }, prefer: 'return=minimal' });
+      }
+      setNotice(status === 'accepted' ? 'Team invitation accepted. You are now on the roster.' : 'Team invitation declined.');
+      await load();
+    } catch (e: any) { setError(e.message || 'Invitation could not be updated.'); }
+    finally { setBusy(false); }
+  };
+
+  const submitBadgeRequest = async () => {
+    if (!user || !badgeIgn.trim() || !badgeEvidence.trim()) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await api('player_badge_requests', {}, { method: 'POST', body: { player_id: user.id, game_id: badgeGame || null, in_game_name: badgeIgn.trim(), evidence_url: badgeEvidence.trim(), note: badgeNote.trim() || null, status: 'pending' }, prefer: 'return=minimal' });
+      setBadgeIgn(''); setBadgeEvidence(''); setBadgeNote(''); setNotice('Verified badge request submitted for manager review.'); await load();
+    } catch (e: any) { setError(e.message || 'Badge request could not be submitted.'); }
+    finally { setBusy(false); }
+  };
+
+  const registerTournament = async (tournament: Row) => {
+    if (!user) return;
+    setRegistering(tournament.id); setError(''); setNotice('');
+    try {
+      await api('rpc/register_for_tournament', {}, { method: 'POST', body: { p_tournament_id: tournament.id, p_team_id: null }, prefer: 'return=minimal' });
+      setNotice('Tournament registration submitted.'); await load();
+    } catch (e: any) { setError(e.message || 'Registration could not be completed. This event may require a team roster.'); }
+    finally { setRegistering(''); }
+  };
+
   const markRead = async (id: string) => {
     try { await api('notifications', { id: 'eq.' + id, user_id: 'eq.' + user?.id }, { method: 'PATCH', body: { read_at: new Date().toISOString() }, prefer: 'return=minimal' }); setNotifications(old => old.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)); }
     catch (e: any) { setError(e.message || 'Could not update notification.'); }
@@ -129,10 +176,10 @@ export function PlayerDashboard({ user, onLogin, onLogout, onBack }: { user: Nov
           <div className="player-grid-two"><section className="player-panel"><div className="player-panel-head"><div><span>YOUR SQUAD</span><h3>TEAM MEMBERSHIP</h3></div><Users size={19}/></div>{teams.length ? teams.map(t => <div className="player-team-row" key={t.id}><div className="player-team-logo">{t.logo_url ? <img src={t.logo_url} alt=""/> : (t.team_tag || t.name || 'N').slice(0,2)}</div><div><b>{t.name}</b><small>[{t.team_tag || 'NOVA'}] · {memberships.find(m => m.team_id === t.id)?.team_role || 'player'}</small></div><span>{t.status || 'active'}</span></div>) : <div className="player-empty">No team membership linked to this account yet.</div>}</section><section className="player-panel"><div className="player-panel-head"><div><span>RECENT ACTIVITY</span><h3>EVENT REGISTRATIONS</h3></div><Trophy size={19}/></div>{registrations.length ? registrations.slice(0,4).map(r => <div className="player-list-row" key={r.id}><div><b>Registration</b><small>{new Date(r.created_at).toLocaleDateString()}</small></div><span>{r.status || 'pending'}</span></div>) : <div className="player-empty">Your tournament registrations will appear here.</div>}</section></div>
           <section className="player-panel player-post-panel"><div className="player-panel-head"><div><span>COMMUNITY</span><h3>SHARE AN UPDATE</h3></div><Swords size={19}/></div><textarea value={postText} onChange={e => setPostText(e.target.value)} placeholder="Share a team update, achievement or community message…"/><div className="player-post-foot"><small>Updates are saved as drafts and are not published automatically.</small><button onClick={publishPost} disabled={busy || !postText.trim()}><Save size={14}/> SAVE UPDATE</button></div></section>
         </>}
-        {tab === 'profile' && profile && <section className="player-panel player-profile-panel"><div className="player-panel-head"><div><span>PLAYER IDENTITY</span><h3>PROFILE DETAILS</h3></div><ShieldCheck size={19}/></div><div className="player-profile-top"><div className="player-profile-avatar">{profile.avatar_url ? <img src={profile.avatar_url} alt=""/> : displayName.slice(0,1).toUpperCase()}</div><div><b>{displayName}</b><small>{user.email}</small><label className="player-upload"><Camera size={14}/> CHANGE PHOTO<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e => uploadAvatar(e.target.files?.[0])}/></label></div></div><div className="player-form-grid"><label>DISPLAY NAME<input disabled={!editing} value={profile.display_name || ''} onChange={e => setProfile({...profile,display_name:e.target.value})}/></label><label>PLAYER USERNAME<input disabled={!editing} value={profile.username || ''} onChange={e => setProfile({...profile,username:e.target.value})}/></label><label>COUNTRY CODE<input disabled={!editing} maxLength={2} value={profile.country_code || ''} onChange={e => setProfile({...profile,country_code:e.target.value})} placeholder="IN"/></label><label>ACCOUNT EMAIL<input disabled value={user.email || ''}/></label><label className="wide">BIO<textarea disabled={!editing} value={profile.bio || ''} onChange={e => setProfile({...profile,bio:e.target.value})} placeholder="Tell the NOVA community about your play style…"/></label></div><div className="player-form-actions">{editing ? <><button className="player-secondary" onClick={() => { setEditing(false); load(); }}>CANCEL</button><button className="player-primary" onClick={saveProfile} disabled={busy}><Save size={15}/> SAVE PROFILE</button></> : <button className="player-primary" onClick={() => setEditing(true)}>EDIT PROFILE <ChevronRight size={15}/></button>}</div></section>}
-        {tab === 'team' && <section className="player-panel"><div className="player-panel-head"><div><span>ROSTER CONNECTIONS</span><h3>MY TEAMS</h3></div><Users size={19}/></div>{teams.length ? teams.map(t => <div className="player-team-detail" key={t.id}><div className="player-team-logo">{t.logo_url ? <img src={t.logo_url} alt=""/> : (t.team_tag || t.name || 'N').slice(0,2)}</div><div><h3>{t.name}</h3><p>{t.description || 'NOVA Origin competitive roster'}</p><small>{t.game_id ? 'GAME LINKED' : 'TEAM'} · {memberships.find(m => m.team_id === t.id)?.team_role || 'player'}</small></div><span>{t.status || 'active'}</span></div>) : <div className="player-empty">You are not currently assigned to a team. Team invitations and roster assignments will show here once linked by a team manager.</div>}</section>}
+        {tab === 'profile' && profile && <><section className="player-panel player-profile-panel"><div className="player-panel-head"><div><span>PLAYER IDENTITY</span><h3>PROFILE DETAILS</h3></div><ShieldCheck size={19}/></div><div className="player-profile-top"><div className="player-profile-avatar">{profile.avatar_url ? <img src={profile.avatar_url} alt=""/> : displayName.slice(0,1).toUpperCase()}</div><div><b>{displayName}</b><small>{user.email}</small><label className="player-upload"><Camera size={14}/> CHANGE PHOTO<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e => uploadAvatar(e.target.files?.[0])}/></label></div></div><div className="player-form-grid"><label>DISPLAY NAME<input disabled={!editing} value={profile.display_name || ''} onChange={e => setProfile({...profile,display_name:e.target.value})}/></label><label>PLAYER USERNAME<input disabled={!editing} value={profile.username || ''} onChange={e => setProfile({...profile,username:e.target.value})}/></label><label>COUNTRY CODE<input disabled={!editing} maxLength={2} value={profile.country_code || ''} onChange={e => setProfile({...profile,country_code:e.target.value})} placeholder="IN"/></label><label>ACCOUNT EMAIL<input disabled value={user.email || ''}/></label><label className="wide">BIO<textarea disabled={!editing} value={profile.bio || ''} onChange={e => setProfile({...profile,bio:e.target.value})} placeholder="Tell the NOVA community about your play style…"/></label></div><div className="player-form-actions">{editing ? <><button className="player-secondary" onClick={() => { setEditing(false); load(); }}>CANCEL</button><button className="player-primary" onClick={saveProfile} disabled={busy}><Save size={15}/> SAVE PROFILE</button></> : <button className="player-primary" onClick={() => setEditing(true)}>EDIT PROFILE <ChevronRight size={15}/></button>}</div></section>}
+        {tab === 'team' && <><section className="player-panel"><div className="player-panel-head"><div><span>ROSTER CONNECTIONS</span><h3>MY TEAMS</h3></div><Users size={19}/></div>{teams.length ? teams.map(t => <div className="player-team-detail" key={t.id}><div className="player-team-logo">{t.logo_url ? <img src={t.logo_url} alt=""/> : (t.team_tag || t.name || 'N').slice(0,2)}</div><div><h3>{t.name}</h3><p>{t.description || 'NOVA Origin competitive roster'}</p><small>{t.game_id ? 'GAME LINKED' : 'TEAM'} · {memberships.find(m => m.team_id === t.id)?.team_role || 'player'}</small></div><span>{t.status || 'active'}</span></div>) : <div className="player-empty">No active team membership is linked to your account.</div>}</section><section className="player-panel"><div className="player-panel-head"><div><span>MANAGER INVITATIONS</span><h3>PENDING INVITES / {invites.length}</h3></div><Bell size={19}/></div>{invites.length ? invites.map(i => <div className="player-list-row" key={i.id}><div><b>{i.teams?.name || 'NOVA Team'}</b><small>Expires {new Date(i.expires_at).toLocaleDateString()}</small></div><div className="player-inline-actions"><button onClick={() => respondInvite(i,'accepted')} disabled={busy}>ACCEPT</button><button onClick={() => respondInvite(i,'declined')} disabled={busy}>DECLINE</button></div></div>) : <div className="player-empty">No pending team invitations.</div>}</section></>}
         {tab === 'stats' && <><div className="player-metric-grid"><div><span>MATCHES</span><b>{totalMatches}</b></div><div><span>WINS</span><b>{totalWins}</b></div><div><span>ELIMINATIONS</span><b>{totalElims}</b></div><div><span>AVG K/D</span><b>{avgKd}</b></div></div><section className="player-panel"><div className="player-panel-head"><div><span>VERIFIED RECORDS</span><h3>GAME PERFORMANCE</h3></div><Medal size={19}/></div>{gameStats.length ? gameStats.map(s => <div className="player-stat-row" key={s.id}><div><b>{s.game_id ? 'Game record' : 'Player record'}</b><small>{s.source_label || 'verified'}</small></div><strong>{s.kd_ratio ?? '—'} K/D</strong><span>{s.matches_played ?? 0} MATCHES</span><span>{s.wins ?? 0} WINS</span><span>{s.eliminations ?? 0} ELIMS</span></div>) : <div className="player-empty">No verified game stats are available yet. Verified records will appear here after review.</div>}</section><section className="player-panel"><div className="player-panel-head"><div><span>RECENT MATCHES</span><h3>MATCH PERFORMANCE</h3></div><Gamepad2 size={19}/></div>{matchStats.length ? matchStats.map(s => <div className="player-list-row" key={s.id}><div><b>{s.eliminations ?? 0} eliminations · {s.assists ?? 0} assists</b><small>{new Date(s.created_at).toLocaleDateString()} · verified</small></div><span>#{s.placement ?? '—'} PLACE</span></div>) : <div className="player-empty">No verified match records are available yet.</div>}</section></>}
-        {tab === 'events' && <section className="player-panel"><div className="player-panel-head"><div><span>COMPETITIVE CIRCUIT</span><h3>MY TOURNAMENTS</h3></div><Trophy size={19}/></div>{registrations.length ? registrations.map(r => <div className="player-list-row" key={r.id}><div><b>Registration record</b><small>{new Date(r.created_at).toLocaleString()}</small></div><span>{r.status || 'pending'}</span></div>) : <div className="player-empty">No tournament registration is linked to your account. When a registration is submitted for you or by you, its status will appear here.</div>}</section>}
+        {tab === 'events' && <><section className="player-panel"><div className="player-panel-head"><div><span>COMPETITIVE CIRCUIT</span><h3>OPEN TOURNAMENTS</h3></div><Trophy size={19}/></div>{openTournaments.length ? openTournaments.map(t => <div className="player-list-row" key={t.id}><div><b>{t.title}</b><small>{t.team_size === 1 ? 'Solo entry' : 'Team required'} · {t.starts_at ? new Date(t.starts_at).toLocaleString() : 'Schedule TBA'}</small></div><button onClick={() => registerTournament(t)} disabled={!!registering || t.team_size !== 1}>{registering === t.id ? 'REGISTERING…' : t.team_size === 1 ? 'REGISTER' : 'TEAM REQUIRED'}</button></div>) : <div className="player-empty">No tournaments are currently open for registration.</div>}</section><section className="player-panel"><div className="player-panel-head"><div><span>YOUR ENTRIES</span><h3>REGISTRATION HISTORY</h3></div><CalendarDays size={19}/></div>{registrations.length ? registrations.map(r => <div className="player-list-row" key={r.id}><div><b>{r.tournaments?.title || 'Tournament entry'}</b><small>{new Date(r.created_at).toLocaleString()}</small></div><span>{r.status || 'pending'}</span></div>) : <div className="player-empty">No tournament registrations found for this account.</div>}</section></>}
         {tab === 'notifications' && <section className="player-panel"><div className="player-panel-head"><div><span>PLAYER COMMUNICATIONS</span><h3>INBOX / {unread} UNREAD</h3></div><Bell size={19}/></div>{notifications.length ? notifications.map(n => <div className={'player-notice-row ' + (n.read_at ? 'read' : '')} key={n.id}><div className="player-notice-icon"><Bell size={16}/></div><div><b>{n.title}</b><p>{n.body}</p><small>{new Date(n.created_at).toLocaleString()}</small></div>{!n.read_at && <button onClick={() => markRead(n.id)}>MARK READ</button>}</div>) : <div className="player-empty">You're all caught up. New account and event notifications will appear here.</div>}</section>}
         <footer className="player-footer">© 2026 NOVA ORIGIN · PLAYER SPACE <span>COMPETE WITH PURPOSE.</span></footer>
       </div>
