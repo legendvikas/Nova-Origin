@@ -338,7 +338,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const currentTournament = route[0] === 'tournaments' && slug ? data.tournaments.find(x => x.slug === slug || x.id === slug) : null;
   const currentPlayerProfile = route[0] === 'players' && slug ? extra.profiles.find((p:any) => p.username === slug || p.id === slug) : null;
   const currentPlayerStats = route[0] === 'players' && slug ? extra.players.find((x:any) => x.player?.username === slug || x.player_id === slug) : null;
-  const currentPlayer = currentPlayerStats || (currentPlayerProfile ? { player_id: currentPlayerProfile.id, player: currentPlayerProfile } : null);
+  const currentPlayer = currentPlayerStats ? { ...currentPlayerStats, player: currentPlayerProfile || currentPlayerStats.player } : (currentPlayerProfile ? { player_id: currentPlayerProfile.id, player: currentPlayerProfile } : null);
   const currentNews = route[0] === 'news' && slug ? data.announcements.find(x => slugOf(x.title) === slug || x.id === slug) : null;
   const currentCustomPage = route.length === 1 ? customPages.find((page:any) => page.slug === route[0]) : null;
 
