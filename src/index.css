@@ -516,3 +516,15 @@
   .no-owned-team-card>.no-team-verified{display:none}
   .no-team-add-button{width:38px;height:38px;flex-basis:38px}
 }
+
+
+/* Compact team profile actions: view + edit */
+.no-owned-team-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}
+.no-owned-team-actions button{width:34px;height:34px;display:grid;place-items:center;padding:0;border:1px solid #b7ff5a38;border-radius:9px;
+  color:#b7ff5a;background:#b7ff5a08;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
+.no-owned-team-actions button:hover{background:#b7ff5a1c;border-color:#b7ff5a;transform:translateY(-1px)}
+.no-owned-team-actions button:focus-visible{outline:2px solid #b7ff5a;outline-offset:3px}
+@media(max-width:600px){
+  .no-owned-team-actions{gap:5px}
+  .no-owned-team-actions button{width:31px;height:31px;border-radius:8px}
+}
