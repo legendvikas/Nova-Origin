@@ -570,7 +570,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
             </article>)}</div>}
             {badgeApproved && <div className="no-team-add-row">
               <span>{myTeams.length?'ADD ANOTHER TEAM':'CREATE YOUR FIRST TEAM'}</span>
-              <button type="button" className="no-team-add-button" aria-label="Add a team" title="Create a team" onClick={()=>{setTeamFormOpen(v=>!v);setTeamError('');setTeamMessage('');}}><Plus size={21}/></button>
+              <button type="button" className="no-team-add-button" aria-label="Add a team" title="Create a team" onClick={()=>{setEditingTeamId(null);setTeamDraft({name:'',team_tag:'',game_id:data.games.find((g:any)=>g.is_active!==false)?.id||'',description:'',logo_url:'',is_public:true});setTeamFormOpen(v=>!v);setTeamError('');setTeamMessage('');}}><Plus size={21}/></button>
             </div>}
             {!badgeApproved && <div className="no-team-locked"><span className="no-kicker">VERIFIED PLAYERS ONLY</span><p>Team creation is available to players with an active NOVA Verified Badge.</p><button className="no-btn" type="button" onClick={()=>setActiveProfileTab('verification')}>REQUEST VERIFIED BADGE <ArrowUpRight size={15}/></button></div>}
             {badgeApproved && teamFormOpen && <form className="no-team-create-form" onSubmit={createPlayerTeam}>
