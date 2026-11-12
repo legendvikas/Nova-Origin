@@ -482,7 +482,25 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       const roster = extra.members.filter((m:any) => m.team_id === currentTeam.id).map((m:any) => ({ ...m, profile: extra.profiles.find((p:any) => p.id === m.user_id) })).filter((m:any) => m.profile);
       const teamOwner = extra.profiles.find((p:any)=>p.id===currentTeam.owner_id);
       return <><DetailShell kicker="TEAM PROFILE" title={currentTeam.name} copy={currentTeam.description || 'One roster. One standard. Built to rise.'}>
-        <div className="no-detail-grid"><div className="no-detail-emblem">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt={currentTeam.name+' logo'}/> : <Shield size={70}/>}</div><div><span className="no-kicker">{currentTeam.team_tag || 'NOVA'} / {data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS'}</span>{currentTeam.is_verified && <span className="no-team-verified no-team-verified-large"><ShieldCheck size={16}/> NOVA VERIFIED TEAM</span>}<p>Owned by <strong>{teamOwner?.display_name || teamOwner?.username || 'NOVA PLAYER'}</strong>{teamOwner?.username && <> · <a href={'/players/'+teamOwner.username} onClick={e=>{e.preventDefault();navigate('/players/'+teamOwner.username);}}>VIEW OWNER PROFILE <ArrowUpRight size={13}/></a></>}</p><p>Follow this roster's published appearances and verified competitive results.</p><p className="no-muted">{roster.length} public roster members · {teamResults.length} verified result records</p></div></div>
+        <div className="no-team-profile-hero">
+          <div className="no-team-profile-topline"><span>01 / OFFICIAL ROSTER IDENTITY</span><span className="no-team-live-mark"><i/> NOVA NETWORK</span></div>
+          <div className="no-team-profile-main">
+            <div className="no-team-profile-emblem">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt={currentTeam.name+' logo'}/> : <><b>{(currentTeam.team_tag || currentTeam.name || 'NOE').slice(0,3).toUpperCase()}</b><small>EST. NOVA ORIGIN</small></>}</div>
+            <div className="no-team-profile-info">
+              <span className="no-kicker">{currentTeam.team_tag || 'NOVA'} / {data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS'}</span>
+              <h2>{currentTeam.name}</h2>
+              {currentTeam.is_verified && <span className="no-team-verified no-team-verified-large"><ShieldCheck size={16}/> NOVA VERIFIED TEAM</span>}
+              <p className="no-team-owner-line">CAPTAIN / <strong>{teamOwner?.display_name || teamOwner?.username || 'NOVA PLAYER'}</strong>{teamOwner?.username && <a href={'/players/'+teamOwner.username} onClick={e=>{e.preventDefault();navigate('/players/'+teamOwner.username);}}>VIEW PLAYER PROFILE <ArrowUpRight size={13}/></a>}</p>
+              <p className="no-team-profile-copy">{currentTeam.description || 'One roster. One standard. Built to rise.'}</p>
+            </div>
+          </div>
+          <div className="no-team-profile-stats">
+            <div><b>{roster.length.toString().padStart(2,'0')}</b><span>ROSTER MEMBERS</span></div>
+            <div><b>{teamResults.length.toString().padStart(2,'0')}</b><span>VERIFIED RESULTS</span></div>
+            <div><b>{currentTeam.is_verified ? 'YES' : '—'}</b><span>VERIFIED STATUS</span></div>
+            <div><b>{currentTeam.team_tag || 'NOVA'}</b><span>TEAM CALLSIGN</span></div>
+          </div>
+        </div>
       </DetailShell>
       <section className="no-section"><div className="no-section-head"><div><span className="no-kicker">TEAM / ROSTER</span><h2>THE PEOPLE<br/><em>BEHIND THE TAG.</em></h2></div><p>Public roster members only.</p></div><div className="no-player-grid">{roster.map((m:any,i:number)=><article className="no-player-card" key={m.id}><div className="no-player-photo">{m.profile.avatar_url ? <img src={m.profile.avatar_url} alt=""/> : <Users size={34}/>}<span>0{i+1}</span></div><small>{clean(m.team_role)}</small><h3>{m.profile.display_name || m.profile.username}</h3>{m.profile.username && <a className="no-section-link" href={'/players/'+m.profile.username} onClick={e=>{e.preventDefault();navigate('/players/'+m.profile.username);}}>PLAYER PROFILE <ArrowUpRight size={14}/></a>}</article>)}{!extraLoading && !roster.length && <Empty text="No public roster members are listed yet."/>}</div></section>
       <section className="no-band"><div className="no-section"><div className="no-section-head"><div><span className="no-kicker">VERIFIED COMPETITIVE HISTORY</span><h2>RESULTS<br/><em>THAT COUNT.</em></h2></div><p>Only result records verified by NOVA Origin.</p></div><div className="no-result-grid">{teamResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{r.match?.round_name || 'MATCH RESULT'}</span><b>{r.placement?'PLACE #'+r.placement:(r.points??'—')+' PTS'}</b><small>{r.eliminations??0} ELIMINATIONS · VERIFIED</small></article>)}{!extraLoading&&!teamResults.length&&<Empty text="No verified team results have been published yet."/>}</div></div></section></>;
