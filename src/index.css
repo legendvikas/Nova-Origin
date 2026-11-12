@@ -96,3 +96,44 @@
   .no-player-card h3{font-size:clamp(22px,5vw,42px);margin:10px 0 16px}
   .no-player-stats{gap:12px;padding-top:14px}
 }
+
+
+/* NOVA social-style player profile: creator-first, compact and mobile-native. */
+.no-social-profile{max-width:980px;margin:54px auto 100px;padding:0 22px;color:#f4f7f0}
+.no-social-cover{height:210px;position:relative;overflow:hidden;border:1px solid #b7ff5a22;border-radius:18px;background:radial-gradient(ellipse at 75% 10%,#b7ff5a24,transparent 42%),linear-gradient(125deg,#171d16,#090d0a 62%,#1d2814)}
+.no-social-cover span{position:absolute;left:24px;top:22px;color:#b7ff5a;font:9px 'DM Mono';letter-spacing:2px}
+.no-social-cover b{position:absolute;right:28px;bottom:-46px;font:900 220px/.8 'Barlow Condensed';letter-spacing:-14px;color:#b7ff5a0d}
+.no-social-head{position:relative;padding:0 28px 0;margin-top:-64px}
+.no-social-avatar{width:132px;height:132px;border-radius:50%;padding:5px;background:linear-gradient(135deg,#d8ff85,#b7ff5a 48%,#4d7d25);box-shadow:0 0 0 7px #080a09;overflow:hidden;display:grid;place-items:center;color:#b7ff5a}
+.no-social-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:3px solid #090c09}
+.no-social-edit{position:absolute;right:28px;top:78px;display:flex;align-items:center;gap:8px;border:1px solid #b7ff5a66;border-radius:999px;background:#b7ff5a;color:#10150c;padding:12px 19px;font:700 10px 'DM Mono';letter-spacing:1px}
+.no-social-name{margin-top:20px}.no-social-name h1{font:800 clamp(30px,5vw,46px)/.95 'Barlow Condensed';letter-spacing:-.7px;margin:0}.no-social-name p{color:#a5ad9e;font:11px 'DM Mono';margin:9px 0 0}
+.no-social-verified{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font:700 13px sans-serif;background:#b7ff5a;color:#0a1007;vertical-align:middle}
+.no-social-bio{max-width:600px;color:#b6beb0;font-size:14px;line-height:1.7;margin:17px 0}
+.no-social-stats{display:flex;gap:clamp(18px,5vw,54px);border-top:1px solid #ffffff1a;border-bottom:1px solid #ffffff1a;padding:17px 0;margin-top:20px}
+.no-social-stats span{display:flex;flex-direction:column;gap:5px;color:#9da697;font:8px 'DM Mono';letter-spacing:1px}
+.no-social-stats b{color:#f4f7f0;font:700 18px 'Barlow Condensed';letter-spacing:.3px}
+.no-social-tabs{display:flex;gap:25px;overflow-x:auto;border-bottom:1px solid #ffffff1a;margin-top:20px}
+.no-social-tabs button{white-space:nowrap;background:none;border:0;border-bottom:2px solid transparent;padding:15px 0;color:#aab39f;font:9px 'DM Mono';letter-spacing:1.2px}
+.no-social-tabs button:first-child{color:#b7ff5a;border-color:#b7ff5a}
+.no-social-content{max-width:720px;margin:28px auto 0;display:grid;gap:18px}
+.no-social-card{padding:25px;border:1px solid #ffffff17;border-radius:18px;background:linear-gradient(145deg,#111611,#0b0f0c);scroll-margin-top:30px}
+.no-social-card .no-kicker{display:block;margin-bottom:20px}
+.no-social-card .no-auth-form{max-width:none}
+.no-social-card .no-btn{border-radius:12px}
+.no-social-card input,.no-social-card textarea,.no-social-card select{border-radius:10px}
+@media(max-width:640px){
+ .no-social-profile{margin:24px auto 70px;padding:0 16px}
+ .no-social-cover{height:155px;border-radius:14px}
+ .no-social-head{padding:0 5px;margin-top:-50px}
+ .no-social-avatar{width:104px;height:104px}
+ .no-social-edit{top:62px;right:5px;padding:10px 13px;font-size:8px}
+ .no-social-name{margin-top:18px}.no-social-name h1{font-size:34px}
+ .no-social-bio{font-size:12px}
+ .no-social-stats{gap:16px;padding:14px 0}
+ .no-social-stats span{font-size:7px}.no-social-stats b{font-size:16px}
+ .no-social-tabs{gap:19px}
+ .no-social-tabs button{font-size:8px}
+ .no-social-content{margin-top:20px;gap:14px}
+ .no-social-card{padding:18px 15px;border-radius:14px}
+}
