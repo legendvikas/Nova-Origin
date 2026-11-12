@@ -74,6 +74,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [managedSeo, setManagedSeo] = useState<any[]>([]);
   const [homepageSections, setHomepageSections] = useState<any[]>([]);
   const [customPages, setCustomPages] = useState<any[]>([]);
+  const [footerLinks, setFooterLinks] = useState<Record<string,string>>({});
 
   useEffect(() => {
     const onPop = () => { setPath(window.location.pathname.replace(/\/$/, '') || '/'); setMenuOpen(false); };
@@ -81,6 +82,14 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     window.addEventListener('popstate', onPop);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => { window.removeEventListener('popstate', onPop); window.removeEventListener('scroll', onScroll); };
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    api<Record<string,string>>('rpc/get_public_footer_links', {}, {method:'POST', body:{}})
+      .then(rows => { if(live && rows && typeof rows==='object') setFooterLinks(rows); })
+      .catch(() => { if(live) setFooterLinks({}); });
+    return () => { live = false; };
   }, []);
 
   useEffect(() => {
@@ -718,7 +727,13 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         </>}
       </section>
     </div>}
-    <footer className="no-footer"><div className="no-footer-main"><button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-wordmark"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></span><span className="no-brand-official"><BadgeCheck size={13}/> OFFICIAL</span></button><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="no-footer-social"><a href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Social" aria-label="Social enquiries"><Instagram/></a><a href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Media" aria-label="Media enquiries"><Youtube/></a><a href="mailto:hello@novaorigin.gg?subject=NOVA%20Origin%20Community" aria-label="Community enquiries"><Disc3/></a></div></div><div className="no-footer-links"><div><b>EXPLORE</b>{NAV.slice(1,6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>COMPETE</b>{NAV.slice(6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>CONTACT</b><a href="mailto:hello@novaorigin.gg">hello@novaorigin.gg</a><button onClick={onOpenAdmin}>ADMIN ACCESS <ArrowUpRight size={13}/></button></div></div><div className="no-footer-bottom"><span>© {new Date().getFullYear()} NOVA ORIGIN. ALL SYSTEMS NOMINAL.</span><span>THE NEXT WAVE OF COMPETITION.</span></div></footer>
+    <footer className="no-footer"><div className="no-footer-main"><button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-wordmark"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></span><span className="no-brand-official"><BadgeCheck size={13}/> OFFICIAL</span></button><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="no-footer-social">{[
+      {key:'instagram',icon:<Instagram/>,label:'Instagram'},
+      {key:'youtube',icon:<Youtube/>,label:'YouTube'},
+      {key:'discord',icon:<Disc3/>,label:'Discord'},
+      {key:'twitch',icon:<Twitch/>,label:'Twitch'},
+      {key:'x',icon:<span className="no-social-x">𝕏</span>,label:'X'}
+    ].filter(item=>safeHref(footerLinks['footer_'+item.key+'_url'])).map(item=><a key={item.key} href={safeHref(footerLinks['footer_'+item.key+'_url'])} aria-label={item.label} title={item.label} target="_blank" rel="noreferrer">{item.icon}</a>)}</div></div><div className="no-footer-links"><div><b>EXPLORE</b>{NAV.slice(1,6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>COMPETE</b>{NAV.slice(6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>CONTACT</b><a href={'mailto:'+(footerLinks.footer_contact_email||'hello@novaorigin.gg')}>{footerLinks.footer_contact_email||'hello@novaorigin.gg'}</a><button onClick={onOpenAdmin}>ADMIN ACCESS <ArrowUpRight size={13}/></button></div></div><div className="no-footer-bottom"><span>© {new Date().getFullYear()} NOVA ORIGIN. ALL SYSTEMS NOMINAL.</span><span>THE NEXT WAVE OF COMPETITION.</span></div></footer>
   </div>;
 }
 
