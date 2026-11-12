@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from 'react';
 import {
   ArrowRight, ArrowUpRight, Menu, X, DoorOpen, Pencil, Camera, BadgeCheck, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
-  Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
+  Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield, ShieldCheck,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
 import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, uploadPlayerAvatar, uploadTeamLogo, type NovaUser } from '../lib/supabase';
