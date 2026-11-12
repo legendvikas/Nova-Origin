@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from 'react';
 import {
-  ArrowRight, ArrowUpRight, Menu, X, DoorOpen, Pencil, Camera, BadgeCheck, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
+  ArrowRight, ArrowUpRight, Menu, X, DoorOpen, Pencil, Camera, BadgeCheck, Plus, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
   Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield, ShieldCheck,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
@@ -55,6 +55,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [badgeMessage, setBadgeMessage] = useState('');
   const [badgeError, setBadgeError] = useState('');
   const [myTeams, setMyTeams] = useState<any[]>([]);
+  const [teamFormOpen, setTeamFormOpen] = useState(false);
   const [teamDraft, setTeamDraft] = useState({name:'',team_tag:'',game_id:'',description:'',logo_url:'',is_public:true});
   const [teamBusy, setTeamBusy] = useState(false);
   const [teamLogoBusy, setTeamLogoBusy] = useState(false);
@@ -261,6 +262,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       setMyTeams(rows=>[team,...rows]);
       setTeamDraft({name:'',team_tag:'',game_id:'',description:'',logo_url:'',is_public:true});
       setTeamMessage('Team application submitted. Your team will appear publicly after Admin approval.');
+      setTeamFormOpen(false);
     } catch(error:any) { setTeamError(error?.message||'Could not create your team. Please try again.'); }
     finally { setTeamBusy(false); }
   };
@@ -543,10 +545,22 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         </div>
         {activeProfileTab==='posts' ? <div className="no-social-content">
           <section className="no-player-team-hub">
-            <div className="no-section-head"><div><span className="no-kicker">TEAM COMMAND / PLAYER OWNED</span><h2>BUILD YOUR<br/><em>OWN SQUAD.</em></h2></div><span className="no-team-count">{myTeams.length} CREATED</span></div>
-            {myTeams.length>0 && <div className="no-team-list">{myTeams.map(team=><article className="no-team-row no-owned-team" key={team.id}><span className="no-team-logo">{team.logo_url?<img src={team.logo_url} alt=""/>:(team.team_tag||'NO').slice(0,3)}</span><span className="no-team-name"><b>{team.name}</b><small>{data.games.find((g:any)=>g.id===team.game_id)?.name||'GAME'} · {team.status==='active'?'CAPTAIN':'APPLICATION'}</small></span><span className="no-team-tag">{team.team_tag}</span><span className="no-team-status">{team.status==='pending_review'?'PENDING REVIEW':team.status.toUpperCase()}</span></article>)}</div>}
-            {!myTeams.length && <p className="no-muted">You haven't submitted a team application yet. Apply to create your squad.</p>}
-            {badgeApproved ? <form className="no-team-create-form" onSubmit={createPlayerTeam}>
+            <div className="no-team-hub-heading">
+              <div><span className="no-kicker">TEAM COMMAND / PLAYER OWNED</span><h2>YOUR<br/><em>TEAMS.</em></h2></div>
+              <span className="no-team-count">{myTeams.length.toString().padStart(2,'0')} CREATED</span>
+            </div>
+            {myTeams.length>0 && <div className="no-owned-team-list">{myTeams.map(team=><article className="no-owned-team-card" key={team.id}>
+              <div className="no-owned-team-logo">{team.logo_url?<img src={team.logo_url} alt={team.name+' logo'}/>:<b>{(team.team_tag||team.name||'NO').slice(0,3).toUpperCase()}</b>}</div>
+              <div className="no-owned-team-info"><span>{team.team_tag||'NOVA'} / {data.games.find((g:any)=>g.id===team.game_id)?.name||'ESPORTS'}</span><b>{team.name}</b><small>{team.status==='active'?'ACTIVE TEAM':team.status==='pending_review'?'PENDING APPROVAL':String(team.status||'SUBMITTED').replace(/_/g,' ').toUpperCase()}</small></div>
+              {team.is_verified&&<span className="no-team-verified"><ShieldCheck size={13}/> VERIFIED</span>}
+              <ArrowUpRight className="no-owned-team-arrow" size={19}/>
+            </article>)}</div>}
+            {badgeApproved && <div className="no-team-add-row">
+              <span>{myTeams.length?'ADD ANOTHER TEAM':'CREATE YOUR FIRST TEAM'}</span>
+              <button type="button" className="no-team-add-button" aria-label="Add a team" title="Create a team" onClick={()=>{setTeamFormOpen(v=>!v);setTeamError('');setTeamMessage('');}}><Plus size={21}/></button>
+            </div>}
+            {!badgeApproved && <div className="no-team-locked"><span className="no-kicker">VERIFIED PLAYERS ONLY</span><p>Team creation is available to players with an active NOVA Verified Badge.</p><button className="no-btn" type="button" onClick={()=>setActiveProfileTab('verification')}>REQUEST VERIFIED BADGE <ArrowUpRight size={15}/></button></div>}
+            {badgeApproved && teamFormOpen && <form className="no-team-create-form" onSubmit={createPlayerTeam}>
               <label>TEAM NAME<input value={teamDraft.name} onChange={e=>setTeamDraft(v=>({...v,name:e.target.value}))} minLength={2} maxLength={48} required placeholder="e.g. NOVA RAVENS"/></label>
               <label>TEAM TAG<input value={teamDraft.team_tag} onChange={e=>setTeamDraft(v=>({...v,team_tag:e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12)}))} minLength={2} maxLength={12} required placeholder="RAVN"/></label>
               <label>GAME<select value={teamDraft.game_id} onChange={e=>setTeamDraft(v=>({...v,game_id:e.target.value}))} required><option value="">SELECT GAME</option>{data.games.filter((g:any)=>g.is_active!==false).map((g:any)=><option value={g.id} key={g.id}>{g.name}</option>)}</select></label>
@@ -554,8 +568,8 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
               <label>TEAM ICON / LOGO<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>chooseTeamLogo(e.target.files?.[0])} disabled={teamLogoBusy}/><small>{teamLogoBusy?'UPLOADING ICON…':teamDraft.logo_url?'ICON READY ✓':'JPG / PNG / WEBP · MAX 3 MB'}</small><input type="url" value={teamDraft.logo_url.startsWith('https://')?teamDraft.logo_url:''} onChange={e=>setTeamDraft(v=>({...v,logo_url:e.target.value}))} placeholder="Or paste an image URL"/></label>
               <label className="no-team-visibility"><input type="checkbox" checked={teamDraft.is_public} onChange={e=>setTeamDraft(v=>({...v,is_public:e.target.checked}))}/> SHOW TEAM IN PUBLIC DIRECTORY</label>
               {teamError&&<p className="no-auth-error" role="alert">{teamError}</p>}{teamMessage&&<p className="no-auth-notice" role="status">{teamMessage}</p>}
-              <button className="no-btn" type="submit" disabled={teamBusy||teamLogoBusy||!data.games.some((g:any)=>g.is_active!==false)}>{teamBusy?'CREATING TEAM…':'SUBMIT TEAM APPLICATION'} <ArrowUpRight size={15}/></button>
-            </form> : <div className="no-team-locked"><span className="no-kicker">VERIFIED PLAYERS ONLY</span><h3>TEAM CREATION IS A VERIFIED PRIVILEGE.</h3><p>Only players with an active NOVA Verified Badge can submit a team application. Get your player profile verified first.</p><button className="no-btn" type="button" onClick={()=>setActiveProfileTab('verification')}>REQUEST VERIFIED BADGE <ArrowUpRight size={15}/></button></div>}
+              <div className="no-team-form-actions"><button className="no-btn" type="submit" disabled={teamBusy||teamLogoBusy||!data.games.some((g:any)=>g.is_active!==false)}>{teamBusy?'CREATING TEAM…':'SUBMIT TEAM APPLICATION'} <ArrowUpRight size={15}/></button><button type="button" className="no-btn ghost" onClick={()=>setTeamFormOpen(false)}>CANCEL</button></div>
+            </form>}
           </section>
           <div className="no-profile-preview-card"><span className="no-kicker">PLAYER ID / PUBLIC PROFILE</span><div className="no-profile-preview-row"><div><b>{profileDraft.display_name||'NOVA PLAYER'}</b><small>@{myProfile?.username||'your_username'}</small></div>{verified&&<span className="no-social-verified">✓</span>}</div><p>{profileDraft.bio||'Your player bio will appear here.'}</p><div className="no-profile-preview-footer"><span>COMPETITIVE IDENTITY</span><button onClick={()=>setEditOpen(true)}>EDIT IDENTITY <Pencil size={13}/></button></div></div>
           <div className="no-social-card no-verification-teaser"><span className="no-kicker">NOVA VERIFIED / TRUSTED PLAYER</span><p>{verified?'Your profile carries the official NOVA verified mark.':'Want the NOVA verified mark? Submit your competitive identity for manager review.'}</p><button className="no-btn ghost" onClick={()=>setActiveProfileTab('verification')}>{verified?'VIEW VERIFICATION':'REQUEST VERIFICATION'} <ArrowUpRight size={15}/></button></div>
