@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from 'react';
 import {
-  ArrowRight, ArrowUpRight, Menu, X, Gamepad2, Trophy, Users, CalendarDays,
-  Radio, Instagram, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
+  ArrowRight, ArrowUpRight, Menu, X, Pencil, Camera, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
+  Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
 import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, uploadPlayerAvatar, type NovaUser } from '../lib/supabase';
@@ -55,6 +55,12 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [badgeMessage, setBadgeMessage] = useState('');
   const [badgeError, setBadgeError] = useState('');
   const [profileDraft, setProfileDraft] = useState({username:'',display_name:'',bio:'',avatar_url:''});
+  const [socialDraft, setSocialDraft] = useState<Record<string,string>>({instagram:'',youtube:'',twitch:'',discord:'',x:'',website:''});
+  const [editOpen, setEditOpen] = useState(false);
+  const [activeProfileTab, setActiveProfileTab] = useState<'posts'|'verification'>('posts');
+  const [cropSource, setCropSource] = useState('');
+  const [cropZoom, setCropZoom] = useState(1);
+  const [cropFileName, setCropFileName] = useState('');
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileMessage, setProfileMessage] = useState('');
   const [profileError, setProfileError] = useState('');
@@ -136,7 +142,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         read('sponsors', { select: 'id,name,logo_url,website_url,description,status', status: 'eq.active', order: 'created_at.desc', limit: '12' }),
         read('match_results', { select: 'id,match_id,team_id,player_id,placement,eliminations,points,status,verified_at,team:teams(name,team_tag),player:profiles(username,display_name),match:matches(tournament_id,match_number,round_name,scheduled_at)', status: 'eq.verified', order: 'created_at.desc', limit: '30' })
       ]);
-      const profiles = await read('profiles', { select: 'id,username,display_name,avatar_url,bio', order: 'created_at.asc', limit: '100' });
+      const profiles = await read('profiles', { select: 'id,username,display_name,avatar_url,bio,social_links', order: 'created_at.asc', limit: '100' });
       if (live) { setExtra({ matches, players, members, profiles, sponsors, results }); setExtraLoading(false); }
     })();
     return () => { live = false; };
@@ -184,12 +190,13 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     let live = true;
     if (!authUser) { setMyProfile(null); return; }
     Promise.all([
-      api<any[]>('profiles',{select:'id,username,display_name,avatar_url,bio,country_code',id:'eq.'+authUser.id,limit:'1'}),
+      api<any[]>('profiles',{select:'id,username,display_name,avatar_url,bio,country_code,social_links',id:'eq.'+authUser.id,limit:'1'}),
       api<any[]>('player_badge_requests',{select:'id,status,game_id,in_game_name,evidence_url,note,manager_note,created_at',player_id:'eq.'+authUser.id,order:'created_at.desc',limit:'1'}).catch(() => [])
     ]).then(([rows, requests]) => {
       if (!live) return; const p=rows[0] || {id:authUser.id}; setMyProfile(p);
       const latestRequest=requests[0]||null; setBadgeRequest(latestRequest); setBadgeApproved(latestRequest?.status==='approved');
       setProfileDraft({username:p.username||'',display_name:p.display_name||authUser.user_metadata?.full_name||'',bio:p.bio||'',avatar_url:p.avatar_url||''});
+      setSocialDraft({instagram:p.social_links?.instagram||'',youtube:p.social_links?.youtube||'',twitch:p.social_links?.twitch||'',discord:p.social_links?.discord||'',x:p.social_links?.x||'',website:p.social_links?.website||''});
     }).catch(e => { if(live) setProfileError(e.message||'Could not load profile.'); });
     return () => { live=false; };
   }, [authUser?.id]);
@@ -199,7 +206,9 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     try {
       const username=profileDraft.username.trim().toLowerCase();
       if(username && !/^[a-z0-9_.]{3,24}$/.test(username)) throw new Error('Username must be 3–24 characters: letters, numbers, dot or underscore.');
-      const payload={username:username||null,display_name:profileDraft.display_name.trim()||'Player',bio:profileDraft.bio.trim()||null,avatar_url:profileDraft.avatar_url.trim()||null,updated_at:new Date().toISOString()};
+      const social_links=Object.fromEntries(Object.entries(socialDraft).map(([k,v])=>[k,v.trim()]).filter(([,v])=>!!v));
+      for (const [key,value] of Object.entries(social_links)) if (!/^https:\/\//i.test(value)) throw new Error('Social links must start with https://');
+      const payload={username:username||null,display_name:profileDraft.display_name.trim()||'Player',bio:profileDraft.bio.trim()||null,avatar_url:profileDraft.avatar_url.trim()||null,social_links,updated_at:new Date().toISOString()};
       const existing=await api<any[]>('profiles',{select:'id',id:'eq.'+authUser.id,limit:'1'});
       const rows=existing.length
         ? await api<any[]>('profiles',{id:'eq.'+authUser.id},{method:'PATCH',body:payload,prefer:'return=representation'})
@@ -207,19 +216,33 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       setMyProfile(rows[0]||{...myProfile,...payload}); setProfileMessage('Profile saved successfully.');
     } catch(e:any) { setProfileError(e.message||'Could not save profile.'); } finally { setProfileBusy(false); }
   };
-  const uploadMyAvatar = async (file?: File) => {
-    if (!file || !authUser) return;
+  const chooseAvatar = (file?: File) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    if (file.size > 5 * 1024 * 1024) { setProfileError('Choose an image under 5 MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = () => { setCropSource(String(reader.result || '')); setCropFileName(file.name); setCropZoom(1); };
+    reader.readAsDataURL(file);
+  };
+  const saveCroppedAvatar = async () => {
+    if (!cropSource || !authUser) return;
     setProfileBusy(true); setProfileError(''); setProfileMessage('');
     try {
-      const avatar_url = await uploadPlayerAvatar(file, authUser.id);
-      setProfileDraft(v=>({...v,avatar_url}));
-      setMyProfile((v:any)=>({...v,avatar_url}));
+      const img = new Image(); img.src = cropSource;
+      await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;});
+      const size = Math.min(img.naturalWidth,img.naturalHeight) / cropZoom;
+      const canvas = document.createElement('canvas'); canvas.width=640; canvas.height=640;
+      const ctx = canvas.getContext('2d'); if(!ctx) throw new Error('Image crop is unavailable in this browser.');
+      ctx.drawImage(img,(img.naturalWidth-size)/2,(img.naturalHeight-size)/2,size,size,0,0,640,640);
+      const blob: Blob = await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Could not crop image.')),'image/jpeg',.9));
+      const file = new File([blob],(cropFileName.replace(/\.[^.]+$/,'')||'nova-avatar')+'.jpg',{type:'image/jpeg'});
+      const avatar_url = await uploadPlayerAvatar(file,authUser.id);
+      setProfileDraft(v=>({...v,avatar_url})); setMyProfile((v:any)=>({...v,avatar_url}));
       const existing=await api<any[]>('profiles',{select:'id',id:'eq.'+authUser.id,limit:'1'});
       const payload={avatar_url,updated_at:new Date().toISOString()};
       if(existing.length) await api('profiles',{id:'eq.'+authUser.id},{method:'PATCH',body:payload,prefer:'return=minimal'});
       else await api('profiles',{}, {method:'POST',body:{id:authUser.id,display_name:profileDraft.display_name.trim()||'Player',...payload},prefer:'return=minimal'});
-      setProfileMessage('Profile photo uploaded successfully.');
-    } catch(e:any) { setProfileError(e.message||'Profile photo upload failed.'); }
+      setCropSource(''); setProfileMessage('Profile photo updated successfully.');
+    } catch(e:any) { setProfileError(e.message||'Profile photo update failed.'); }
     finally { setProfileBusy(false); }
   };
   const submitBadgeRequest = async (e: FormEvent) => {
@@ -398,25 +421,33 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       if (!authUser) return <><PageHero kicker="NOVA ID / MEMBER ACCESS" title="SIGN IN TO" accent="YOUR PROFILE." copy="Sign in using the account button in the header to manage your NOVA player profile."/><section className="no-section"><button className="no-btn" onClick={()=>setAuthOpen(true)}>SIGN IN / CREATE ACCOUNT <ArrowUpRight size={15}/></button></section></>;
       const verified=badgeApproved;
       const profileStats=extra.players.filter((p:any)=>p.player_id===authUser.id);
+      const socials = [
+        {key:'instagram',label:'Instagram',icon:<Instagram size={18}/>},
+        {key:'youtube',label:'YouTube',icon:<Youtube size={18}/>},
+        {key:'twitch',label:'Twitch',icon:<Twitch size={18}/>},
+        {key:'discord',label:'Discord',icon:<Disc3 size={18}/>},
+        {key:'x',label:'X',icon:<span className="no-social-x">𝕏</span>},
+        {key:'website',label:'Website',icon:<Link2 size={18}/>}
+      ];
       return <><section className="no-social-profile">
-        <div className="no-social-cover"><span>NOVA ORIGIN / PLAYER ID</span><b>NO</b></div>
+        <div className="no-social-cover"><span>NOVA ORIGIN / PLAYER ID</span><b>NO</b><div className="no-cover-glow"/></div>
         <div className="no-social-head">
-          <div className="no-social-avatar">{profileDraft.avatar_url ? <img src={profileDraft.avatar_url} alt="Profile"/> : <Users size={48}/>}</div>
-          <button className="no-social-edit" onClick={()=>document.getElementById('nova-profile-edit')?.scrollIntoView({behavior:'smooth'})}>EDIT PROFILE <ArrowUpRight size={14}/></button>
+          <button className="no-social-avatar no-avatar-button" onClick={()=>document.getElementById('nova-avatar-file')?.click()} aria-label="Change profile photo">
+            {profileDraft.avatar_url ? <img src={profileDraft.avatar_url} alt="Profile"/> : <Users size={48}/>}<span className="no-avatar-camera"><Camera size={16}/></span>
+          </button>
+          <input id="nova-avatar-file" className="no-visually-hidden" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>chooseAvatar(e.target.files?.[0])}/>
+          <button className="no-social-edit no-pencil-edit" onClick={()=>{setEditOpen(true);setProfileError('');setProfileMessage('');}} aria-label="Edit profile"><Pencil size={18}/></button>
           <div className="no-social-name"><h1>{profileDraft.display_name||'NOVA PLAYER'} {verified&&<span className="no-social-verified" title="NOVA verified">✓</span>}</h1><p>@{myProfile?.username||'your_username'}</p></div>
-          <p className="no-social-bio">{profileDraft.bio||'Add a short bio to introduce yourself to the NOVA community.'}</p>
-          <div className="no-social-stats"><span><b>{profileStats.length}</b> VERIFIED RECORDS</span><span><b>{verified?'YES':'—'}</b> NOVA VERIFIED</span><span><b>PLAYER</b> MEMBER</span></div>
-          <nav className="no-social-tabs"><button onClick={()=>document.getElementById('nova-profile-edit')?.scrollIntoView({behavior:'smooth'})}>PROFILE EDIT</button><button onClick={()=>document.getElementById('nova-badge-request')?.scrollIntoView({behavior:'smooth'})}>VERIFICATION</button><button onClick={()=>navigate('/players')}>DISCOVER PLAYERS</button></nav>
+          <p className="no-social-bio">{profileDraft.bio||'Player. Competitor. Part of the NOVA Origin community.'}</p>
+          <div className="no-social-stats"><span><b>{profileStats.length}</b> VERIFIED RECORDS</span><span><b>{verified?'VERIFIED':'PLAYER'}</b> STATUS</span><span><b>ORIGIN</b> MEMBER</span></div>
+          <div className="no-profile-socials">{socials.filter(item=>safeHref((myProfile?.social_links||{})[item.key])).map(item=><a key={item.key} href={safeHref((myProfile?.social_links||{})[item.key])} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}>{item.icon}</a>)}</div>
+          <nav className="no-social-tabs"><button className={activeProfileTab==='posts'?'active':''} onClick={()=>setActiveProfileTab('posts')}>PROFILE</button><button className={activeProfileTab==='verification'?'active':''} onClick={()=>setActiveProfileTab('verification')}>VERIFICATION</button><button onClick={()=>navigate('/players')}>DISCOVER PLAYERS</button></nav>
         </div>
-        <div className="no-social-content">
-        <div className="no-detail-section no-social-card" id="nova-profile-edit"><span className="no-kicker">YOUR IDENTITY / EDIT PROFILE</span><form className="no-auth-form" onSubmit={saveMyProfile}>
-          <label>USERNAME<input value={profileDraft.username} onChange={e=>setProfileDraft(v=>({...v,username:e.target.value}))} minLength={3} maxLength={24} placeholder="your_gamer_tag"/></label>
-          <label>DISPLAY NAME<input value={profileDraft.display_name} onChange={e=>setProfileDraft(v=>({...v,display_name:e.target.value}))} maxLength={60} required/></label>
-          <label>PROFILE PHOTO<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>uploadMyAvatar(e.target.files?.[0])} disabled={profileBusy}/><small>JPG, PNG, WEBP or GIF · max 5 MB</small></label><label>PHOTO URL (OPTIONAL)<input type="url" value={profileDraft.avatar_url} onChange={e=>setProfileDraft(v=>({...v,avatar_url:e.target.value}))} placeholder="https://..."/></label>
-          <label>BIO<textarea value={profileDraft.bio} onChange={e=>setProfileDraft(v=>({...v,bio:e.target.value}))} maxLength={240} rows={3} placeholder="Tell the community about your game and role."/></label>
-          {profileError&&<p className="no-auth-error" role="alert">{profileError}</p>}{profileMessage&&<p className="no-auth-notice" role="status">{profileMessage}</p>}
-          <button className="no-btn" type="submit" disabled={profileBusy}>{profileBusy?'SAVING…':'SAVE PROFILE'} <ArrowUpRight size={15}/></button></form></div>
-        <div className="no-detail-section no-social-card" id="nova-badge-request"><span className="no-kicker">NOVA VERIFIED BADGE</span>
+        {activeProfileTab==='posts' ? <div className="no-social-content">
+          <div className="no-profile-preview-card"><span className="no-kicker">PLAYER ID / PUBLIC PROFILE</span><div className="no-profile-preview-row"><div><b>{profileDraft.display_name||'NOVA PLAYER'}</b><small>@{myProfile?.username||'your_username'}</small></div>{verified&&<span className="no-social-verified">✓</span>}</div><p>{profileDraft.bio||'Your player bio will appear here.'}</p><div className="no-profile-preview-footer"><span>COMPETITIVE IDENTITY</span><button onClick={()=>setEditOpen(true)}>EDIT IDENTITY <Pencil size={13}/></button></div></div>
+          <div className="no-social-card no-verification-teaser"><span className="no-kicker">NOVA VERIFIED / TRUSTED PLAYER</span><p>{verified?'Your profile carries the official NOVA verified mark.':'Want the NOVA verified mark? Submit your competitive identity for manager review.'}</p><button className="no-btn ghost" onClick={()=>setActiveProfileTab('verification')}>{verified?'VIEW VERIFICATION':'REQUEST VERIFICATION'} <ArrowUpRight size={15}/></button></div>
+        </div> : <div className="no-social-content">
+          <div className="no-detail-section no-social-card" id="nova-badge-request"><span className="no-kicker">NOVA VERIFIED BADGE</span>
           {verified ? <p className="no-muted">Your player profile is officially verified by NOVA.</p> : badgeRequest?.status==='pending' ? <p className="no-muted">Your verification request is waiting for manager review.</p> : badgeRequest?.status==='rejected' ? <p className="no-muted">Your last request was not approved. {badgeRequest.manager_note||'You can submit an updated request with new evidence.'}</p> : <p className="no-muted">Request a verified tick. NOVA managers will review your in-game identity and evidence before approval.</p>}
           {!verified && badgeRequest?.status!=='pending' && <form className="no-auth-form" onSubmit={submitBadgeRequest}>
             <label>GAME<select value={badgeDraft.game_id} onChange={e=>setBadgeDraft(v=>({...v,game_id:e.target.value}))} required><option value="">SELECT GAME</option>{data.games.map((g:any)=><option value={g.id} key={g.id}>{g.name}</option>)}</select></label>
@@ -427,9 +458,18 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
             <button className="no-btn" type="submit" disabled={badgeBusy||!data.games.length}>{badgeBusy?'SENDING…':'REQUEST VERIFIED BADGE'} <ArrowUpRight size={15}/></button>
           </form>}
           <button className="no-btn ghost" onClick={()=>navigate('/players')}>VIEW PLAYER DIRECTORY <ArrowUpRight size={15}/></button>
-        </div>
-        </div>
-      </section></>;
+        </div></div>}
+      </section>
+      {editOpen&&<div className="no-profile-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setEditOpen(false);}}><section className="no-profile-modal" role="dialog" aria-modal="true" aria-labelledby="nova-edit-title"><button className="no-profile-modal-close" onClick={()=>setEditOpen(false)} aria-label="Close editor"><X/></button><span className="no-kicker">NOVA ID / PERSONALISE</span><h2 id="nova-edit-title">EDIT YOUR<br/><em>IDENTITY.</em></h2><form className="no-auth-form" onSubmit={async e=>{await saveMyProfile(e);if(!profileError)setEditOpen(false);}}>
+        <label>USERNAME<input value={profileDraft.username} onChange={e=>setProfileDraft(v=>({...v,username:e.target.value}))} minLength={3} maxLength={24} placeholder="your_gamer_tag"/></label>
+        <label>DISPLAY NAME<input value={profileDraft.display_name} onChange={e=>setProfileDraft(v=>({...v,display_name:e.target.value}))} maxLength={60} required/></label>
+        <label>BIO<textarea value={profileDraft.bio} onChange={e=>setProfileDraft(v=>({...v,bio:e.target.value}))} maxLength={240} rows={3} placeholder="Tell the community about your game and role."/></label>
+        <div className="no-social-edit-fields"><span className="no-kicker">YOUR SOCIAL LINKS</span>{socials.map(item=><label key={item.key}>{item.label.toUpperCase()} URL<input type="url" value={socialDraft[item.key]||''} onChange={e=>setSocialDraft(v=>({...v,[item.key]:e.target.value}))} placeholder="https://..."/></label>)}</div>
+        {profileError&&<p className="no-auth-error" role="alert">{profileError}</p>}{profileMessage&&<p className="no-auth-notice" role="status">{profileMessage}</p>}
+        <button className="no-btn" type="submit" disabled={profileBusy}>{profileBusy?'SAVING…':'SAVE PROFILE'} <ArrowUpRight size={15}/></button></form></section></div>}
+      {cropSource&&<div className="no-profile-modal-backdrop" role="presentation"><section className="no-crop-modal" role="dialog" aria-modal="true" aria-labelledby="nova-crop-title"><button className="no-profile-modal-close" onClick={()=>setCropSource('')} aria-label="Cancel crop"><X/></button><span className="no-kicker">PLAYER PHOTO / CROP</span><h2 id="nova-crop-title">MAKE IT<br/><em>YOUR ICON.</em></h2><div className="no-crop-stage"><img src={cropSource} style={{transform:'scale('+cropZoom+')'}} alt="Crop preview"/></div><label className="no-crop-zoom">ZOOM <input type="range" min="1" max="3" step=".05" value={cropZoom} onChange={e=>setCropZoom(Number(e.target.value))}/></label><p>Drag is not required — adjust zoom and the centred square crop will be used.</p><button className="no-btn" onClick={saveCroppedAvatar} disabled={profileBusy}>{profileBusy?'UPLOADING…':'USE THIS PHOTO'} <ArrowUpRight size={15}/></button></section></div>}
+      </>;
+
     }
     if (route[0] === 'players' && !slug) {
       return <>
