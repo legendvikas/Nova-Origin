@@ -127,7 +127,7 @@ export function Dashboard(props: Props) {
   const load = async () => {
     if (!user) return;
     setLoading(true); setError('');
-    const targets = modules.filter(m => m.table);
+    const targets = modules.filter(m => m.table && (role !== 'moderator' || m.id === 'badge-requests'));
     const next:Record<string,any[]> = {}; const nextCounts:Record<string,number|null> = {}; const nextErrors:Record<string,string> = {};
     const settled = await Promise.all(targets.map(async m => {
       try {
@@ -138,9 +138,11 @@ export function Dashboard(props: Props) {
     setRecords(next); setCounts(nextCounts); setModuleErrors(nextErrors); setLoading(false);
   };
   useEffect(()=>{load();},[user?.id]);
+  useEffect(()=>{if(role==='moderator' && tab==='overview')setTab('badge-requests');},[role,tab]);
   useEffect(()=>{setQuery('');setStatusFilter('all');setPageNo(0);setSelectedIds([]);setSortRules([]);setBulkStatus('');setEditor(false);setEditing(null);setMobileOpen(false);},[tab]);
 
-  const active = modules.find(m=>m.id===tab) || modules[0];
+  const activeBase = modules.find(m=>m.id===tab) || modules[0];
+  const active = role==='moderator' && activeBase.id==='badge-requests' ? {...activeBase,fields:activeBase.fields?.filter(f=>['status','manager_note'].includes(f.key))} : activeBase;
   const activeRows = records[tab] || [];
   const filtered = useMemo(()=>{
     const rows=activeRows.filter(row=>(!query || JSON.stringify(row).toLowerCase().includes(query.toLowerCase()))&&(statusFilter==='all'||String(row[active.statusField||'status'])===statusFilter));
@@ -238,7 +240,8 @@ export function Dashboard(props: Props) {
     finally{setBusy(false);}
   };
   const nav = (items:Module[]) => items.filter(m=>m.label.toLowerCase().includes(navQuery.toLowerCase()));
-  const visibleGroups = grouped.map(g=>({name:g,items:nav(modules.filter(m=>m.group===g))})).filter(g=>g.items.length);
+  const availableModules = role==='moderator' ? modules.filter(m=>m.id==='badge-requests') : modules;
+  const visibleGroups = grouped.map(g=>({name:g,items:nav(availableModules.filter(m=>m.group===g))})).filter(g=>g.items.length);
   const statModules = [{id:'members',label:'Registered members',icon:Users,accent:'lime'},{id:'teams',label:'Teams',icon:ShieldCheck,accent:'violet'},{id:'players',label:'Player profiles',icon:Zap,accent:'cyan'},{id:'tournaments',label:'Tournaments',icon:Trophy,accent:'lime'},{id:'matches',label:'Matches',icon:Swords,accent:'violet'},{id:'applications',label:'Registrations',icon:BookOpen,accent:'cyan'}];
 
   if(!hasSupabaseConfig()) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / CONNECTION REQUIRED</span><h1>Connect the<br/><em>control center.</em></h1><p>Supabase URL and publishable key are missing from this deployment. Add the existing project's browser-safe variables to Vercel.</p><code>VITE_SUPABASE_URL</code><code>VITE_SUPABASE_PUBLISHABLE_KEY</code><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Website</button></div></div>;
@@ -287,7 +290,7 @@ export function Dashboard(props: Props) {
       <div className="nc-brand"><div className="nc-mark">N<span>✳</span></div>{!collapsed&&<div><b>NOVA ORIGIN</b><small>ULTIMATE CONTROL</small></div>}<button className="nc-collapse" onClick={()=>setCollapsed(v=>!v)} title="Collapse sidebar"><PanelLeftClose size={16}/></button></div>
       {!collapsed&&<div className="nc-workspace"><span className="nc-workspace-dot"/><span>ORIGIN WORKSPACE</span><ChevronDown size={13}/></div>}
       {!collapsed&&<div className="nc-nav-search"><Search size={14}/><input value={navQuery} onChange={e=>setNavQuery(e.target.value)} placeholder="Find a section…"/><kbd>⌘ K</kbd></div>}
-      <nav className="nc-nav"><button className={'nc-nav-item '+(tab==='overview'?'active':'')} onClick={()=>choose('overview')} title="Overview"><LayoutDashboard size={17}/>{!collapsed&&<span>Overview</span>}{!collapsed&&tab==='overview'&&<i/>}</button>{visibleGroups.map(group=><div className="nc-nav-group" key={group.name}>{!collapsed&&<small>{group.name}</small>}{group.items.map(m=><button key={m.id} className={'nc-nav-item '+(tab===m.id?'active':'')} onClick={()=>choose(m.id)} title={m.label}><m.icon size={16}/>{!collapsed&&<span>{m.label}</span>}{!collapsed&&tab===m.id&&<i/>}</button>)}</div>)}</nav>
+      <nav className="nc-nav">{role!=='moderator'&&<button className={'nc-nav-item '+(tab==='overview'?'active':'')} onClick={()=>choose('overview')} title="Overview"><LayoutDashboard size={17}/>{!collapsed&&<span>Overview</span>}{!collapsed&&tab==='overview'&&<i/>}</button>}{visibleGroups.map(group=><div className="nc-nav-group" key={group.name}>{!collapsed&&<small>{group.name}</small>}{group.items.map(m=><button key={m.id} className={'nc-nav-item '+(tab===m.id?'active':'')} onClick={()=>choose(m.id)} title={m.label}><m.icon size={16}/>{!collapsed&&<span>{m.label}</span>}{!collapsed&&tab===m.id&&<i/>}</button>)}</div>)}</nav>
       <div className="nc-sidebar-foot">{!collapsed&&<div className="nc-secure"><ShieldCheck size={15}/><span><b>Protected session</b><small>Supabase role verified</small></span></div>}<button className="nc-user" onClick={onLogout}><span className="nc-avatar">{(user.user_metadata?.full_name||user.email||'N').slice(0,1).toUpperCase()}</span>{!collapsed&&<span><b>{user.user_metadata?.full_name||user.email}</b><small>{role?.replaceAll('_',' ')}</small></span>}<LogOut size={15}/></button></div>
     </aside>
     {mobileOpen&&<button className="nc-scrim" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"/>}
