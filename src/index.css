@@ -179,3 +179,112 @@
 .no-verified-tick{display:inline-block;width:18px;height:18px;vertical-align:-2px;color:#b7ff5a;filter:drop-shadow(0 0 7px #b7ff5a66);margin-left:5px}
 .no-verified-pill{display:inline-flex;align-items:center;gap:7px;width:max-content;margin:4px 0 12px;padding:7px 10px;border:1px solid #b7ff5a55;border-radius:999px;background:#b7ff5a12;color:#caff8b;font:9px 'DM Mono';letter-spacing:1px}
 .no-verified-pill svg{width:15px;height:15px}
+
+
+/* NOVA public player profile — social-first esports identity */
+.no-public-player-profile{min-height:100vh;background:#080d0a;color:#f2f5ed;overflow:hidden}
+.no-player-cover{height:clamp(180px,30vw,330px);position:relative;overflow:hidden;background:radial-gradient(ellipse at 78% 30%,#b7ff5a2b,transparent 36%),linear-gradient(115deg,#101a12,#070b09 65%);border-bottom:1px solid #ffffff12}
+.no-player-cover-grid{position:absolute;inset:0;background-image:linear-gradient(#ffffff09 1px,transparent 1px),linear-gradient(90deg,#ffffff09 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(90deg,#000,transparent)}
+.no-player-cover-glow{position:absolute;width:340px;height:340px;border:1px solid #b7ff5a22;border-radius:50%;right:8%;top:-90px;box-shadow:0 0 0 35px #b7ff5a08,0 0 0 75px #b7ff5a05}
+.no-player-cover-label,.no-player-cover-index{position:absolute;top:25px;color:#b7ff5a;font:10px 'DM Mono',monospace;letter-spacing:2px}
+.no-player-cover-label{left:max(24px,calc((100% - 1180px)/2))}
+.no-player-cover-index{right:max(24px,calc((100% - 1180px)/2));color:#859087}
+.no-player-cover-word{position:absolute;right:5%;bottom:-.26em;font:900 clamp(90px,20vw,240px)/.9 'Barlow Condensed',Impact,sans-serif;letter-spacing:-.06em;color:#b7ff5a12;white-space:nowrap}
+.no-player-cover-word span{color:#b7ff5a55}
+.no-player-identity{max-width:1180px;margin:-54px auto 0;padding:0 28px;position:relative;display:grid;grid-template-columns:150px minmax(0,1fr) 170px;gap:25px;align-items:end}
+.no-player-avatar-wrap{position:relative;width:150px;height:150px;padding:6px;border:1px solid #b7ff5a77;border-radius:22px;background:#0b110d;box-shadow:0 12px 45px #0009}
+.no-player-avatar{width:100%;height:100%;border-radius:16px;overflow:hidden;background:linear-gradient(135deg,#1d2b1e,#0a0e0b);display:grid;place-items:center;color:#b7ff5a}
+.no-player-avatar img{width:100%;height:100%;object-fit:cover}
+.no-player-avatar-verified{position:absolute;right:-9px;bottom:9px;width:34px;height:34px;border-radius:50%;background:#b7ff5a;color:#071008;border:4px solid #080d0a;display:grid;place-items:center}
+.no-player-identity-main{padding:0 0 5px;min-width:0}
+.no-player-name-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.no-player-name-line h1{margin:0;font:900 clamp(34px,6vw,62px)/.95 'Barlow Condensed',Impact,sans-serif;letter-spacing:-.02em;text-transform:uppercase}
+.no-player-handle{margin:9px 0;color:#b7ff5a;font:11px 'DM Mono',monospace;letter-spacing:1px}
+.no-player-handle span{color:#68756b;padding:0 6px}
+.no-player-bio{max-width:720px;color:#aeb8ad;font-size:14px;line-height:1.7;margin:12px 0}
+.no-player-social-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.no-player-social-links a{display:inline-flex;align-items:center;gap:7px;padding:9px 11px;border:1px solid #ffffff1a;border-radius:9px;color:#dce5d9;text-decoration:none;font:10px 'DM Mono',monospace;transition:.2s}
+.no-player-social-links a:hover{border-color:#b7ff5a88;color:#caff85;background:#b7ff5a0b}
+.no-player-social-links a>svg:last-child{opacity:.55}
+.no-player-profile-mark{align-self:center;justify-self:end;border-left:1px solid #b7ff5a55;padding:10px 0 10px 16px;display:flex;flex-direction:column;gap:8px}
+.no-player-profile-mark span,.no-player-profile-mark small{color:#7d8b7f;font:9px 'DM Mono',monospace;letter-spacing:1.3px}
+.no-player-profile-mark b{color:#b7ff5a;font:700 11px 'DM Mono',monospace;letter-spacing:1px}
+.no-player-metrics{max-width:1124px;margin:36px auto 0;padding:20px 24px;display:grid;grid-template-columns:repeat(5,1fr);border:1px solid #ffffff17;border-radius:14px;background:linear-gradient(110deg,#101a13,#0a100c);box-shadow:0 16px 45px #0003}
+.no-player-metrics>div{padding:4px 16px;border-right:1px solid #ffffff14;display:flex;flex-direction:column;gap:5px}
+.no-player-metrics>div:last-child{border:0}
+.no-player-metrics b{font:800 clamp(25px,4vw,38px)/1 'Barlow Condensed',Impact,sans-serif;color:#f3f6ef}
+.no-player-metrics span{font:9px 'DM Mono',monospace;color:#8e9b8f;letter-spacing:1.1px}
+.no-player-profile-section{max-width:1180px;margin:0 auto;padding-top:70px;padding-bottom:12px}
+.no-player-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.no-player-stat-card{padding:20px;border:1px solid #ffffff18;border-radius:15px;background:linear-gradient(145deg,#111b14,#0a100c);position:relative;overflow:hidden}
+.no-player-stat-card:after{content:'';position:absolute;width:120px;height:120px;border:1px solid #b7ff5a1a;border-radius:50%;right:-35px;top:30px;box-shadow:0 0 0 18px #b7ff5a06}
+.no-player-stat-card-top{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#7e8c80;font:9px 'DM Mono',monospace;letter-spacing:1px}
+.no-player-stat-card-top b{color:#b7ff5a;font-size:10px;text-align:right}
+.no-player-stat-big{margin:25px 0 20px;font:900 clamp(44px,8vw,70px)/.9 'Barlow Condensed',Impact,sans-serif;color:#f1f5ed}
+.no-player-stat-big small{display:block;margin-top:7px;color:#849184;font:9px 'DM Mono',monospace;letter-spacing:1.4px}
+.no-player-stat-details{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding-top:15px;border-top:1px solid #ffffff17}
+.no-player-stat-details span{display:flex;flex-direction:column;gap:5px;color:#8d9a8f;font:8px 'DM Mono',monospace;letter-spacing:.5px}
+.no-player-stat-details b{font:700 17px 'Barlow Condensed',Impact,sans-serif;color:#dce6d9}
+.no-player-team-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.no-player-team-card{display:flex;align-items:center;gap:14px;padding:15px;border:1px solid #ffffff18;border-radius:13px;background:#0e1711;color:inherit;text-decoration:none;transition:.2s}
+.no-player-team-card:hover{border-color:#b7ff5a66;transform:translateY(-2px)}
+.no-player-team-logo{width:58px;height:58px;flex:none;display:grid;place-items:center;border:1px solid #b7ff5a33;border-radius:11px;background:#b7ff5a0b;color:#b7ff5a;overflow:hidden}
+.no-player-team-logo img{width:100%;height:100%;object-fit:cover}
+.no-player-team-card>div:nth-child(2){min-width:0;display:flex;flex-direction:column;gap:5px;flex:1}
+.no-player-team-card>div:nth-child(2)>span{font:8px 'DM Mono',monospace;color:#b7ff5a;letter-spacing:1px}
+.no-player-team-card b{font:800 20px 'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.no-player-team-card b svg{color:#b7ff5a}
+.no-player-team-card small{font:8px 'DM Mono',monospace;color:#839084;letter-spacing:.8px}
+.no-player-team-card>svg{color:#9eaa9e}
+.no-player-result-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.no-player-result-card{min-height:170px;padding:17px;border:1px solid #ffffff18;border-radius:13px;background:linear-gradient(145deg,#111a13,#0b100d);display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.no-player-result-card>span{color:#839084;font:8px 'DM Mono',monospace;letter-spacing:1px}
+.no-player-result-card>svg{color:#b7ff5a}
+.no-player-result-card>b{font:800 25px 'Barlow Condensed',Impact,sans-serif}
+.no-player-result-card>small{color:#9aa69a;font:8px 'DM Mono',monospace}
+.no-player-result-card>i{margin-top:auto;color:#b7ff5a;font:normal 8px 'DM Mono',monospace;letter-spacing:1px}
+.no-player-empty{grid-column:1/-1;padding:26px;border:1px dashed #ffffff25;border-radius:12px;color:#b7ff5a;font:10px 'DM Mono',monospace;letter-spacing:1px}
+.no-player-empty span{display:block;margin-top:8px;color:#8e9b8f;font:12px 'Inter',sans-serif;letter-spacing:0}
+.no-player-profile-footer{max-width:1124px;margin:55px auto 0;padding:25px 0;border-top:1px solid #ffffff1b;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#7f8b80;font:9px 'DM Mono',monospace;letter-spacing:1px}
+.no-player-profile-footer b{color:#c3cfbf}
+.no-player-profile-footer button{border:1px solid #b7ff5a66;background:#b7ff5a0d;color:#caff85;padding:11px 14px;font:9px 'DM Mono',monospace;letter-spacing:1px;display:flex;align-items:center;gap:7px}
+@media(max-width:760px){
+ .no-player-cover{height:205px}
+ .no-player-cover-label,.no-player-cover-index{top:17px;font-size:8px;letter-spacing:1px}
+ .no-player-cover-label{left:18px}.no-player-cover-index{right:18px}
+ .no-player-cover-word{font-size:112px;right:0}
+ .no-player-identity{margin-top:-42px;padding:0 18px;grid-template-columns:94px minmax(0,1fr);gap:15px;align-items:end}
+ .no-player-avatar-wrap{width:94px;height:94px;border-radius:16px;padding:4px}
+ .no-player-avatar{border-radius:12px}
+ .no-player-avatar-verified{width:28px;height:28px;right:-7px;bottom:4px}
+ .no-player-name-line{gap:7px}
+ .no-player-name-line h1{font-size:34px}
+ .no-player-name-line .no-verified-pill{font-size:8px;padding:5px 7px}
+ .no-player-handle{font-size:9px;margin:6px 0}
+ .no-player-bio{font-size:12px;line-height:1.55;margin:8px 0}
+ .no-player-profile-mark{display:none}
+ .no-player-social-links{gap:6px;margin-top:10px}
+ .no-player-social-links a{padding:8px;font-size:0;gap:0}
+ .no-player-social-links a>svg:last-child,.no-player-social-links a span{display:none}
+ .no-player-metrics{margin:24px 14px 0;padding:15px 7px;grid-template-columns:repeat(5,minmax(0,1fr));border-radius:11px}
+ .no-player-metrics>div{padding:3px 5px;gap:4px;text-align:center;align-items:center}
+ .no-player-metrics b{font-size:25px}
+ .no-player-metrics span{font-size:7px;letter-spacing:.3px}
+ .no-player-profile-section{padding:48px 18px 5px}
+ .no-player-stat-grid,.no-player-team-grid{grid-template-columns:1fr}
+ .no-player-stat-card{padding:16px}
+ .no-player-stat-details{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .no-player-stat-details b{font-size:15px}
+ .no-player-result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .no-player-result-card{min-height:150px;padding:13px}
+ .no-player-profile-footer{margin:35px 18px 0;flex-wrap:wrap}
+ .no-player-profile-footer b{order:3;width:100%}
+}
+@media(max-width:390px){
+ .no-player-identity{grid-template-columns:78px minmax(0,1fr);gap:11px}
+ .no-player-avatar-wrap{width:78px;height:78px}
+ .no-player-name-line h1{font-size:28px}
+ .no-player-metrics b{font-size:21px}
+ .no-player-metrics span{font-size:6px}
+ .no-player-result-grid{grid-template-columns:1fr}
+}
