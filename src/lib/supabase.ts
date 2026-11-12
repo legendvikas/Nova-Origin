@@ -99,6 +99,24 @@ export async function uploadPlayerAvatar(file: File, userId: string): Promise<st
   return `${SUPABASE_URL}/storage/v1/object/public/nova-media/${path}`;
 }
 
+export async function uploadTeamLogo(file: File, userId: string): Promise<string> {
+  if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+    throw new Error('Choose a JPG, PNG or WEBP team icon under 3 MB.');
+  }
+  const session = await getValidSession();
+  if (!session?.access_token) throw new Error('Please sign in again before uploading your team icon.');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '').slice(-80) || 'team-logo';
+  const path = 'teams/' + userId + '/' + Date.now() + '-' + safeName;
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/nova-media/${path}`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': file.type, 'x-upsert': 'false' },
+    body: file,
+  });
+  if (!response.ok) throw new Error((await response.text()) || 'Team icon upload failed.');
+  return `${SUPABASE_URL}/storage/v1/object/public/nova-media/${path}`;
+}
+
 export async function currentUser(token: string): Promise<NovaUser> {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
