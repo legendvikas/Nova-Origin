@@ -480,3 +480,39 @@
   .no-player-social-identity .no-player-avatar-wrap{width:82px;height:82px}
   .no-player-social-identity .no-player-name-line h1{font-size:25px}
 }
+
+
+/* Player dashboard: clean team shelf + compact add action */
+.no-team-hub-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:22px}
+.no-team-hub-heading h2{margin:8px 0 0;font:900 clamp(38px,7vw,58px)/.88 'Barlow Condensed',sans-serif;letter-spacing:-1px}
+.no-team-hub-heading h2 em{color:#b7ff5a;font-style:normal}
+.no-owned-team-list{display:grid;gap:10px;margin:0 0 18px}
+.no-owned-team-card{display:grid;grid-template-columns:58px minmax(0,1fr) auto 18px;align-items:center;gap:14px;
+  min-height:86px;padding:13px 15px;border:1px solid #b7ff5a35;border-radius:12px;
+  background:linear-gradient(110deg,#172218,#0d130f 72%);position:relative;overflow:hidden}
+.no-owned-team-logo{width:58px;height:58px;display:grid;place-items:center;overflow:hidden;
+  border:1px solid #b7ff5a70;border-radius:9px;background:#b7ff5a0d;color:#caff82}
+.no-owned-team-logo img{width:100%;height:100%;object-fit:cover}
+.no-owned-team-logo b{font:900 21px 'Barlow Condensed',sans-serif}
+.no-owned-team-info{min-width:0;display:flex;flex-direction:column;gap:4px}
+.no-owned-team-info>span{font:8px 'DM Mono',monospace;letter-spacing:1px;color:#b7ff5a}
+.no-owned-team-info>b{font:800 21px/.98 'Barlow Condensed',sans-serif;color:#f4f5ef;overflow-wrap:anywhere}
+.no-owned-team-info>small{font:8px 'DM Mono',monospace;letter-spacing:1px;color:#a5b09f}
+.no-owned-team-arrow{color:#b7ff5a}
+.no-team-add-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid #ffffff18}
+.no-team-add-row>span{font:9px 'DM Mono',monospace;letter-spacing:1.2px;color:#aab59f}
+.no-team-add-button{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border:1px solid #b7ff5a80;
+  border-radius:50%;background:#b7ff5a;color:#091009;cursor:pointer;box-shadow:0 0 22px #b7ff5a20;transition:transform .2s,box-shadow .2s}
+.no-team-add-button:hover{transform:rotate(90deg) scale(1.06);box-shadow:0 0 30px #b7ff5a55}
+.no-team-form-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.no-team-form-actions .no-btn{margin:0}
+.no-team-create-form{margin-top:16px}
+@media(max-width:600px){
+  .no-team-hub-heading{margin-bottom:17px}
+  .no-owned-team-card{grid-template-columns:50px minmax(0,1fr) 16px;gap:11px;padding:11px;min-height:76px}
+  .no-owned-team-logo{width:50px;height:50px}
+  .no-owned-team-info>b{font-size:19px}
+  .no-owned-team-info>span,.no-owned-team-info>small{font-size:7px}
+  .no-owned-team-card>.no-team-verified{display:none}
+  .no-team-add-button{width:38px;height:38px;flex-basis:38px}
+}
