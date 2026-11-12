@@ -4,7 +4,7 @@ import {
   Radio, Instagram, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
-import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, type NovaUser } from '../lib/supabase';
+import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, uploadPlayerAvatar, type NovaUser } from '../lib/supabase';
 
 type Props = {
   data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[] };
@@ -194,9 +194,27 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       const username=profileDraft.username.trim().toLowerCase();
       if(username && !/^[a-z0-9_.]{3,24}$/.test(username)) throw new Error('Username must be 3–24 characters: letters, numbers, dot or underscore.');
       const payload={username:username||null,display_name:profileDraft.display_name.trim()||'Player',bio:profileDraft.bio.trim()||null,avatar_url:profileDraft.avatar_url.trim()||null,updated_at:new Date().toISOString()};
-      const rows=await api<any[]>('profiles',{id:'eq.'+authUser.id},{method:'PATCH',body:payload,prefer:'return=representation'});
+      const existing=await api<any[]>('profiles',{select:'id',id:'eq.'+authUser.id,limit:'1'});
+      const rows=existing.length
+        ? await api<any[]>('profiles',{id:'eq.'+authUser.id},{method:'PATCH',body:payload,prefer:'return=representation'})
+        : await api<any[]>('profiles',{}, {method:'POST',body:{id:authUser.id,...payload},prefer:'return=representation'});
       setMyProfile(rows[0]||{...myProfile,...payload}); setProfileMessage('Profile saved successfully.');
     } catch(e:any) { setProfileError(e.message||'Could not save profile.'); } finally { setProfileBusy(false); }
+  };
+  const uploadMyAvatar = async (file?: File) => {
+    if (!file || !authUser) return;
+    setProfileBusy(true); setProfileError(''); setProfileMessage('');
+    try {
+      const avatar_url = await uploadPlayerAvatar(file, authUser.id);
+      setProfileDraft(v=>({...v,avatar_url}));
+      setMyProfile((v:any)=>({...v,avatar_url}));
+      const existing=await api<any[]>('profiles',{select:'id',id:'eq.'+authUser.id,limit:'1'});
+      const payload={avatar_url,updated_at:new Date().toISOString()};
+      if(existing.length) await api('profiles',{id:'eq.'+authUser.id},{method:'PATCH',body:payload,prefer:'return=minimal'});
+      else await api('profiles',{}, {method:'POST',body:{id:authUser.id,display_name:profileDraft.display_name.trim()||'Player',...payload},prefer:'return=minimal'});
+      setProfileMessage('Profile photo uploaded successfully.');
+    } catch(e:any) { setProfileError(e.message||'Profile photo upload failed.'); }
+    finally { setProfileBusy(false); }
   };
   const navigate = (to: string) => {
     const target = new URL(to, window.location.origin);
@@ -362,7 +380,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         <div className="no-detail-section"><span className="no-kicker">EDIT YOUR PLAYER IDENTITY</span><form className="no-auth-form" onSubmit={saveMyProfile}>
           <label>USERNAME<input value={profileDraft.username} onChange={e=>setProfileDraft(v=>({...v,username:e.target.value}))} minLength={3} maxLength={24} placeholder="your_gamer_tag"/></label>
           <label>DISPLAY NAME<input value={profileDraft.display_name} onChange={e=>setProfileDraft(v=>({...v,display_name:e.target.value}))} maxLength={60} required/></label>
-          <label>PROFILE PHOTO URL<input type="url" value={profileDraft.avatar_url} onChange={e=>setProfileDraft(v=>({...v,avatar_url:e.target.value}))} placeholder="https://..."/></label>
+          <label>PROFILE PHOTO<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>uploadMyAvatar(e.target.files?.[0])} disabled={profileBusy}/><small>JPG, PNG, WEBP or GIF · max 5 MB</small></label><label>PHOTO URL (OPTIONAL)<input type="url" value={profileDraft.avatar_url} onChange={e=>setProfileDraft(v=>({...v,avatar_url:e.target.value}))} placeholder="https://..."/></label>
           <label>BIO<textarea value={profileDraft.bio} onChange={e=>setProfileDraft(v=>({...v,bio:e.target.value}))} maxLength={240} rows={3} placeholder="Tell the community about your game and role."/></label>
           {profileError&&<p className="no-auth-error" role="alert">{profileError}</p>}{profileMessage&&<p className="no-auth-notice" role="status">{profileMessage}</p>}
           <button className="no-btn" type="submit" disabled={profileBusy}>{profileBusy?'SAVING…':'SAVE PROFILE'} <ArrowUpRight size={15}/></button></form></div>
