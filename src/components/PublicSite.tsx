@@ -581,14 +581,49 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       const playerTeams = extra.members.filter((m:any) => m.user_id === playerId).map((m:any) => ({...m, team:data.teams.find((t:any)=>t.id===m.team_id)})).filter((m:any)=>m.team);
       const playerResults = extra.results.filter((r:any) => r.player_id === playerId && r.verified_at);
       const profile = currentPlayer.player || {};
-      return <><DetailShell kicker="PLAYER PROFILE / VERIFIED COMPETITOR" title={profile.display_name || profile.username || 'NOVA PLAYER'} copy={profile.bio || 'A competitor in the NOVA Origin ecosystem. Verified statistics are shown only where official records are available.'}>
-        <div className="no-detail-grid"><div className="no-detail-emblem">{profile.avatar_url ? <img src={profile.avatar_url} alt=""/> : <Users size={70}/>}</div><div><span className="no-kicker">@{profile.username || 'NOVA PLAYER'} / PUBLIC PROFILE</span>{extra.verifiedBadges.some((badge:any)=>badge.player_id===playerId)&&<span className="no-verified-pill"><BadgeCheck size={15}/> NOVA VERIFIED PLAYER</span>}<p>{profile.bio || 'Player biography has not been published.'}</p><p className="no-muted">{playerTeams.length} public team memberships · {playerStats.length} verified game stat records</p><div className="no-profile-socials">{[{key:'instagram',icon:<Instagram/>},{key:'youtube',icon:<Youtube/>},{key:'twitch',icon:<Twitch/>},{key:'discord',icon:<Disc3/>},{key:'x',icon:<span className="no-social-x">𝕏</span>},{key:'website',icon:<Link2/>}].filter(item=>safeHref(profile.social_links?.[item.key])).map(item=><a key={item.key} href={safeHref(profile.social_links[item.key])} target="_blank" rel="noreferrer">{item.icon}</a>)}</div></div></div>
-      </DetailShell>
-      <section className="no-section"><div className="no-section-head"><div><span className="no-kicker">COMPETITIVE RECORD</span><h2>VERIFIED<br/><em>STATISTICS.</em></h2></div><p>Only verified records from NOVA Origin data are displayed.</p></div>
-        <div className="no-player-grid">{playerStats.map((stat:any)=><article className="no-player-card" key={stat.id}><small>{stat.game?.name || 'COMPETITIVE GAME'}</small><div className="no-player-stats"><span><b>{stat.kd_ratio ?? '—'}</b>K/D</span><span><b>{stat.matches_played ?? '—'}</b>MATCHES</span><span><b>{stat.wins ?? '—'}</b>WINS</span></div><p className="no-muted">{stat.eliminations ?? '—'} verified eliminations · {stat.average_damage ?? '—'} average damage</p></article>)}{!playerStats.length && <Empty text="No verified game statistics have been published for this player yet."/>}</div>
-      </section>
-      <section className="no-section"><div className="no-section-head"><div><span className="no-kicker">TEAM AFFILIATION</span><h2>THE SQUAD<br/><em>CONNECTION.</em></h2></div><p>Public teams this player is listed with.</p></div><div className="no-team-list">{playerTeams.map((m:any)=><a className="no-team-row" key={m.id} href={'/teams/'+(m.team.slug||slugOf(m.team.name))} onClick={e=>{e.preventDefault();navigate('/teams/'+(m.team.slug||slugOf(m.team.name)));}}><span className="no-row-num">↗</span><span className="no-team-logo">{m.team.logo_url?<img src={m.team.logo_url} alt=""/>:(m.team.team_tag||'N').slice(0,3)}</span><span className="no-team-name"><b>{m.team.name}</b><small>{clean(m.team_role)}</small></span><span className="no-team-tag">{m.team.team_tag||'NOVA'}</span><ArrowUpRight className="no-row-arrow"/></a>)}{!playerTeams.length&&<Empty text="No public team affiliation is listed for this player."/>}</div></section>
-      <section className="no-section"><div className="no-section-head"><div><span className="no-kicker">COMPETITION HISTORY</span><h2>RESULTS<br/><em>ON RECORD.</em></h2></div><p>Verified player result entries.</p></div><div className="no-result-grid">{playerResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{r.match?.round_name || 'MATCH RESULT'}</span><b>{r.placement?'PLACE #'+r.placement:(r.points??'—')+' PTS'}</b><small>{r.eliminations??0} ELIMINATIONS · VERIFIED</small></article>)}{!playerResults.length&&<Empty text="No verified match results are listed for this player yet."/>}</div></section></>;
+      const isVerified = extra.verifiedBadges.some((badge:any)=>badge.player_id===playerId);
+      const totalMatches = playerStats.reduce((sum:number,stat:any)=>sum+(Number(stat.matches_played)||0),0);
+      const totalWins = playerStats.reduce((sum:number,stat:any)=>sum+(Number(stat.wins)||0),0);
+      const totalElims = playerStats.reduce((sum:number,stat:any)=>sum+(Number(stat.eliminations)||0),0);
+      const socials = [{key:'instagram',icon:<Instagram size={17}/>,label:'Instagram'},{key:'youtube',icon:<Youtube size={17}/>,label:'YouTube'},{key:'twitch',icon:<Twitch size={17}/>,label:'Twitch'},{key:'discord',icon:<Disc3 size={17}/>,label:'Discord'},{key:'x',icon:<span className="no-social-x">𝕏</span>,label:'X'},{key:'website',icon:<Link2 size={17}/>,label:'Website'}].filter(item=>safeHref(profile.social_links?.[item.key]));
+      return <main className="no-public-player-profile">
+        <section className="no-player-cover">
+          <div className="no-player-cover-grid"/><div className="no-player-cover-glow"/>
+          <span className="no-player-cover-label">NOVA ORIGIN / PLAYER NETWORK</span>
+          <span className="no-player-cover-index">PLAYER PROFILE · {String(playerId).slice(0,8).toUpperCase()}</span>
+          <div className="no-player-cover-word">PLAYER<span>.</span></div>
+        </section>
+        <section className="no-player-identity">
+          <div className="no-player-avatar-wrap"><div className="no-player-avatar">{profile.avatar_url ? <img src={profile.avatar_url} alt={(profile.display_name||profile.username||'Player')+' profile photo'}/> : <Users size={54}/>}</div>{isVerified&&<span className="no-player-avatar-verified"><BadgeCheck size={18}/></span>}</div>
+          <div className="no-player-identity-main">
+            <div className="no-player-name-line"><h1>{profile.display_name || profile.username || 'NOVA PLAYER'}</h1>{isVerified&&<span className="no-verified-pill"><BadgeCheck size={15}/> VERIFIED PLAYER</span>}</div>
+            <p className="no-player-handle">@{profile.username || 'nova-player'} <span>·</span> NOVA ORIGIN MEMBER</p>
+            <p className="no-player-bio">{profile.bio || 'A competitor in the NOVA Origin ecosystem. The journey is still being written.'}</p>
+            {socials.length>0&&<div className="no-player-social-links">{socials.map(item=><a key={item.key} href={safeHref(profile.social_links[item.key])} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}>{item.icon}<span>{item.label}</span><ArrowUpRight size={12}/></a>)}</div>}
+          </div>
+          <div className="no-player-profile-mark"><span>NO / PLAYER</span><b>{isVerified?'VERIFIED':'PUBLIC PROFILE'}</b><small>BUILT TO RISE.</small></div>
+        </section>
+        <section className="no-player-metrics">
+          <div><b>{playerTeams.length.toString().padStart(2,'0')}</b><span>TEAMS</span></div>
+          <div><b>{totalMatches.toLocaleString()}</b><span>MATCHES</span></div>
+          <div><b>{totalWins.toLocaleString()}</b><span>WINS</span></div>
+          <div><b>{totalElims.toLocaleString()}</b><span>ELIMINATIONS</span></div>
+          <div><b>{playerResults.length.toString().padStart(2,'0')}</b><span>VERIFIED RESULTS</span></div>
+        </section>
+        <section className="no-section no-player-profile-section">
+          <div className="no-section-head"><div><span className="no-kicker">01 / COMPETITIVE IDENTITY</span><h2>PLAYER<br/><em>STATISTICS.</em></h2></div><p>Verified competitive records only. Every number is based on published NOVA Origin data.</p></div>
+          <div className="no-player-stat-grid">{playerStats.map((stat:any,index:number)=><article className="no-player-stat-card" key={stat.id}><div className="no-player-stat-card-top"><span>0{index+1} / GAME DIVISION</span><b>{stat.game?.name || 'COMPETITIVE GAME'}</b></div><div className="no-player-stat-big">{stat.kd_ratio ?? '—'}<small>K/D RATIO</small></div><div className="no-player-stat-details"><span><b>{stat.matches_played ?? '—'}</b>MATCHES</span><span><b>{stat.wins ?? '—'}</b>WINS</span><span><b>{stat.eliminations ?? '—'}</b>ELIMINATIONS</span><span><b>{stat.average_damage ?? '—'}</b>AVG DAMAGE</span></div></article>)}{!playerStats.length&&<div className="no-player-empty">COMPETITIVE DATA NOT PUBLISHED YET<span>Official stats will appear here once verified by NOVA Origin.</span></div>}</div>
+        </section>
+        <section className="no-section no-player-profile-section no-player-squad-section">
+          <div className="no-section-head"><div><span className="no-kicker">02 / TEAM AFFILIATION</span><h2>THE SQUAD<br/><em>CONNECTION.</em></h2></div><p>Teams where this player has a public roster membership.</p></div>
+          <div className="no-player-team-grid">{playerTeams.map((m:any)=><a className="no-player-team-card" key={m.id} href={'/teams/'+(m.team.slug||slugOf(m.team.name))} onClick={e=>{e.preventDefault();navigate('/teams/'+(m.team.slug||slugOf(m.team.name)));}}><div className="no-player-team-logo">{m.team.logo_url?<img src={m.team.logo_url} alt={m.team.name+' logo'}/>:<Shield size={32}/>}</div><div><span>{m.team.team_tag||'NOVA'} / {clean(m.team_role).toUpperCase()}</span><b>{m.team.name} {m.team.is_verified&&<BadgeCheck size={15}/>}</b><small>{m.team.is_verified?'NOVA VERIFIED TEAM':'PUBLIC TEAM'}</small></div><ArrowUpRight size={18}/></a>)}{!playerTeams.length&&<div className="no-player-empty">NO TEAM AFFILIATION<span>This player is not currently listed on a public team roster.</span></div>}</div>
+        </section>
+        <section className="no-section no-player-profile-section no-player-results-section">
+          <div className="no-section-head"><div><span className="no-kicker">03 / COMPETITION HISTORY</span><h2>PROOF<br/><em>IN PLAY.</em></h2></div><p>Verified tournament and match results published to the NOVA Origin record.</p></div>
+          <div className="no-player-result-grid">{playerResults.map((r:any,index:number)=><article className="no-player-result-card" key={r.id}><span>RESULT / {String(index+1).padStart(2,'0')}</span><Trophy size={22}/><b>{r.placement?'#'+r.placement+' PLACE':(r.points??'—')+' POINTS'}</b><small>{r.match?.round_name || 'MATCH RESULT'} · {r.eliminations??0} ELIMINATIONS</small><i>VERIFIED RECORD</i></article>)}{!playerResults.length&&<div className="no-player-empty">NO VERIFIED RESULTS YET<span>Official match placements will appear here after review.</span></div>}</div>
+        </section>
+        <footer className="no-player-profile-footer"><span>NOVA ORIGIN / PLAYER NETWORK</span><b>BUILT TO RISE. READY TO DOMINATE.</b><button onClick={()=>navigate('/players')}>EXPLORE PLAYERS <ArrowUpRight size={14}/></button></footer>
+      </main>;
     }
     if (currentNews) {
       const relatedNews = data.announcements.filter((item:any) => item.id !== currentNews.id).slice(0,3);
