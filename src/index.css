@@ -415,3 +415,68 @@
   .no-team-profile-info h2{font-size:26px}
   .no-team-profile-stats span{font-size:5px}
 }
+
+
+/* NOVA social profile layer — creator-style player and squad pages */
+.no-social-profile-tabs{
+  position:sticky;top:0;z-index:12;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;
+  margin:0 auto;padding:0 max(18px,calc((100% - 1124px)/2));
+  background:#0a100deF;border-top:1px solid #ffffff12;border-bottom:1px solid #ffffff1b;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+}
+.no-social-profile-tabs::-webkit-scrollbar{display:none}
+.no-social-profile-tabs a{position:relative;flex:1;min-width:95px;padding:17px 12px;text-align:center;
+  color:#8d9a8c;text-decoration:none;font:9px 'DM Mono',monospace;letter-spacing:1.5px;white-space:nowrap}
+.no-social-profile-tabs a:after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:2px;
+  background:#b7ff5a;transform:scaleX(0);transition:transform .2s}
+.no-social-profile-tabs a:hover{color:#caff85}
+.no-social-profile-tabs a:hover:after{transform:scaleX(1)}
+.no-player-social-identity{padding-top:24px}
+.no-player-social-identity .no-player-avatar-wrap{width:164px;height:164px;border-radius:50%;padding:5px;
+  background:linear-gradient(145deg,#b7ff5a,#34472b 55%,#111a13);box-shadow:0 0 0 7px #b7ff5a0b,0 15px 42px #0009}
+.no-player-social-identity .no-player-avatar{border-radius:50%;background:linear-gradient(145deg,#273b26,#0a100c)}
+.no-player-social-identity .no-player-avatar-verified{right:2px;bottom:6px;width:38px;height:38px}
+.no-player-social-identity .no-player-name-line h1{text-transform:none;letter-spacing:-1.2px}
+.no-player-social-identity .no-player-identity-main{padding-bottom:8px}
+.no-player-social-identity .no-player-bio{max-width:650px}
+.no-player-social-identity .no-player-social-links{gap:9px}
+.no-player-social-identity .no-player-social-links a{width:43px;height:43px;justify-content:center;padding:0;border-radius:50%;
+  background:#111a13;border:1px solid #b7ff5a35;color:#caff85}
+.no-player-social-identity .no-player-social-links a span,
+.no-player-social-identity .no-player-social-links a>svg:last-child{display:none}
+.no-player-social-identity .no-player-social-links a:hover{background:#b7ff5a;color:#091009;transform:translateY(-3px)}
+.no-player-metrics{border-radius:18px;background:linear-gradient(115deg,#111b14,#0b110d);
+  border-color:#ffffff20;box-shadow:0 18px 55px #0005}
+.no-player-metrics>div{transition:transform .2s}
+.no-player-metrics>div:hover{transform:translateY(-3px)}
+.no-player-stat-card,.no-player-result-card,.no-player-team-card{border-radius:16px}
+.no-player-team-card{min-height:96px;background:linear-gradient(120deg,#142017,#0b110d)}
+.no-player-team-logo{border-radius:14px}
+.no-player-result-card{transition:transform .2s,border-color .2s}
+.no-player-result-card:hover{transform:translateY(-4px);border-color:#b7ff5a66}
+.no-team-profile-tabs{margin-top:0}
+.no-team-profile-hero{border-radius:18px}
+.no-team-profile-emblem{border-radius:15px}
+.no-team-profile-stats{margin-top:3px}
+#player-overview,#player-statistics,#player-squad,#player-results,#team-identity,#team-roster,#team-results{scroll-margin-top:58px}
+@media(max-width:760px){
+  .no-social-profile-tabs{padding:0 10px}
+  .no-social-profile-tabs a{min-width:76px;padding:14px 8px;font-size:8px;letter-spacing:1px}
+  .no-player-social-identity{margin-top:-42px;padding-top:0;grid-template-columns:100px minmax(0,1fr);align-items:end}
+  .no-player-social-identity .no-player-avatar-wrap{width:100px;height:100px;border-radius:50%;padding:4px}
+  .no-player-social-identity .no-player-avatar{border-radius:50%}
+  .no-player-social-identity .no-player-avatar-verified{width:30px;height:30px;right:0;bottom:2px}
+  .no-player-social-identity .no-player-name-line h1{font-size:clamp(25px,7vw,36px);letter-spacing:-.5px}
+  .no-player-social-identity .no-player-identity-main{padding-bottom:0}
+  .no-player-social-identity .no-player-handle{font-size:8px}
+  .no-player-social-identity .no-player-bio{font-size:11px;line-height:1.5}
+  .no-player-social-identity .no-player-social-links{margin-top:9px;gap:7px}
+  .no-player-social-identity .no-player-social-links a{width:36px;height:36px}
+  .no-player-metrics{margin-top:24px;border-radius:15px}
+  .no-team-profile-hero{border-radius:14px}
+}
+@media(max-width:390px){
+  .no-player-social-identity{grid-template-columns:82px minmax(0,1fr);gap:10px}
+  .no-player-social-identity .no-player-avatar-wrap{width:82px;height:82px}
+  .no-player-social-identity .no-player-name-line h1{font-size:25px}
+}
