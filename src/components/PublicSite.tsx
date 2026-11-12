@@ -4,7 +4,7 @@ import {
   Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
-import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, uploadPlayerAvatar, type NovaUser } from '../lib/supabase';
+import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, uploadPlayerAvatar, uploadTeamLogo, type NovaUser } from '../lib/supabase';
 
 type Props = {
   data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[] };
@@ -57,6 +57,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [myTeams, setMyTeams] = useState<any[]>([]);
   const [teamDraft, setTeamDraft] = useState({name:'',team_tag:'',game_id:'',description:'',logo_url:'',is_public:true});
   const [teamBusy, setTeamBusy] = useState(false);
+  const [teamLogoBusy, setTeamLogoBusy] = useState(false);
   const [teamError, setTeamError] = useState('');
   const [teamMessage, setTeamMessage] = useState('');
   const [profileDraft, setProfileDraft] = useState({username:'',display_name:'',bio:'',avatar_url:''});
@@ -218,6 +219,17 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       .catch(()=>{if(live)setTeamError('Could not load your teams. Please refresh and try again.');});
     return ()=>{live=false;};
   }, [authUser?.id]);
+
+  const chooseTeamLogo = async (file?: File) => {
+    if (!file || !authUser) return;
+    setTeamLogoBusy(true); setTeamError('');
+    try {
+      const url=await uploadTeamLogo(file,authUser.id);
+      setTeamDraft(v=>({...v,logo_url:url}));
+      setTeamMessage('Team icon uploaded. It will be shown after approval.');
+    } catch(error:any) { setTeamError(error?.message||'Could not upload team icon.'); }
+    finally { setTeamLogoBusy(false); }
+  };
 
   const createPlayerTeam = async (e: FormEvent) => {
     e.preventDefault();
@@ -507,10 +519,10 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
               <label>TEAM TAG<input value={teamDraft.team_tag} onChange={e=>setTeamDraft(v=>({...v,team_tag:e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12)}))} minLength={2} maxLength={12} required placeholder="RAVN"/></label>
               <label>GAME<select value={teamDraft.game_id} onChange={e=>setTeamDraft(v=>({...v,game_id:e.target.value}))} required><option value="">SELECT GAME</option>{data.games.filter((g:any)=>g.is_active!==false).map((g:any)=><option value={g.id} key={g.id}>{g.name}</option>)}</select></label>
               <label>TEAM DESCRIPTION<textarea value={teamDraft.description} onChange={e=>setTeamDraft(v=>({...v,description:e.target.value}))} maxLength={500} rows={3} placeholder="Tell players what your squad is about."/></label>
-              <label>TEAM ICON / LOGO URL<input type="url" value={teamDraft.logo_url} onChange={e=>setTeamDraft(v=>({...v,logo_url:e.target.value}))} placeholder="https://.../team-logo.png"/></label>
+              <label>TEAM ICON / LOGO<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>chooseTeamLogo(e.target.files?.[0])} disabled={teamLogoBusy}/><small>{teamLogoBusy?'UPLOADING ICON…':teamDraft.logo_url?'ICON READY ✓':'JPG / PNG / WEBP · MAX 3 MB'}</small><input type="url" value={teamDraft.logo_url.startsWith('https://')?teamDraft.logo_url:''} onChange={e=>setTeamDraft(v=>({...v,logo_url:e.target.value}))} placeholder="Or paste an image URL"/></label>
               <label className="no-team-visibility"><input type="checkbox" checked={teamDraft.is_public} onChange={e=>setTeamDraft(v=>({...v,is_public:e.target.checked}))}/> SHOW TEAM IN PUBLIC DIRECTORY</label>
               {teamError&&<p className="no-auth-error" role="alert">{teamError}</p>}{teamMessage&&<p className="no-auth-notice" role="status">{teamMessage}</p>}
-              <button className="no-btn" type="submit" disabled={teamBusy||!data.games.some((g:any)=>g.is_active!==false)}>{teamBusy?'CREATING TEAM…':'SUBMIT TEAM APPLICATION'} <ArrowUpRight size={15}/></button>
+              <button className="no-btn" type="submit" disabled={teamBusy||teamLogoBusy||!data.games.some((g:any)=>g.is_active!==false)}>{teamBusy?'CREATING TEAM…':'SUBMIT TEAM APPLICATION'} <ArrowUpRight size={15}/></button>
             </form>
           </section>
           <div className="no-profile-preview-card"><span className="no-kicker">PLAYER ID / PUBLIC PROFILE</span><div className="no-profile-preview-row"><div><b>{profileDraft.display_name||'NOVA PLAYER'}</b><small>@{myProfile?.username||'your_username'}</small></div>{verified&&<span className="no-social-verified">✓</span>}</div><p>{profileDraft.bio||'Your player bio will appear here.'}</p><div className="no-profile-preview-footer"><span>COMPETITIVE IDENTITY</span><button onClick={()=>setEditOpen(true)}>EDIT IDENTITY <Pencil size={13}/></button></div></div>
