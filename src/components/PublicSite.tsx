@@ -620,17 +620,20 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
           <span className="no-player-cover-index">PLAYER PROFILE · {String(playerId).slice(0,8).toUpperCase()}</span>
           <div className="no-player-cover-word">PLAYER<span>.</span></div>
         </section>
-        <section className="no-player-identity">
+        <section className="no-player-identity no-player-social-identity">
           <div className="no-player-avatar-wrap"><div className="no-player-avatar">{profile.avatar_url ? <img src={profile.avatar_url} alt={(profile.display_name||profile.username||'Player')+' profile photo'}/> : <Users size={54}/>}</div>{isVerified&&<span className="no-player-avatar-verified"><BadgeCheck size={18}/></span>}</div>
           <div className="no-player-identity-main">
             <div className="no-player-name-line"><h1>{profile.display_name || profile.username || 'NOVA PLAYER'}</h1>{isVerified&&<span className="no-verified-pill"><BadgeCheck size={15}/> VERIFIED PLAYER</span>}</div>
             <p className="no-player-handle">@{profile.username || 'nova-player'} <span>·</span> NOVA ORIGIN MEMBER</p>
             <p className="no-player-bio">{profile.bio || 'A competitor in the NOVA Origin ecosystem. The journey is still being written.'}</p>
-            {socials.length>0&&<div className="no-player-social-links">{socials.map(item=><a key={item.key} href={safeHref(profile.social_links[item.key])} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}>{item.icon}<span>{item.label}</span><ArrowUpRight size={12}/></a>)}</div>}
+            <div className="no-player-social-links">{socials.map(item=><a key={item.key} href={safeHref(profile.social_links[item.key])} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}>{item.icon}<span>{item.label}</span><ArrowUpRight size={12}/></a>)}</div>
           </div>
           <div className="no-player-profile-mark"><span>NO / PLAYER</span><b>{isVerified?'VERIFIED':'PUBLIC PROFILE'}</b><small>BUILT TO RISE.</small></div>
         </section>
-        <section className="no-player-metrics">
+        <nav className="no-social-profile-tabs" aria-label="Player profile sections">
+          <a href="#player-overview">OVERVIEW</a><a href="#player-statistics">STATS</a><a href="#player-squad">SQUAD</a><a href="#player-results">RESULTS</a>
+        </nav>
+        <section className="no-player-metrics" id="player-overview">
           <div><b>{playerTeams.length.toString().padStart(2,'0')}</b><span>TEAMS</span></div>
           <div><b>{totalMatches.toLocaleString()}</b><span>MATCHES</span></div>
           <div><b>{totalWins.toLocaleString()}</b><span>WINS</span></div>
@@ -641,11 +644,11 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
           <div className="no-section-head"><div><span className="no-kicker">01 / COMPETITIVE IDENTITY</span><h2>PLAYER<br/><em>STATISTICS.</em></h2></div><p>Verified competitive records only. Every number is based on published NOVA Origin data.</p></div>
           <div className="no-player-stat-grid">{playerStats.map((stat:any,index:number)=><article className="no-player-stat-card" key={stat.id}><div className="no-player-stat-card-top"><span>0{index+1} / GAME DIVISION</span><b>{stat.game?.name || 'COMPETITIVE GAME'}</b></div><div className="no-player-stat-big">{stat.kd_ratio ?? '—'}<small>K/D RATIO</small></div><div className="no-player-stat-details"><span><b>{stat.matches_played ?? '—'}</b>MATCHES</span><span><b>{stat.wins ?? '—'}</b>WINS</span><span><b>{stat.eliminations ?? '—'}</b>ELIMINATIONS</span><span><b>{stat.average_damage ?? '—'}</b>AVG DAMAGE</span></div></article>)}{!playerStats.length&&<div className="no-player-empty">COMPETITIVE DATA NOT PUBLISHED YET<span>Official stats will appear here once verified by NOVA Origin.</span></div>}</div>
         </section>
-        <section className="no-section no-player-profile-section no-player-squad-section">
+        <section className="no-section no-player-profile-section no-player-squad-section" id="player-squad">
           <div className="no-section-head"><div><span className="no-kicker">02 / TEAM AFFILIATION</span><h2>THE SQUAD<br/><em>CONNECTION.</em></h2></div><p>Teams where this player has a public roster membership.</p></div>
           <div className="no-player-team-grid">{playerTeams.map((m:any)=><a className="no-player-team-card" key={m.id} href={'/teams/'+(m.team.slug||slugOf(m.team.name))} onClick={e=>{e.preventDefault();navigate('/teams/'+(m.team.slug||slugOf(m.team.name)));}}><div className="no-player-team-logo">{m.team.logo_url?<img src={m.team.logo_url} alt={m.team.name+' logo'}/>:<Shield size={32}/>}</div><div><span>{m.team.team_tag||'NOVA'} / {clean(m.team_role).toUpperCase()}</span><b>{m.team.name} {m.team.is_verified&&<BadgeCheck size={15}/>}</b><small>{m.team.is_verified?'NOVA VERIFIED TEAM':'PUBLIC TEAM'}</small></div><ArrowUpRight size={18}/></a>)}{!playerTeams.length&&<div className="no-player-empty">NO TEAM AFFILIATION<span>This player is not currently listed on a public team roster.</span></div>}</div>
         </section>
-        <section className="no-section no-player-profile-section no-player-results-section">
+        <section className="no-section no-player-profile-section no-player-results-section" id="player-results">
           <div className="no-section-head"><div><span className="no-kicker">03 / COMPETITION HISTORY</span><h2>PROOF<br/><em>IN PLAY.</em></h2></div><p>Verified tournament and match results published to the NOVA Origin record.</p></div>
           <div className="no-player-result-grid">{playerResults.map((r:any,index:number)=><article className="no-player-result-card" key={r.id}><span>RESULT / {String(index+1).padStart(2,'0')}</span><Trophy size={22}/><b>{r.placement?'#'+r.placement+' PLACE':(r.points??'—')+' POINTS'}</b><small>{r.match?.round_name || 'MATCH RESULT'} · {r.eliminations??0} ELIMINATIONS</small><i>VERIFIED RECORD</i></article>)}{!playerResults.length&&<div className="no-player-empty">NO VERIFIED RESULTS YET<span>Official match placements will appear here after review.</span></div>}</div>
         </section>
