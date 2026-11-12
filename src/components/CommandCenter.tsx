@@ -142,7 +142,7 @@ export function Dashboard(props: Props) {
   useEffect(()=>{setQuery('');setStatusFilter('all');setPageNo(0);setSelectedIds([]);setSortRules([]);setBulkStatus('');setEditor(false);setEditing(null);setMobileOpen(false);},[tab]);
 
   const activeBase = modules.find(m=>m.id===tab) || modules[0];
-  const active = role==='moderator' && activeBase.id==='badge-requests' ? {...activeBase,fields:activeBase.fields?.filter(f=>['status','manager_note'].includes(f.key))} : activeBase;
+  const active = role==='moderator' && activeBase.id==='badge-requests' ? {...activeBase,canCreate:false,fields:activeBase.fields?.filter(f=>['status','manager_note'].includes(f.key))} : activeBase;
   const activeRows = records[tab] || [];
   const filtered = useMemo(()=>{
     const rows=activeRows.filter(row=>(!query || JSON.stringify(row).toLowerCase().includes(query.toLowerCase()))&&(statusFilter==='all'||String(row[active.statusField||'status'])===statusFilter));
