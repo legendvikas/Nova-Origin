@@ -296,12 +296,25 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
 
   const gameCards = (items = data.games) => (
     <div className="no-game-grid">
-      {items.map((game: any, i: number) => (
-        <a className="no-game-card" href={'/games/' + (game.slug || slugOf(game.name))} key={game.id} onClick={e => { e.preventDefault(); navigate('/games/' + (game.slug || slugOf(game.name))); }}>
-          <div className={'no-game-art no-art-' + (i % 4)}><span className="no-index">0{i + 1}</span><div className="no-game-glyph"><Gamepad2 size={34}/></div><span className="no-art-orbit"/></div>
+      {items.map((game: any, i: number) => {
+        const artKey = slugOf(game.slug || game.name);
+        const mark = artKey === 'bgmi' ? 'BGMI' : artKey === 'free-fire-max' ? 'FREE FIRE' : artKey === 'pubg-mobile' ? 'PUBG' : String(game.name || 'NOVA').toUpperCase();
+        const subMark = artKey === 'free-fire-max' ? 'MAX' : artKey === 'pubg-mobile' ? 'MOBILE' : artKey === 'bgmi' ? 'MOBILE INDIA' : 'COMPETITIVE TITLE';
+        return <a className="no-game-card" href={'/games/' + (game.slug || slugOf(game.name))} key={game.id} onClick={e => { e.preventDefault(); navigate('/games/' + (game.slug || slugOf(game.name))); }}>
+          <div className={'no-game-art no-game-art-' + artKey}>
+            <div className="no-game-art-top"><span>{game.publisher || 'NOVA ARENA'}</span><span>0{i + 1} / 0{items.length}</span></div>
+            <div className="no-game-art-rings"><i/><i/><i/></div>
+            <div className="no-game-landscape"><i/><i/><i/><b/></div>
+            <div className="no-game-brand">
+              <span className="no-game-brand-kicker">NOVA ORIGIN / GAME DIVISION</span>
+              <strong>{mark}</strong>
+              <em>{subMark}</em>
+            </div>
+            <div className="no-game-art-bottom"><span>OFFICIAL GAME TITLE</span><span>EXPLORE <ArrowUpRight size={13}/></span></div>
+          </div>
           <div className="no-card-foot"><div><small>{game.publisher || 'COMPETITIVE TITLE'}</small><h3>{game.name}</h3></div><ArrowUpRight/></div>
-        </a>
-      ))}
+        </a>;
+      })}
       {!loading && !items.length && <Empty text="Game titles will appear here once they are published."/>}
     </div>
   );
