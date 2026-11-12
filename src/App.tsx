@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Menu, X, Shield, Trophy, Users, Gamepad2, Zap, ChevronRight, Radio, CalendarDays, Swords, Instagram, Youtube, Disc3, LogIn, Settings2 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
-import { PlayerDashboard } from './components/PlayerDashboard';
 import { api, completeAuthCallback, currentUser, hasSupabaseConfig, loadPublicData, NovaUser, refreshAuthSession, signInWithPassword, signOut } from './lib/supabase';
 import './index.css';
 
@@ -13,7 +12,7 @@ function App() {
   const [user, setUser] = useState<NovaUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [organizerStatus, setOrganizerStatus] = useState<string | null>(null);
-  const [page, setPage] = useState<'home' | 'admin' | 'player'>(() => window.location.pathname.startsWith('/player') ? 'player' : window.location.hostname.startsWith('nova-origin-admin') || window.location.pathname.startsWith('/admin') ? 'admin' : 'home');
+  const [page, setPage] = useState<'home' | 'admin'>(() => window.location.hostname.startsWith('nova-origin-admin') || window.location.pathname.startsWith('/admin') ? 'admin' : 'home');
   const [menuOpen, setMenuOpen] = useState(false);
   const [authError, setAuthError] = useState('');
 
@@ -49,10 +48,6 @@ function App() {
   const canManage = role === 'super_admin' || role === 'platform_admin' || role === 'moderator';
   const openAdmin = () => { setPage('admin'); setMenuOpen(false); };
 
-  if (page === 'player') {
-    return <PlayerDashboard user={user} onLogin={setUser} onLogout={() => { signOut(); setUser(null); setRole(null); }} onBack={() => { window.location.assign('/'); }} />;
-  }
-
   if (page === 'admin') {
     return (
       <Dashboard
@@ -86,7 +81,7 @@ function App() {
         </nav>
         <div className="header-actions">
           <span className="header-badge"><span className="live-dot" /> OPEN TO COMPETE</span>
-          <a className="admin-link" href="/player">Player portal <ArrowUpRight size={15}/></a><button className="admin-link" onClick={openAdmin}>Control room <ArrowUpRight size={15}/></button>
+          <a className="admin-link" href="https://nova-origin-esports.vercel.app/account">My profile <ArrowUpRight size={15}/></a><button className="admin-link" onClick={openAdmin}>Control room <ArrowUpRight size={15}/></button>
           <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">{menuOpen ? <X/> : <Menu/>}</button>
         </div>
       </header>
