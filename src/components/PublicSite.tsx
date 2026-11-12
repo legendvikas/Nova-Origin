@@ -213,8 +213,8 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       const rows=existing.length
         ? await api<any[]>('profiles',{id:'eq.'+authUser.id},{method:'PATCH',body:payload,prefer:'return=representation'})
         : await api<any[]>('profiles',{}, {method:'POST',body:{id:authUser.id,...payload},prefer:'return=representation'});
-      setMyProfile(rows[0]||{...myProfile,...payload}); setProfileMessage('Profile saved successfully.');
-    } catch(e:any) { setProfileError(e.message||'Could not save profile.'); } finally { setProfileBusy(false); }
+      setMyProfile(rows[0]||{...myProfile,...payload}); setProfileMessage('Profile saved successfully.'); return true;
+    } catch(e:any) { setProfileError(e.message||'Could not save profile.'); return false; } finally { setProfileBusy(false); }
   };
   const chooseAvatar = (file?: File) => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -460,7 +460,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
           <button className="no-btn ghost" onClick={()=>navigate('/players')}>VIEW PLAYER DIRECTORY <ArrowUpRight size={15}/></button>
         </div></div>}
       </section>
-      {editOpen&&<div className="no-profile-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setEditOpen(false);}}><section className="no-profile-modal" role="dialog" aria-modal="true" aria-labelledby="nova-edit-title"><button className="no-profile-modal-close" onClick={()=>setEditOpen(false)} aria-label="Close editor"><X/></button><span className="no-kicker">NOVA ID / PERSONALISE</span><h2 id="nova-edit-title">EDIT YOUR<br/><em>IDENTITY.</em></h2><form className="no-auth-form" onSubmit={async e=>{await saveMyProfile(e);if(!profileError)setEditOpen(false);}}>
+      {editOpen&&<div className="no-profile-modal-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setEditOpen(false);}}><section className="no-profile-modal" role="dialog" aria-modal="true" aria-labelledby="nova-edit-title"><button className="no-profile-modal-close" onClick={()=>setEditOpen(false)} aria-label="Close editor"><X/></button><span className="no-kicker">NOVA ID / PERSONALISE</span><h2 id="nova-edit-title">EDIT YOUR<br/><em>IDENTITY.</em></h2><form className="no-auth-form" onSubmit={async e=>{const saved=await saveMyProfile(e);if(saved)setEditOpen(false);}}>
         <label>USERNAME<input value={profileDraft.username} onChange={e=>setProfileDraft(v=>({...v,username:e.target.value}))} minLength={3} maxLength={24} placeholder="your_gamer_tag"/></label>
         <label>DISPLAY NAME<input value={profileDraft.display_name} onChange={e=>setProfileDraft(v=>({...v,display_name:e.target.value}))} maxLength={60} required/></label>
         <label>BIO<textarea value={profileDraft.bio} onChange={e=>setProfileDraft(v=>({...v,bio:e.target.value}))} maxLength={240} rows={3} placeholder="Tell the community about your game and role."/></label>
