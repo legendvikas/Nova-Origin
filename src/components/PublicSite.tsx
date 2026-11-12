@@ -235,7 +235,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       try {
         await api('team_members',{}, {method:'POST',body:{team_id:team.id,user_id:authUser.id,team_role:'captain'},prefer:'return=minimal'});
       } catch(memberError:any) {
-        await api('teams',{id:'eq.'+team.id},{method:'DELETE',prefer:'return=minimal'}).catch(()=>null);
+        await api('teams',{id:'eq.'+team.id},{method:'PATCH',body:{status:'inactive'},prefer:'return=minimal'}).catch(()=>null);
         throw new Error('Team roster setup failed: '+(memberError?.message||'Please try again.'));
       }
       setMyTeams(rows=>[team,...rows]);
