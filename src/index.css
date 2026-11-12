@@ -288,3 +288,62 @@
  .no-player-metrics span{font-size:6px}
  .no-player-result-grid{grid-template-columns:1fr}
 }
+
+
+/* NOVA roster cards — premium competitive identity */
+.no-team-list{display:grid;gap:12px;border:0}
+.no-team-row{
+  position:relative;isolation:isolate;overflow:hidden;
+  display:grid;grid-template-columns:42px 66px minmax(0,1fr) 150px 82px 28px;
+  gap:18px;align-items:center;min-height:112px;padding:20px 22px;
+  border:1px solid #b7ff5a24;border-radius:4px;
+  background:linear-gradient(112deg,#141d14 0%,#0d120f 48%,#101710 100%);
+  box-shadow:inset 0 1px 0 #ffffff08,0 12px 32px #00000020;
+  transition:border-color .25s,transform .25s,background .25s,box-shadow .25s;
+}
+.no-team-row:before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 8% 50%,#b7ff5a12,transparent 35%),linear-gradient(90deg,transparent 70%,#b7ff5a08)}
+.no-team-row:after{content:"NOVA / ROSTER";position:absolute;z-index:-1;right:68px;bottom:-13px;
+  color:#ffffff05;font:900 48px 'Barlow Condensed',sans-serif;letter-spacing:2px;pointer-events:none}
+.no-team-row:hover{transform:translateY(-3px);border-color:#b7ff5a88;
+  background:linear-gradient(112deg,#1b2818 0%,#101711 55%,#182217 100%);
+  box-shadow:0 18px 42px #00000045,0 0 28px #b7ff5a0b}
+.no-row-num{font:10px 'DM Mono',monospace;color:#9da994;letter-spacing:1px}
+.no-team-logo{width:64px;height:64px;border-radius:3px;border:1px solid #b7ff5a88;
+  background:linear-gradient(145deg,#283a20,#101710);font-size:21px;
+  box-shadow:0 0 22px #b7ff5a13}
+.no-team-name{min-width:0}
+.no-team-name b{display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  color:#f5f7ef;font-size:clamp(21px,2.5vw,28px);line-height:1.05;letter-spacing:.2px}
+.no-team-name>small:not(.no-team-owner){margin-top:8px;color:#a3ac9d;font-size:11px;line-height:1.4}
+.no-team-owner{margin-top:8px!important;color:#c5f78a!important;font-size:9px!important;letter-spacing:1.1px}
+.no-team-verified{margin:0;padding:5px 9px;border-color:#b7ff5a70;
+  background:linear-gradient(120deg,#b7ff5a20,#b7ff5a08);font-size:8px;letter-spacing:1px}
+.no-team-meta{font-size:9px;letter-spacing:1px;color:#d9e3d1}
+.no-team-meta small{font-size:8px;color:#9aa592;letter-spacing:1px}
+.no-team-tag{justify-self:center;padding:7px 10px;border:1px solid #b7ff5a38;
+  background:#b7ff5a0b;color:#c9ff83;font-size:10px;letter-spacing:1.5px}
+.no-row-arrow{width:22px;height:22px;color:#c5ff83;transition:transform .2s}
+.no-team-row:hover .no-row-arrow{transform:translate(3px,-3px)}
+@media(max-width:760px){
+  .no-team-list{gap:10px}
+  .no-team-row{grid-template-columns:22px 52px minmax(0,1fr) 22px;gap:11px;
+    min-height:104px;padding:15px 12px;border-radius:4px}
+  .no-team-row:after{right:38px;font-size:38px}
+  .no-row-num{font-size:8px}
+  .no-team-logo{width:50px;height:50px;font-size:16px}
+  .no-team-name b{font-size:clamp(18px,5.2vw,23px);gap:6px;line-height:1.12}
+  .no-team-name>small:not(.no-team-owner){font-size:9px;margin-top:6px}
+  .no-team-owner{font-size:8px!important;margin-top:6px!important;letter-spacing:.65px}
+  .no-team-verified{padding:4px 6px;font-size:7px;gap:3px}
+  .no-team-verified svg{width:11px;height:11px}
+  .no-team-meta,.no-team-tag{display:none}
+  .no-row-arrow{width:19px;height:19px}
+}
+@media(max-width:390px){
+  .no-team-row{grid-template-columns:17px 44px minmax(0,1fr) 18px;gap:8px;padding:13px 9px}
+  .no-team-logo{width:44px;height:44px}
+  .no-team-name b{font-size:18px}
+  .no-team-verified{font-size:6px;padding:3px 5px}
+  .no-team-owner{font-size:7px!important}
+}
