@@ -15,7 +15,7 @@ type ExtraData = { matches: any[]; players: any[]; members: any[]; profiles: any
 
 const NAV = [
   ['HOME', '/'], ['ABOUT', '/about'], ['GAMES', '/games'], ['TEAMS', '/teams'],
-  ['PLAYERS', '/players'], ['TOURNAMENTS', '/tournaments'], ['MATCHES', '/matches'],
+  ['PLAYERS', '/players'], ['MY PROFILE', '/account'], ['TOURNAMENTS', '/tournaments'], ['MATCHES', '/matches'],
   ['NEWS', '/news'], ['COMMUNITY', '/community']
 ] as const;
 
@@ -47,6 +47,11 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [authError, setAuthError] = useState('');
   const [authNotice, setAuthNotice] = useState('');
   const [authUser, setAuthUser] = useState<NovaUser|null>(null);
+  const [myProfile, setMyProfile] = useState<any|null>(null);
+  const [profileDraft, setProfileDraft] = useState({username:'',display_name:'',bio:'',avatar_url:''});
+  const [profileBusy, setProfileBusy] = useState(false);
+  const [profileMessage, setProfileMessage] = useState('');
+  const [profileError, setProfileError] = useState('');
   const [managedNavigation, setManagedNavigation] = useState<any[]>([]);
   const [managedSeo, setManagedSeo] = useState<any[]>([]);
   const [homepageSections, setHomepageSections] = useState<any[]>([]);
@@ -169,6 +174,26 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     } finally { setAuthBusy(false); }
   };
 
+  useEffect(() => {
+    let live = true;
+    if (!authUser) { setMyProfile(null); return; }
+    api<any[]>('profiles',{select:'id,username,display_name,avatar_url,bio,country_code',id:'eq.'+authUser.id,limit:'1'}).then(rows => {
+      if (!live) return; const p=rows[0] || {id:authUser.id}; setMyProfile(p);
+      setProfileDraft({username:p.username||'',display_name:p.display_name||authUser.user_metadata?.full_name||'',bio:p.bio||'',avatar_url:p.avatar_url||''});
+    }).catch(e => { if(live) setProfileError(e.message||'Could not load profile.'); });
+    return () => { live=false; };
+  }, [authUser?.id]);
+
+  const saveMyProfile = async (e: FormEvent) => {
+    e.preventDefault(); if(!authUser) return; setProfileBusy(true); setProfileError(''); setProfileMessage('');
+    try {
+      const username=profileDraft.username.trim().toLowerCase();
+      if(username && !/^[a-z0-9_.]{3,24}$/.test(username)) throw new Error('Username must be 3–24 characters: letters, numbers, dot or underscore.');
+      const payload={username:username||null,display_name:profileDraft.display_name.trim()||'Player',bio:profileDraft.bio.trim()||null,avatar_url:profileDraft.avatar_url.trim()||null,updated_at:new Date().toISOString()};
+      const rows=await api<any[]>('profiles',{id:'eq.'+authUser.id},{method:'PATCH',body:payload,prefer:'return=representation'});
+      setMyProfile(rows[0]||{...myProfile,...payload}); setProfileMessage('Profile saved successfully.');
+    } catch(e:any) { setProfileError(e.message||'Could not save profile.'); } finally { setProfileBusy(false); }
+  };
   const navigate = (to: string) => {
     const target = new URL(to, window.location.origin);
     window.history.pushState({}, '', target.pathname + target.search + target.hash);
@@ -323,6 +348,21 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         <div className="no-detail-section"><span className="no-kicker">VERIFIED RESULTS / {eventResults.length.toString().padStart(2,'0')}</span><div className="no-result-grid">{eventResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{r.team?.name || r.player?.display_name || r.player?.username || 'COMPETITOR'}</span><b>{r.placement ? 'PLACE #'+r.placement : (r.points ?? '—')+' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!eventResults.length && <Empty text="Verified results will appear here when matches are completed and reviewed."/>}</div></div>
       </DetailShell>;
     }
+    if (route[0] === 'account') {
+      if (!authUser) return <><PageHero kicker="NOVA ID / MEMBER ACCESS" title="SIGN IN TO" accent="YOUR PROFILE." copy="Sign in using the account button in the header to manage your NOVA player profile."/><section className="no-section"><button className="no-btn" onClick={()=>setAuthOpen(true)}>SIGN IN / CREATE ACCOUNT <ArrowUpRight size={15}/></button></section></>;
+      const verified=!!myProfile?.verified_at || !!myProfile?.is_verified;
+      return <><PageHero kicker="NOVA ID / PLAYER PROFILE" title="YOUR" accent="PROFILE." copy="One profile for your NOVA identity. Keep your public player details up to date."/><section className="no-section">
+        <div className="no-detail-grid"><div className="no-detail-emblem">{profileDraft.avatar_url ? <img src={profileDraft.avatar_url} alt="Profile"/> : <Users size={70}/>}</div><div><span className="no-kicker">@{myProfile?.username||'YOUR USERNAME'} / PUBLIC PROFILE</span><h2>{profileDraft.display_name||'NOVA PLAYER'} {verified&&<span title="Verified player">✓</span>}</h2><p>{profileDraft.bio||'Add a short bio to introduce yourself to the NOVA community.'}</p><p className="no-muted">{verified?'NOVA VERIFIED PLAYER':'PLAYER PROFILE · NOT VERIFIED'}</p></div></div>
+        <div className="no-detail-section"><span className="no-kicker">EDIT YOUR PLAYER IDENTITY</span><form className="no-auth-form" onSubmit={saveMyProfile}>
+          <label>USERNAME<input value={profileDraft.username} onChange={e=>setProfileDraft(v=>({...v,username:e.target.value}))} minLength={3} maxLength={24} placeholder="your_gamer_tag"/></label>
+          <label>DISPLAY NAME<input value={profileDraft.display_name} onChange={e=>setProfileDraft(v=>({...v,display_name:e.target.value}))} maxLength={60} required/></label>
+          <label>PROFILE PHOTO URL<input type="url" value={profileDraft.avatar_url} onChange={e=>setProfileDraft(v=>({...v,avatar_url:e.target.value}))} placeholder="https://..."/></label>
+          <label>BIO<textarea value={profileDraft.bio} onChange={e=>setProfileDraft(v=>({...v,bio:e.target.value}))} maxLength={240} rows={3} placeholder="Tell the community about your game and role."/></label>
+          {profileError&&<p className="no-auth-error" role="alert">{profileError}</p>}{profileMessage&&<p className="no-auth-notice" role="status">{profileMessage}</p>}
+          <button className="no-btn" type="submit" disabled={profileBusy}>{profileBusy?'SAVING…':'SAVE PROFILE'} <ArrowUpRight size={15}/></button></form></div>
+        <div className="no-detail-section"><span className="no-kicker">PROFILE VISIBILITY</span><p className="no-muted">Your profile is part of the NOVA player directory. Verification and official competitive statistics are managed by NOVA staff.</p><button className="no-btn ghost" onClick={()=>navigate('/players')}>VIEW PLAYER DIRECTORY <ArrowUpRight size={15}/></button></div>
+      </section></>;
+    }
     if (route[0] === 'players' && !slug) {
       return <>
         <PageHero kicker="NOVA ROSTER / PLAYER DIRECTORY" title="MEET THE" accent="PLAYERS." copy="Public NOVA Origin member profiles. Competitive statistics appear only when verified." />
@@ -423,7 +463,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <div className="no-topline"><span><i/> NOVA ORIGIN</span><span>BUILT FOR THE NEXT LEVEL</span><span>INDIA · ESPORTS</span></div>
     <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
       <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 31V9L30 31V9" stroke="currentColor" strokeWidth="4" strokeLinecap="square" strokeLinejoin="miter"/><path d="M8 9H15L30 24" stroke="currentColor" strokeWidth="1.5" opacity=".55"/><path d="M27 9H32V14" stroke="currentColor" strokeWidth="2.5"/></svg><i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
-      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>({label:item.label,href:item.href,external:!!item.open_in_new_tab})) : NAV.map(([label,href])=>({label,href,external:false}))).map(item => <a key={item.href} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} className={path === item.href ? 'active' : ''} onClick={e => {if(!item.external){e.preventDefault();navigate(item.href);}}}>{item.label}</a>)}{authUser && <a className="no-profile-nav" href="https://nova-origin-admin.vercel.app/player" onClick={() => setMenuOpen(false)}>MY PROFILE <ArrowUpRight size={13}/></a>}</nav>
+      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>({label:item.label,href:item.href,external:!!item.open_in_new_tab})) : NAV.map(([label,href])=>({label,href,external:false}))).map(item => <a key={item.href} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} className={path === item.href ? 'active' : ''} onClick={e => {if(!item.external){e.preventDefault();navigate(item.href);}}}>{item.label}</a>)}{authUser && <a className="no-profile-nav" href="/account" onClick={e=>{e.preventDefault();navigate('/account');}}>MY PROFILE <ArrowUpRight size={13}/></a>}</nav>
       <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-auth-btn" onClick={()=>{setAuthOpen(true);setAuthError('');setAuthNotice('');}}>{authUser ? (authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'ACCOUNT') : 'SIGN IN'} <ArrowUpRight size={13}/></button><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
     <main>{path === '/' ? home() : contentPage()}</main>
@@ -433,7 +473,8 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         {authUser ? <>
           <span className="no-kicker">NOVA ID / ACCOUNT</span><h2 id="no-auth-title">WELCOME<br/><em>BACK.</em></h2>
           <p className="no-auth-copy">{authUser.email || 'Signed-in NOVA member'}</p>
-          <button className="no-btn" onClick={()=>{signOut();setAuthUser(null);setAuthOpen(false);}}>SIGN OUT <ArrowUpRight size={15}/></button>
+          <button className="no-btn" onClick={()=>{setAuthOpen(false);navigate('/account');}}>MANAGE MY PROFILE <ArrowUpRight size={15}/></button>
+          <button className="no-auth-switch" onClick={()=>{signOut();setAuthUser(null);setAuthOpen(false);}}>SIGN OUT</button>
         </> : <>
           <span className="no-kicker">NOVA ID / PLAYER ACCESS</span><h2 id="no-auth-title">{authMode==='signin'?'SIGN IN TO':'CREATE YOUR'}<br/><em>NOVA ID.</em></h2>
           <p className="no-auth-copy">Use your email to access your NOVA Origin account. Tournament entry is subject to each event's published rules.</p>
