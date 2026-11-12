@@ -347,3 +347,71 @@
   .no-team-verified{font-size:6px;padding:3px 5px}
   .no-team-owner{font-size:7px!important}
 }
+
+
+/* NOVA team detail — squad identity experience */
+.no-team-profile-hero{
+  position:relative;overflow:hidden;margin:4px 0 12px;padding:24px;
+  border:1px solid #b7ff5a42;background:
+    radial-gradient(ellipse at 78% 15%,#b7ff5a17,transparent 42%),
+    linear-gradient(135deg,#172117 0%,#0d120e 58%,#111a12 100%);
+  box-shadow:inset 0 1px 0 #ffffff0a,0 24px 60px #00000035;
+}
+.no-team-profile-hero:before{content:"N";position:absolute;right:12px;top:-70px;
+  color:#b7ff5a08;font:900 290px/.9 'Barlow Condensed',sans-serif;pointer-events:none}
+.no-team-profile-topline{position:relative;z-index:1;display:flex;justify-content:space-between;gap:12px;
+  padding-bottom:18px;border-bottom:1px solid #ffffff16;color:#b7ff5a;
+  font:9px 'DM Mono',monospace;letter-spacing:1.5px}
+.no-team-live-mark{display:flex;align-items:center;gap:7px;color:#a9b49f}
+.no-team-live-mark i{width:7px;height:7px;border-radius:50%;background:#b7ff5a;box-shadow:0 0 12px #b7ff5a}
+.no-team-profile-main{position:relative;z-index:1;display:grid;grid-template-columns:190px minmax(0,1fr);
+  align-items:center;gap:30px;padding:28px 0}
+.no-team-profile-emblem{aspect-ratio:1;max-width:190px;width:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;overflow:hidden;
+  border:1px solid #b7ff5a7a;background:linear-gradient(145deg,#263821,#0a100c);
+  box-shadow:0 0 45px #b7ff5a12,inset 0 0 30px #b7ff5a0b}
+.no-team-profile-emblem img{width:100%;height:100%;object-fit:cover}
+.no-team-profile-emblem b{color:#c5ff75;font:900 76px/.9 'Barlow Condensed',sans-serif;letter-spacing:-2px;text-shadow:0 0 28px #b7ff5a45}
+.no-team-profile-emblem small{color:#9aa992;font:8px 'DM Mono',monospace;letter-spacing:2px}
+.no-team-profile-info{min-width:0}
+.no-team-profile-info h2{margin:9px 0 12px;color:#f4f6ed;font:900 clamp(38px,6vw,68px)/.95 'Barlow Condensed',sans-serif;
+  letter-spacing:-1px;text-transform:uppercase}
+.no-team-profile-info .no-team-verified{margin:0 0 12px}
+.no-team-owner-line{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:#a8b29f!important;
+  font:9px 'DM Mono',monospace!important;letter-spacing:.8px}
+.no-team-owner-line strong{color:#e8f1df}
+.no-team-owner-line a{display:inline-flex;align-items:center;gap:5px;color:#c5ff75;font-size:8px}
+.no-team-profile-copy{max-width:540px;margin:12px 0 0;color:#a5afa0!important;font-size:13px!important;line-height:1.8!important}
+.no-team-profile-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  border-top:1px solid #ffffff1c}
+.no-team-profile-stats>div{display:flex;flex-direction:column;gap:7px;padding:17px 14px 5px;
+  border-right:1px solid #ffffff16}
+.no-team-profile-stats>div:first-child{padding-left:0}
+.no-team-profile-stats>div:last-child{border:0}
+.no-team-profile-stats b{color:#c5ff75;font:800 27px 'Barlow Condensed',sans-serif}
+.no-team-profile-stats span{color:#9aa694;font:8px 'DM Mono',monospace;letter-spacing:1px}
+@media(max-width:760px){
+  .no-team-profile-hero{margin:0;padding:17px 15px}
+  .no-team-profile-topline{font-size:7px;letter-spacing:.8px;padding-bottom:13px}
+  .no-team-profile-main{grid-template-columns:104px minmax(0,1fr);gap:15px;padding:20px 0}
+  .no-team-profile-emblem{width:104px;max-width:104px}
+  .no-team-profile-emblem b{font-size:43px}
+  .no-team-profile-emblem small{font-size:6px;letter-spacing:1px}
+  .no-team-profile-info h2{font-size:clamp(27px,8vw,39px);margin:6px 0 8px;overflow-wrap:anywhere}
+  .no-team-profile-info .no-kicker{font-size:8px;letter-spacing:1px}
+  .no-team-profile-info .no-team-verified{font-size:7px;padding:5px 7px}
+  .no-team-owner-line{font-size:7px!important;gap:5px}
+  .no-team-owner-line a{font-size:7px}
+  .no-team-profile-copy{font-size:10px!important;line-height:1.6!important;margin-top:7px}
+  .no-team-profile-stats>div{padding:12px 7px 2px;gap:5px}
+  .no-team-profile-stats>div:first-child{padding-left:0}
+  .no-team-profile-stats b{font-size:21px}
+  .no-team-profile-stats span{font-size:6px;letter-spacing:.45px;line-height:1.4}
+}
+@media(max-width:360px){
+  .no-team-profile-main{grid-template-columns:84px minmax(0,1fr);gap:11px}
+  .no-team-profile-emblem{width:84px;max-width:84px}
+  .no-team-profile-emblem b{font-size:36px}
+  .no-team-profile-info h2{font-size:26px}
+  .no-team-profile-stats span{font-size:5px}
+}
