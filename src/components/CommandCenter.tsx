@@ -130,7 +130,7 @@ export function Dashboard(props: Props) {
   const load = async () => {
     if (!user) return;
     setLoading(true); setError('');
-    const targets = modules.filter(m => m.table && (role !== 'moderator' || m.id === 'badge-requests'));
+    const targets = modules.filter(m => m.table && (role !== 'moderator' || ['badge-requests','players','games'].includes(m.id)));
     const next:Record<string,any[]> = {}; const nextCounts:Record<string,number|null> = {}; const nextErrors:Record<string,string> = {};
     const settled = await Promise.all(targets.map(async m => {
       try {
