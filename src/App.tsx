@@ -46,7 +46,7 @@ function App() {
     boot();
   }, []);
 
-  const canManage = role === 'super_admin' || role === 'platform_admin';
+  const canManage = role === 'super_admin' || role === 'platform_admin' || role === 'moderator';
   const openAdmin = () => { setPage('admin'); setMenuOpen(false); };
 
   if (page === 'player') {
