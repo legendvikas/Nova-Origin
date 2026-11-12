@@ -580,8 +580,8 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <section className="no-band"><div className="no-section">{sectionTitle('06','VERIFIED RESULTS','THE TROPHY','ROOM.','Milestones from verified match records only.')}
       <div className="no-result-grid">{extra.results.filter((r:any)=>r.verified_at).slice(0,6).map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={22}/><span>{r.team?.name || r.player?.display_name || r.player?.username || 'COMPETITOR'}</span><b>{r.placement ? 'PLACE #' + r.placement : (r.points ?? '—') + ' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!extraLoading && !extra.results.some((r:any)=>r.verified_at) && <Empty text="Verified achievements will appear here once match results are approved."/>}</div>
     </div></section>
-    <section className="no-band"><div className="no-section">{sectionTitle('06','TRANSMISSIONS','LATEST','UPDATES.','Official announcements and community highlights.')}{newsCards()}</div></section>
-    <section className="no-section no-partners">{sectionTitle('07','BACKED BY','OUR','PARTNERS.','The organisations helping the NOVA journey move forward.')}{sponsors()}</section>
+    <section className="no-band"><div className="no-section">{sectionTitle('07','TRANSMISSIONS','LATEST','UPDATES.','Official announcements and community highlights.')}{newsCards()}</div></section>
+    <section className="no-section no-partners">{sectionTitle('08','BACKED BY','OUR','PARTNERS.','The organisations helping the NOVA journey move forward.')}{sponsors()}</section>
     <section className="no-join"><span className="no-kicker">YOUR NEXT CHAPTER STARTS HERE</span><h2>READY TO<br/><em>RISE WITH US?</em></h2><p>Find your place in the origin.</p><div><button className="no-btn" onClick={() => navigate('/join')}>JOIN NOVA ORIGIN <ArrowUpRight size={16}/></button><button className="no-btn ghost" onClick={() => navigate('/contact')}>CONTACT THE TEAM <Mail size={16}/></button></div></section>
   </>;
 
