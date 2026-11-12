@@ -173,3 +173,7 @@
 .no-card-foot{background:linear-gradient(120deg,#111713,#0c100e)}
 @media(max-width:760px){.no-game-art{height:225px}.no-game-art-rings i{width:170px}.no-game-art-rings i:nth-child(2){width:225px}.no-game-art-rings i:nth-child(3){width:280px}.no-game-brand strong{font-size:58px}}
 @media(max-width:390px){.no-game-art{height:205px}.no-game-brand strong{font-size:51px}}
+
+.no-verified-tick{display:inline-block;width:18px;height:18px;vertical-align:-2px;color:#b7ff5a;filter:drop-shadow(0 0 7px #b7ff5a66);margin-left:5px}
+.no-verified-pill{display:inline-flex;align-items:center;gap:7px;width:max-content;margin:4px 0 12px;padding:7px 10px;border:1px solid #b7ff5a55;border-radius:999px;background:#b7ff5a12;color:#caff8b;font:9px 'DM Mono';letter-spacing:1px}
+.no-verified-pill svg{width:15px;height:15px}
