@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from 'react';
 import {
-  ArrowRight, ArrowUpRight, Menu, X, Pencil, Camera, BadgeCheck, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
+  ArrowRight, ArrowUpRight, Menu, X, DoorOpen, Pencil, Camera, BadgeCheck, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
   Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
@@ -590,7 +590,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
       <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-wordmark"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></span><span className="no-brand-official"><BadgeCheck size={13}/> OFFICIAL</span></button>
       <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>({label:item.label,href:item.href,external:!!item.open_in_new_tab})) : NAV.map(([label,href])=>({label,href,external:false}))).map(item => <a key={item.href} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} className={path === item.href ? 'active' : ''} onClick={e => {if(!item.external){e.preventDefault();navigate(item.href);}}}>{item.label}</a>)}</nav>
-      <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
+      <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button>{menuOpen && <button className="no-session-door" aria-label={authUser ? 'Sign out' : 'Sign in'} title={authUser ? 'SIGN OUT' : 'SIGN IN'} onClick={() => { if (authUser) { signOut(); setAuthUser(null); setMyProfile(null); setAuthOpen(false); } else { setAuthMode('signin'); setAuthOpen(true); setAuthError(''); setAuthNotice(''); } setMenuOpen(false); }}><DoorOpen size={23}/></button>}<button className="no-menu" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
     <main>{path === '/' ? home() : contentPage()}</main>
     {authOpen && <div className="no-auth-backdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setAuthOpen(false);}}>
