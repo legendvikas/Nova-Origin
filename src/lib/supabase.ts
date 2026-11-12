@@ -73,6 +73,32 @@ export async function getValidSession(): Promise<NovaSession | null> {
   } catch { clearSession(); return null; }
 }
 
+export async function uploadPlayerAvatar(file: File, userId: string): Promise<string> {
+  if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+    throw new Error('Choose a JPG, PNG, WEBP or GIF image under 5 MB.');
+  }
+  const session = await getValidSession();
+  if (!session?.access_token) throw new Error('Please sign in again before uploading your photo.');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '').slice(-80) || 'avatar';
+  const path = 'players/' + userId + '/' + Date.now() + '-' + safeName;
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/nova-media/${path}`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${session.access_token}`,
+      'Content-Type': file.type,
+      'x-upsert': 'false',
+    },
+    body: file,
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || 'Profile photo upload failed.');
+  }
+  return `${SUPABASE_URL}/storage/v1/object/public/nova-media/${path}`;
+}
+
 export async function currentUser(token: string): Promise<NovaUser> {
   const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
