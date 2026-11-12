@@ -49,6 +49,11 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [authUser, setAuthUser] = useState<NovaUser|null>(null);
   const [myProfile, setMyProfile] = useState<any|null>(null);
   const [badgeApproved, setBadgeApproved] = useState(false);
+  const [badgeRequest, setBadgeRequest] = useState<any|null>(null);
+  const [badgeDraft, setBadgeDraft] = useState({game_id:'',in_game_name:'',evidence_url:'',note:''});
+  const [badgeBusy, setBadgeBusy] = useState(false);
+  const [badgeMessage, setBadgeMessage] = useState('');
+  const [badgeError, setBadgeError] = useState('');
   const [profileDraft, setProfileDraft] = useState({username:'',display_name:'',bio:'',avatar_url:''});
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileMessage, setProfileMessage] = useState('');
@@ -180,9 +185,10 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     if (!authUser) { setMyProfile(null); return; }
     Promise.all([
       api<any[]>('profiles',{select:'id,username,display_name,avatar_url,bio,country_code',id:'eq.'+authUser.id,limit:'1'}),
-      api<any[]>('player_badge_requests',{select:'id,status',player_id:'eq.'+authUser.id,status:'eq.approved',limit:'1'}).catch(() => [])
-    ]).then(([rows, approved]) => {
-      if (!live) return; const p=rows[0] || {id:authUser.id}; setMyProfile(p); setBadgeApproved(approved.length > 0);
+      api<any[]>('player_badge_requests',{select:'id,status,game_id,in_game_name,evidence_url,note,manager_note,created_at',player_id:'eq.'+authUser.id,order:'created_at.desc',limit:'1'}).catch(() => [])
+    ]).then(([rows, requests]) => {
+      if (!live) return; const p=rows[0] || {id:authUser.id}; setMyProfile(p);
+      const latestRequest=requests[0]||null; setBadgeRequest(latestRequest); setBadgeApproved(latestRequest?.status==='approved');
       setProfileDraft({username:p.username||'',display_name:p.display_name||authUser.user_metadata?.full_name||'',bio:p.bio||'',avatar_url:p.avatar_url||''});
     }).catch(e => { if(live) setProfileError(e.message||'Could not load profile.'); });
     return () => { live=false; };
@@ -215,6 +221,22 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       setProfileMessage('Profile photo uploaded successfully.');
     } catch(e:any) { setProfileError(e.message||'Profile photo upload failed.'); }
     finally { setProfileBusy(false); }
+  };
+  const submitBadgeRequest = async (e: FormEvent) => {
+    e.preventDefault(); if(!authUser) return;
+    setBadgeBusy(true); setBadgeError(''); setBadgeMessage('');
+    try {
+      if(!badgeDraft.game_id) throw new Error('Select the game you compete in.');
+      if(!badgeDraft.in_game_name.trim()) throw new Error('Enter your in-game name.');
+      if(!/^https:\/\//i.test(badgeDraft.evidence_url.trim())) throw new Error('Add a valid HTTPS evidence link.');
+      const rows=await api<any[]>('player_badge_requests',{}, {method:'POST',body:{
+        player_id:authUser.id,game_id:badgeDraft.game_id,in_game_name:badgeDraft.in_game_name.trim(),
+        evidence_url:badgeDraft.evidence_url.trim(),note:badgeDraft.note.trim()||null,status:'pending'
+      },prefer:'return=representation'});
+      setBadgeRequest(rows[0]||{status:'pending',...badgeDraft});
+      setBadgeMessage('Verification request sent to NOVA managers.');
+    } catch(e:any) { setBadgeError(e.message||'Could not submit verification request.'); }
+    finally { setBadgeBusy(false); }
   };
   const navigate = (to: string) => {
     const target = new URL(to, window.location.origin);
@@ -384,7 +406,18 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
           <label>BIO<textarea value={profileDraft.bio} onChange={e=>setProfileDraft(v=>({...v,bio:e.target.value}))} maxLength={240} rows={3} placeholder="Tell the community about your game and role."/></label>
           {profileError&&<p className="no-auth-error" role="alert">{profileError}</p>}{profileMessage&&<p className="no-auth-notice" role="status">{profileMessage}</p>}
           <button className="no-btn" type="submit" disabled={profileBusy}>{profileBusy?'SAVING…':'SAVE PROFILE'} <ArrowUpRight size={15}/></button></form></div>
-        <div className="no-detail-section"><span className="no-kicker">PROFILE VISIBILITY</span><p className="no-muted">Your profile is part of the NOVA player directory. Verification and official competitive statistics are managed by NOVA staff.</p><button className="no-btn ghost" onClick={()=>navigate('/players')}>VIEW PLAYER DIRECTORY <ArrowUpRight size={15}/></button></div>
+        <div className="no-detail-section"><span className="no-kicker">NOVA VERIFIED BADGE</span>
+          {verified ? <p className="no-muted">Your player profile is officially verified by NOVA.</p> : badgeRequest?.status==='pending' ? <p className="no-muted">Your verification request is waiting for manager review.</p> : badgeRequest?.status==='rejected' ? <p className="no-muted">Your last request was not approved. {badgeRequest.manager_note||'You can submit an updated request with new evidence.'}</p> : <p className="no-muted">Request a verified tick. NOVA managers will review your in-game identity and evidence before approval.</p>}
+          {!verified && badgeRequest?.status!=='pending' && <form className="no-auth-form" onSubmit={submitBadgeRequest}>
+            <label>GAME<select value={badgeDraft.game_id} onChange={e=>setBadgeDraft(v=>({...v,game_id:e.target.value}))} required><option value="">SELECT GAME</option>{data.games.map((g:any)=><option value={g.id} key={g.id}>{g.name}</option>)}</select></label>
+            <label>IN-GAME NAME<input value={badgeDraft.in_game_name} onChange={e=>setBadgeDraft(v=>({...v,in_game_name:e.target.value}))} maxLength={80} required placeholder="Your exact in-game name"/></label>
+            <label>PROOF / EVIDENCE LINK<input type="url" value={badgeDraft.evidence_url} onChange={e=>setBadgeDraft(v=>({...v,evidence_url:e.target.value}))} required placeholder="https://..."/></label>
+            <label>NOTE (OPTIONAL)<textarea value={badgeDraft.note} onChange={e=>setBadgeDraft(v=>({...v,note:e.target.value}))} maxLength={500} rows={2} placeholder="Anything the manager should know"/></label>
+            {badgeError&&<p className="no-auth-error" role="alert">{badgeError}</p>}{badgeMessage&&<p className="no-auth-notice" role="status">{badgeMessage}</p>}
+            <button className="no-btn" type="submit" disabled={badgeBusy||!data.games.length}>{badgeBusy?'SENDING…':'REQUEST VERIFIED BADGE'} <ArrowUpRight size={15}/></button>
+          </form>}
+          <button className="no-btn ghost" onClick={()=>navigate('/players')}>VIEW PLAYER DIRECTORY <ArrowUpRight size={15}/></button>
+        </div>
       </section></>;
     }
     if (route[0] === 'players' && !slug) {
