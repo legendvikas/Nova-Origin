@@ -170,8 +170,10 @@ export function Dashboard(props: Props) {
     if(reviewDecision==='rejected' && !reviewNote.trim()) { setError('Rejection reason likhna zaroori hai, taaki player request update kar sake.'); return; }
     setBusy(true); setError(''); setNotice('');
     try {
-      await api('player_badge_requests',{id:'eq.'+reviewTarget.id},{method:'PATCH',body:{status:reviewDecision,manager_note:reviewNote.trim()||null},prefer:'return=minimal'});
-      setReviewTarget(null); setNotice(reviewDecision==='approved'?'Verified badge approved. Player profile will show the tick.':'Request rejected. Player will see your manager note.');
+      const updated = await api<any[]>('player_badge_requests',{id:'eq.'+reviewTarget.id,status:'eq.pending'},{method:'PATCH',body:{status:reviewDecision,manager_note:reviewNote.trim()||null},prefer:'return=representation'});
+      if(!updated?.length) throw new Error('This request was already reviewed or your manager role does not have approval access. Refresh the queue and try again.');
+      if(updated[0].status!==reviewDecision) throw new Error('The database did not confirm the requested decision. Refresh and try again.');
+      setReviewTarget(null); setNotice(reviewDecision==='approved'?'Badge approved. The verified tick is now linked to the player profile.':'Request rejected. Player will see your manager note.');
       await load(); await onRefresh();
     } catch(e:any) { setError(e.message||'Could not update the verification request. Check manager permissions and try again.'); }
     finally { setBusy(false); }
