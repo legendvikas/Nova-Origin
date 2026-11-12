@@ -397,16 +397,26 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     if (route[0] === 'account') {
       if (!authUser) return <><PageHero kicker="NOVA ID / MEMBER ACCESS" title="SIGN IN TO" accent="YOUR PROFILE." copy="Sign in using the account button in the header to manage your NOVA player profile."/><section className="no-section"><button className="no-btn" onClick={()=>setAuthOpen(true)}>SIGN IN / CREATE ACCOUNT <ArrowUpRight size={15}/></button></section></>;
       const verified=badgeApproved;
-      return <><PageHero kicker="NOVA ID / PLAYER PROFILE" title="YOUR" accent="PROFILE." copy="One profile for your NOVA identity. Keep your public player details up to date."/><section className="no-section">
-        <div className="no-detail-grid"><div className="no-detail-emblem">{profileDraft.avatar_url ? <img src={profileDraft.avatar_url} alt="Profile"/> : <Users size={70}/>}</div><div><span className="no-kicker">@{myProfile?.username||'YOUR USERNAME'} / PUBLIC PROFILE</span><h2>{profileDraft.display_name||'NOVA PLAYER'} {verified&&<span title="Verified player">✓</span>}</h2><p>{profileDraft.bio||'Add a short bio to introduce yourself to the NOVA community.'}</p><p className="no-muted">{verified?'NOVA VERIFIED PLAYER':'PLAYER PROFILE · NOT VERIFIED'}</p></div></div>
-        <div className="no-detail-section"><span className="no-kicker">EDIT YOUR PLAYER IDENTITY</span><form className="no-auth-form" onSubmit={saveMyProfile}>
+      const profileStats=extra.players.filter((p:any)=>p.player_id===authUser.id);
+      return <><section className="no-social-profile">
+        <div className="no-social-cover"><span>NOVA ORIGIN / PLAYER ID</span><b>NO</b></div>
+        <div className="no-social-head">
+          <div className="no-social-avatar">{profileDraft.avatar_url ? <img src={profileDraft.avatar_url} alt="Profile"/> : <Users size={48}/>}</div>
+          <button className="no-social-edit" onClick={()=>document.getElementById('nova-profile-edit')?.scrollIntoView({behavior:'smooth'})}>EDIT PROFILE <ArrowUpRight size={14}/></button>
+          <div className="no-social-name"><h1>{profileDraft.display_name||'NOVA PLAYER'} {verified&&<span className="no-social-verified" title="NOVA verified">✓</span>}</h1><p>@{myProfile?.username||'your_username'}</p></div>
+          <p className="no-social-bio">{profileDraft.bio||'Add a short bio to introduce yourself to the NOVA community.'}</p>
+          <div className="no-social-stats"><span><b>{profileStats.length}</b> VERIFIED RECORDS</span><span><b>{verified?'YES':'—'}</b> NOVA VERIFIED</span><span><b>PLAYER</b> MEMBER</span></div>
+          <nav className="no-social-tabs"><button onClick={()=>document.getElementById('nova-profile-edit')?.scrollIntoView({behavior:'smooth'})}>PROFILE EDIT</button><button onClick={()=>document.getElementById('nova-badge-request')?.scrollIntoView({behavior:'smooth'})}>VERIFICATION</button><button onClick={()=>navigate('/players')}>DISCOVER PLAYERS</button></nav>
+        </div>
+        <div className="no-social-content">
+        <div className="no-detail-section no-social-card" id="nova-profile-edit"><span className="no-kicker">YOUR IDENTITY / EDIT PROFILE</span><form className="no-auth-form" onSubmit={saveMyProfile}>
           <label>USERNAME<input value={profileDraft.username} onChange={e=>setProfileDraft(v=>({...v,username:e.target.value}))} minLength={3} maxLength={24} placeholder="your_gamer_tag"/></label>
           <label>DISPLAY NAME<input value={profileDraft.display_name} onChange={e=>setProfileDraft(v=>({...v,display_name:e.target.value}))} maxLength={60} required/></label>
           <label>PROFILE PHOTO<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>uploadMyAvatar(e.target.files?.[0])} disabled={profileBusy}/><small>JPG, PNG, WEBP or GIF · max 5 MB</small></label><label>PHOTO URL (OPTIONAL)<input type="url" value={profileDraft.avatar_url} onChange={e=>setProfileDraft(v=>({...v,avatar_url:e.target.value}))} placeholder="https://..."/></label>
           <label>BIO<textarea value={profileDraft.bio} onChange={e=>setProfileDraft(v=>({...v,bio:e.target.value}))} maxLength={240} rows={3} placeholder="Tell the community about your game and role."/></label>
           {profileError&&<p className="no-auth-error" role="alert">{profileError}</p>}{profileMessage&&<p className="no-auth-notice" role="status">{profileMessage}</p>}
           <button className="no-btn" type="submit" disabled={profileBusy}>{profileBusy?'SAVING…':'SAVE PROFILE'} <ArrowUpRight size={15}/></button></form></div>
-        <div className="no-detail-section"><span className="no-kicker">NOVA VERIFIED BADGE</span>
+        <div className="no-detail-section no-social-card" id="nova-badge-request"><span className="no-kicker">NOVA VERIFIED BADGE</span>
           {verified ? <p className="no-muted">Your player profile is officially verified by NOVA.</p> : badgeRequest?.status==='pending' ? <p className="no-muted">Your verification request is waiting for manager review.</p> : badgeRequest?.status==='rejected' ? <p className="no-muted">Your last request was not approved. {badgeRequest.manager_note||'You can submit an updated request with new evidence.'}</p> : <p className="no-muted">Request a verified tick. NOVA managers will review your in-game identity and evidence before approval.</p>}
           {!verified && badgeRequest?.status!=='pending' && <form className="no-auth-form" onSubmit={submitBadgeRequest}>
             <label>GAME<select value={badgeDraft.game_id} onChange={e=>setBadgeDraft(v=>({...v,game_id:e.target.value}))} required><option value="">SELECT GAME</option>{data.games.map((g:any)=><option value={g.id} key={g.id}>{g.name}</option>)}</select></label>
@@ -417,6 +427,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
             <button className="no-btn" type="submit" disabled={badgeBusy||!data.games.length}>{badgeBusy?'SENDING…':'REQUEST VERIFIED BADGE'} <ArrowUpRight size={15}/></button>
           </form>}
           <button className="no-btn ghost" onClick={()=>navigate('/players')}>VIEW PLAYER DIRECTORY <ArrowUpRight size={15}/></button>
+        </div>
         </div>
       </section></>;
     }
