@@ -11,12 +11,12 @@ type Props = {
   loading: boolean;
   onOpenAdmin: () => void;
 };
-type ExtraData = { matches: any[]; players: any[]; members: any[]; profiles: any[]; sponsors: any[]; results: any[] };
+type ExtraData = { matches: any[]; players: any[]; members: any[]; profiles: any[]; verifiedBadges: any[]; sponsors: any[]; results: any[] };
 
 const NAV = [
-  ['HOME', '/'], ['ABOUT', '/about'], ['GAMES', '/games'], ['TEAMS', '/teams'],
-  ['PLAYERS', '/players'], ['MY PROFILE', '/account'], ['TOURNAMENTS', '/tournaments'], ['MATCHES', '/matches'],
-  ['NEWS', '/news'], ['COMMUNITY', '/community']
+  ['HOME', '/'], ['ABOUT', '/about'], ['GAMES', '/games'], ['TOURNAMENTS', '/tournaments'],
+  ['MATCHES', '/matches'], ['TEAMS', '/teams'], ['PLAYERS', '/players'], ['NEWS', '/news'],
+  ['COMMUNITY', '/community'], ['MY PROFILE', '/account']
 ] as const;
 
 const clean = (value: unknown) => String(value ?? '').replaceAll('_', ' ');
@@ -35,7 +35,7 @@ const LEGACY_ROSTER = [
 export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [path, setPath] = useState(window.location.pathname.replace(/\/$/, '') || '/');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [extra, setExtra] = useState<ExtraData>({ matches: [], players: [], members: [], profiles: [], sponsors: [], results: [] });
+  const [extra, setExtra] = useState<ExtraData>({ matches: [], players: [], members: [], profiles: [], verifiedBadges: [], sponsors: [], results: [] });
   const [extraLoading, setExtraLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -142,8 +142,11 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         read('sponsors', { select: 'id,name,logo_url,website_url,description,status', status: 'eq.active', order: 'created_at.desc', limit: '12' }),
         read('match_results', { select: 'id,match_id,team_id,player_id,placement,eliminations,points,status,verified_at,team:teams(name,team_tag),player:profiles(username,display_name),match:matches(tournament_id,match_number,round_name,scheduled_at)', status: 'eq.verified', order: 'created_at.desc', limit: '30' })
       ]);
-      const profiles = await read('profiles', { select: 'id,username,display_name,avatar_url,bio,social_links', order: 'created_at.asc', limit: '100' });
-      if (live) { setExtra({ matches, players, members, profiles, sponsors, results }); setExtraLoading(false); }
+      const [profiles, verifiedBadges] = await Promise.all([
+        read('profiles', { select: 'id,username,display_name,avatar_url,bio,social_links', order: 'created_at.asc', limit: '100' }),
+        read('player_verified_badges', { select: 'player_id,verified_at', limit: '500' })
+      ]);
+      if (live) { setExtra({ matches, players, members, profiles, verifiedBadges, sponsors, results }); setExtraLoading(false); }
     })();
     return () => { live = false; };
   }, []);
@@ -191,10 +194,11 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     if (!authUser) { setMyProfile(null); return; }
     Promise.all([
       api<any[]>('profiles',{select:'id,username,display_name,avatar_url,bio,country_code,social_links',id:'eq.'+authUser.id,limit:'1'}),
-      api<any[]>('player_badge_requests',{select:'id,status,game_id,in_game_name,evidence_url,note,manager_note,created_at',player_id:'eq.'+authUser.id,order:'created_at.desc',limit:'1'}).catch(() => [])
-    ]).then(([rows, requests]) => {
+      api<any[]>('player_badge_requests',{select:'id,status,game_id,in_game_name,evidence_url,note,manager_note,created_at',player_id:'eq.'+authUser.id,order:'created_at.desc',limit:'1'}).catch(() => []),
+      api<any[]>('player_verified_badges',{select:'player_id,verified_at',player_id:'eq.'+authUser.id,limit:'1'}).catch(() => [])
+    ]).then(([rows, requests, verifiedRows]) => {
       if (!live) return; const p=rows[0] || {id:authUser.id}; setMyProfile(p);
-      const latestRequest=requests[0]||null; setBadgeRequest(latestRequest); setBadgeApproved(latestRequest?.status==='approved');
+      const latestRequest=requests[0]||null; setBadgeRequest(latestRequest); setBadgeApproved(verifiedRows.length>0);
       setProfileDraft({username:p.username||'',display_name:p.display_name||authUser.user_metadata?.full_name||'',bio:p.bio||'',avatar_url:p.avatar_url||''});
       setSocialDraft({instagram:p.social_links?.instagram||'',youtube:p.social_links?.youtube||'',twitch:p.social_links?.twitch||'',discord:p.social_links?.discord||'',x:p.social_links?.x||'',website:p.social_links?.website||''});
     }).catch(e => { if(live) setProfileError(e.message||'Could not load profile.'); });
@@ -584,7 +588,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     <div className="no-topline"><span><i/> NOVA ORIGIN</span><span>BUILT FOR THE NEXT LEVEL</span><span>INDIA · ESPORTS</span></div>
     <header className={'no-header ' + (scrolled ? 'is-scrolled' : '')}>
       <button className="no-brand" onClick={() => navigate('/')} aria-label="NOVA Origin home"><span className="no-brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 31V9L30 31V9" stroke="currentColor" strokeWidth="4" strokeLinecap="square" strokeLinejoin="miter"/><path d="M8 9H15L30 24" stroke="currentColor" strokeWidth="1.5" opacity=".55"/><path d="M27 9H32V14" stroke="currentColor" strokeWidth="2.5"/></svg><i/></span><span><b>NOVA</b><small>ORIGIN</small></span></button>
-      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>({label:item.label,href:item.href,external:!!item.open_in_new_tab})) : NAV.map(([label,href])=>({label,href,external:false}))).map(item => <a key={item.href} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} className={path === item.href ? 'active' : ''} onClick={e => {if(!item.external){e.preventDefault();navigate(item.href);}}}>{item.label}</a>)}{authUser && <a className="no-profile-nav" href="/account" onClick={e=>{e.preventDefault();navigate('/account');}}>MY PROFILE <ArrowUpRight size={13}/></a>}</nav>
+      <nav className={menuOpen ? 'no-nav open' : 'no-nav'}>{(managedNavigation.length ? managedNavigation.map(item=>({label:item.label,href:item.href,external:!!item.open_in_new_tab})) : NAV.map(([label,href])=>({label,href,external:false}))).map(item => <a key={item.href} href={item.href} target={item.external ? '_blank' : undefined} rel={item.external ? 'noreferrer' : undefined} className={path === item.href ? 'active' : ''} onClick={e => {if(!item.external){e.preventDefault();navigate(item.href);}}}>{item.label}</a>)}</nav>
       <div className="no-header-actions"><span className="no-open-badge"><i/> OPEN TO COMPETE</span><button className="no-auth-btn" onClick={()=>{setAuthOpen(true);setAuthError('');setAuthNotice('');}}>{authUser ? (authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'ACCOUNT') : 'SIGN IN'} <ArrowUpRight size={13}/></button><button className="no-community-btn" onClick={() => navigate('/community')}>COMMUNITY <ArrowUpRight size={14}/></button><button className="no-menu" aria-label="Toggle navigation" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <X/> : <Menu/>}</button></div>
     </header>
     <main>{path === '/' ? home() : contentPage()}</main>
