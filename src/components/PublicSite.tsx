@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from 'react';
 import {
-  ArrowRight, ArrowUpRight, Menu, X, Pencil, Camera, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
+  ArrowRight, ArrowUpRight, Menu, X, Pencil, Camera, BadgeCheck, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
   Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
@@ -363,9 +363,10 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
           return display === expected || username === expected || username.startsWith(expected + '_') || username.startsWith(expected + '-') || display.startsWith(expected + ' ');
         });
         const photo = safeHref(profile.avatar_url);
+        const verified = extra.verifiedBadges.some((badge:any) => badge.player_id === profile.id);
         return <article className="no-player-card no-legacy-player-card" key={profile.id || profile.username || index}>
           <div className="no-player-photo no-legacy-player-photo">{photo ? <img src={photo} alt={displayName + ' player portrait'} loading="lazy" referrerPolicy="no-referrer"/> : <strong>{displayName.slice(0,1).toUpperCase()}</strong>}<span>PLAYER {String(index + 1).padStart(2,'0')}</span></div>
-          <small>{legacy?.role || 'NOVA PLAYER'}</small><h3>{displayName}</h3>
+          <small>{legacy?.role || 'NOVA PLAYER'}</small><h3>{displayName} {verified && <BadgeCheck className="no-verified-tick" aria-label="NOVA verified player"/>}</h3>
           <div className="no-legacy-player-tag">{legacy?.tag || (profile.username ? '@' + profile.username : 'NOVA ORIGIN')}</div>
         </article>;
       })}
@@ -514,7 +515,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       const playerResults = extra.results.filter((r:any) => r.player_id === playerId && r.verified_at);
       const profile = currentPlayer.player || {};
       return <><DetailShell kicker="PLAYER PROFILE / VERIFIED COMPETITOR" title={profile.display_name || profile.username || 'NOVA PLAYER'} copy={profile.bio || 'A competitor in the NOVA Origin ecosystem. Verified statistics are shown only where official records are available.'}>
-        <div className="no-detail-grid"><div className="no-detail-emblem">{profile.avatar_url ? <img src={profile.avatar_url} alt=""/> : <Users size={70}/>}</div><div><span className="no-kicker">@{profile.username || 'NOVA PLAYER'} / PUBLIC PROFILE</span><p>{profile.bio || 'Player biography has not been published.'}</p><p className="no-muted">{playerTeams.length} public team memberships · {playerStats.length} verified game stat records</p><div className="no-profile-socials">{[{key:'instagram',icon:<Instagram/>},{key:'youtube',icon:<Youtube/>},{key:'twitch',icon:<Twitch/>},{key:'discord',icon:<Disc3/>},{key:'x',icon:<span className="no-social-x">𝕏</span>},{key:'website',icon:<Link2/>}].filter(item=>safeHref(profile.social_links?.[item.key])).map(item=><a key={item.key} href={safeHref(profile.social_links[item.key])} target="_blank" rel="noreferrer">{item.icon}</a>)}</div></div></div>
+        <div className="no-detail-grid"><div className="no-detail-emblem">{profile.avatar_url ? <img src={profile.avatar_url} alt=""/> : <Users size={70}/>}</div><div><span className="no-kicker">@{profile.username || 'NOVA PLAYER'} / PUBLIC PROFILE</span>{extra.verifiedBadges.some((badge:any)=>badge.player_id===playerId)&&<span className="no-verified-pill"><BadgeCheck size={15}/> NOVA VERIFIED PLAYER</span>}<p>{profile.bio || 'Player biography has not been published.'}</p><p className="no-muted">{playerTeams.length} public team memberships · {playerStats.length} verified game stat records</p><div className="no-profile-socials">{[{key:'instagram',icon:<Instagram/>},{key:'youtube',icon:<Youtube/>},{key:'twitch',icon:<Twitch/>},{key:'discord',icon:<Disc3/>},{key:'x',icon:<span className="no-social-x">𝕏</span>},{key:'website',icon:<Link2/>}].filter(item=>safeHref(profile.social_links?.[item.key])).map(item=><a key={item.key} href={safeHref(profile.social_links[item.key])} target="_blank" rel="noreferrer">{item.icon}</a>)}</div></div></div>
       </DetailShell>
       <section className="no-section"><div className="no-section-head"><div><span className="no-kicker">COMPETITIVE RECORD</span><h2>VERIFIED<br/><em>STATISTICS.</em></h2></div><p>Only verified records from NOVA Origin data are displayed.</p></div>
         <div className="no-player-grid">{playerStats.map((stat:any)=><article className="no-player-card" key={stat.id}><small>{stat.game?.name || 'COMPETITIVE GAME'}</small><div className="no-player-stats"><span><b>{stat.kd_ratio ?? '—'}</b>K/D</span><span><b>{stat.matches_played ?? '—'}</b>MATCHES</span><span><b>{stat.wins ?? '—'}</b>WINS</span></div><p className="no-muted">{stat.eliminations ?? '—'} verified eliminations · {stat.average_damage ?? '—'} average damage</p></article>)}{!playerStats.length && <Empty text="No verified game statistics have been published for this player yet."/>}</div>
@@ -572,10 +573,10 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       {section.button_label && section.button_url && <div className="no-section-link">{link(section.button_url,section.button_label)}<ArrowUpRight size={15}/></div>}
     </section>)}
     <section className="no-section">{sectionTitle('01','OUR ARENA','THE GAMES','WE PLAY.','Different battlegrounds. One standard: excellence.')}{gameCards(data.games.slice(0,3))}<div className="no-section-link">{link('/games','EXPLORE ALL GAMES')}<ArrowUpRight size={15}/></div></section>
-    <section className="no-band"><div className="no-section">{sectionTitle('02','THE COLLECTIVE','BUILT AS ONE.','PLAY AS MANY.','Every role matters. Every player moves the team forward.')}{teamCards(data.teams.slice(0,5))}<div className="no-section-link">{link('/teams','VIEW THE FULL ROSTER')}<ArrowUpRight size={15}/></div></div></section>
-    <section className="no-section">{sectionTitle('03','THE CIRCUIT','THE NEXT','BATTLE BEGINS.','Follow the action, find your next challenge and stay in the loop.')}{eventCards(data.tournaments.slice(0,3))}<div className="no-section-link">{link('/tournaments','ALL TOURNAMENTS')}<ArrowUpRight size={15}/></div></section>
-    <section className="no-band"><div className="no-section">{sectionTitle('04','THE ROSTER','MEET THE','PLAYERS.','The NOVA Origin squad. Verified competitive records appear separately when available.')}{playerCards(extra.players.slice(0,4))}</div></section>
-    <section className="no-section">{sectionTitle('05','MATCH CENTER','THE GAME','IS ON.','Schedules and confirmed status. No invented live scores.')}{matchCards()}</section>
+    <section className="no-band"><div className="no-section">{sectionTitle('02','THE CIRCUIT','THE NEXT','BATTLE BEGINS.','Follow the action, find your next challenge and stay in the loop.')}{eventCards(data.tournaments.slice(0,3))}<div className="no-section-link">{link('/tournaments','ALL TOURNAMENTS')}<ArrowUpRight size={15}/></div></div></section>
+    <section className="no-section">{sectionTitle('03','MATCH CENTER','THE GAME','IS ON.','Schedules and confirmed status. No invented live scores.')}{matchCards()}</section>
+    <section className="no-band"><div className="no-section">{sectionTitle('04','THE COLLECTIVE','BUILT AS ONE.','PLAY AS MANY.','Every role matters. Every player moves the team forward.')}{teamCards(data.teams.slice(0,5))}<div className="no-section-link">{link('/teams','VIEW THE FULL ROSTER')}<ArrowUpRight size={15}/></div></div></section>
+    <section className="no-band"><div className="no-section">{sectionTitle('05','THE ROSTER','MEET THE','PLAYERS.','The NOVA Origin squad. Verified competitive records appear separately when available.')}{playerCards(extra.players.slice(0,4))}</div></section>
     <section className="no-band"><div className="no-section">{sectionTitle('06','VERIFIED RESULTS','THE TROPHY','ROOM.','Milestones from verified match records only.')}
       <div className="no-result-grid">{extra.results.filter((r:any)=>r.verified_at).slice(0,6).map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={22}/><span>{r.team?.name || r.player?.display_name || r.player?.username || 'COMPETITOR'}</span><b>{r.placement ? 'PLACE #' + r.placement : (r.points ?? '—') + ' PTS'}</b><small>{r.eliminations ?? 0} ELIMINATIONS · VERIFIED</small></article>)}{!extraLoading && !extra.results.some((r:any)=>r.verified_at) && <Empty text="Verified achievements will appear here once match results are approved."/>}</div>
     </div></section>
