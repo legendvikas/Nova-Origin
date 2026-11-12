@@ -48,6 +48,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [authNotice, setAuthNotice] = useState('');
   const [authUser, setAuthUser] = useState<NovaUser|null>(null);
   const [myProfile, setMyProfile] = useState<any|null>(null);
+  const [badgeApproved, setBadgeApproved] = useState(false);
   const [profileDraft, setProfileDraft] = useState({username:'',display_name:'',bio:'',avatar_url:''});
   const [profileBusy, setProfileBusy] = useState(false);
   const [profileMessage, setProfileMessage] = useState('');
@@ -177,8 +178,11 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   useEffect(() => {
     let live = true;
     if (!authUser) { setMyProfile(null); return; }
-    api<any[]>('profiles',{select:'id,username,display_name,avatar_url,bio,country_code',id:'eq.'+authUser.id,limit:'1'}).then(rows => {
-      if (!live) return; const p=rows[0] || {id:authUser.id}; setMyProfile(p);
+    Promise.all([
+      api<any[]>('profiles',{select:'id,username,display_name,avatar_url,bio,country_code',id:'eq.'+authUser.id,limit:'1'}),
+      api<any[]>('player_badge_requests',{select:'id,status',player_id:'eq.'+authUser.id,status:'eq.approved',limit:'1'}).catch(() => [])
+    ]).then(([rows, approved]) => {
+      if (!live) return; const p=rows[0] || {id:authUser.id}; setMyProfile(p); setBadgeApproved(approved.length > 0);
       setProfileDraft({username:p.username||'',display_name:p.display_name||authUser.user_metadata?.full_name||'',bio:p.bio||'',avatar_url:p.avatar_url||''});
     }).catch(e => { if(live) setProfileError(e.message||'Could not load profile.'); });
     return () => { live=false; };
@@ -214,7 +218,9 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const currentGame = route[0] === 'games' && slug ? data.games.find(x => x.slug === slug || slugOf(x.name) === slug) : null;
   const currentTeam = route[0] === 'teams' && slug ? data.teams.find(x => x.slug === slug || slugOf(x.name) === slug || x.id === slug) : null;
   const currentTournament = route[0] === 'tournaments' && slug ? data.tournaments.find(x => x.slug === slug || x.id === slug) : null;
-  const currentPlayer = route[0] === 'players' && slug ? extra.players.find(x => x.player?.username === slug || x.player_id === slug) : null;
+  const currentPlayerProfile = route[0] === 'players' && slug ? extra.profiles.find((p:any) => p.username === slug || p.id === slug) : null;
+  const currentPlayerStats = route[0] === 'players' && slug ? extra.players.find((x:any) => x.player?.username === slug || x.player_id === slug) : null;
+  const currentPlayer = currentPlayerStats || (currentPlayerProfile ? { player_id: currentPlayerProfile.id, player: currentPlayerProfile } : null);
   const currentNews = route[0] === 'news' && slug ? data.announcements.find(x => slugOf(x.title) === slug || x.id === slug) : null;
   const currentCustomPage = route.length === 1 ? customPages.find((page:any) => page.slug === route[0]) : null;
 
@@ -350,7 +356,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
     }
     if (route[0] === 'account') {
       if (!authUser) return <><PageHero kicker="NOVA ID / MEMBER ACCESS" title="SIGN IN TO" accent="YOUR PROFILE." copy="Sign in using the account button in the header to manage your NOVA player profile."/><section className="no-section"><button className="no-btn" onClick={()=>setAuthOpen(true)}>SIGN IN / CREATE ACCOUNT <ArrowUpRight size={15}/></button></section></>;
-      const verified=!!myProfile?.verified_at || !!myProfile?.is_verified;
+      const verified=badgeApproved;
       return <><PageHero kicker="NOVA ID / PLAYER PROFILE" title="YOUR" accent="PROFILE." copy="One profile for your NOVA identity. Keep your public player details up to date."/><section className="no-section">
         <div className="no-detail-grid"><div className="no-detail-emblem">{profileDraft.avatar_url ? <img src={profileDraft.avatar_url} alt="Profile"/> : <Users size={70}/>}</div><div><span className="no-kicker">@{myProfile?.username||'YOUR USERNAME'} / PUBLIC PROFILE</span><h2>{profileDraft.display_name||'NOVA PLAYER'} {verified&&<span title="Verified player">✓</span>}</h2><p>{profileDraft.bio||'Add a short bio to introduce yourself to the NOVA community.'}</p><p className="no-muted">{verified?'NOVA VERIFIED PLAYER':'PLAYER PROFILE · NOT VERIFIED'}</p></div></div>
         <div className="no-detail-section"><span className="no-kicker">EDIT YOUR PLAYER IDENTITY</span><form className="no-auth-form" onSubmit={saveMyProfile}>
