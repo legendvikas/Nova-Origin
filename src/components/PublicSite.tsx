@@ -55,7 +55,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
   const [badgeMessage, setBadgeMessage] = useState('');
   const [badgeError, setBadgeError] = useState('');
   const [myTeams, setMyTeams] = useState<any[]>([]);
-  const [teamDraft, setTeamDraft] = useState({name:'',team_tag:'',game_id:'',description:'',is_public:true});
+  const [teamDraft, setTeamDraft] = useState({name:'',team_tag:'',game_id:'',description:'',logo_url:'',is_public:true});
   const [teamBusy, setTeamBusy] = useState(false);
   const [teamError, setTeamError] = useState('');
   const [teamMessage, setTeamMessage] = useState('');
@@ -229,18 +229,14 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       if(name.length<2||name.length>48) throw new Error('Team name must be 2–48 characters.');
       if(!/^[A-Z0-9]{2,12}$/.test(team_tag)) throw new Error('Team tag must be 2–12 letters or numbers.');
       if(!teamDraft.game_id) throw new Error('Please select a game.');
-      const created=await api<any[]>('teams',{}, {method:'POST',body:{owner_id:authUser.id,game_id:teamDraft.game_id,name,team_tag,description:teamDraft.description.trim()||null,is_public:teamDraft.is_public,status:'active'},prefer:'return=representation'});
+      const logo_url=teamDraft.logo_url.trim();
+      if(logo_url && !/^https:\/\//i.test(logo_url)) throw new Error('Team icon URL must start with https://');
+      const created=await api<any[]>('teams',{}, {method:'POST',body:{owner_id:authUser.id,game_id:teamDraft.game_id,name,team_tag,description:teamDraft.description.trim()||null,logo_url:logo_url||null,is_public:teamDraft.is_public,status:'pending_review',application_submitted_at:new Date().toISOString()},prefer:'return=representation'});
       const team=created?.[0];
-      if(!team?.id) throw new Error('Team was created but its record could not be confirmed. Refresh your profile.');
-      try {
-        await api('team_members',{}, {method:'POST',body:{team_id:team.id,user_id:authUser.id,team_role:'captain'},prefer:'return=minimal'});
-      } catch(memberError:any) {
-        await api('teams',{id:'eq.'+team.id},{method:'PATCH',body:{status:'inactive'},prefer:'return=minimal'}).catch(()=>null);
-        throw new Error('Team roster setup failed: '+(memberError?.message||'Please try again.'));
-      }
+      if(!team?.id) throw new Error('Team application could not be confirmed. Please refresh and check My Teams.');
       setMyTeams(rows=>[team,...rows]);
-      setTeamDraft({name:'',team_tag:'',game_id:'',description:'',is_public:true});
-      setTeamMessage('Your team is live. You are listed as its captain.');
+      setTeamDraft({name:'',team_tag:'',game_id:'',description:'',logo_url:'',is_public:true});
+      setTeamMessage('Team application submitted. Your team will appear publicly after Admin approval.');
     } catch(error:any) { setTeamError(error?.message||'Could not create your team. Please try again.'); }
     finally { setTeamBusy(false); }
   };
@@ -504,16 +500,17 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
         {activeProfileTab==='posts' ? <div className="no-social-content">
           <section className="no-player-team-hub">
             <div className="no-section-head"><div><span className="no-kicker">TEAM COMMAND / PLAYER OWNED</span><h2>BUILD YOUR<br/><em>OWN SQUAD.</em></h2></div><span className="no-team-count">{myTeams.length} CREATED</span></div>
-            {myTeams.length>0 && <div className="no-team-list">{myTeams.map(team=><article className="no-team-row no-owned-team" key={team.id}><span className="no-team-logo">{team.logo_url?<img src={team.logo_url} alt=""/>:(team.team_tag||'NO').slice(0,3)}</span><span className="no-team-name"><b>{team.name}</b><small>{data.games.find((g:any)=>g.id===team.game_id)?.name||'GAME'} · CAPTAIN</small></span><span className="no-team-tag">{team.team_tag}</span><span className="no-team-status">{team.status.toUpperCase()}</span></article>)}</div>}
-            {!myTeams.length && <p className="no-muted">You haven't created a team yet. Start your own squad and become its captain.</p>}
+            {myTeams.length>0 && <div className="no-team-list">{myTeams.map(team=><article className="no-team-row no-owned-team" key={team.id}><span className="no-team-logo">{team.logo_url?<img src={team.logo_url} alt=""/>:(team.team_tag||'NO').slice(0,3)}</span><span className="no-team-name"><b>{team.name}</b><small>{data.games.find((g:any)=>g.id===team.game_id)?.name||'GAME'} · {team.status==='active'?'CAPTAIN':'APPLICATION'}</small></span><span className="no-team-tag">{team.team_tag}</span><span className="no-team-status">{team.status==='pending_review'?'PENDING REVIEW':team.status.toUpperCase()}</span></article>)}</div>}
+            {!myTeams.length && <p className="no-muted">You haven't submitted a team application yet. Apply to create your squad.</p>}
             <form className="no-team-create-form" onSubmit={createPlayerTeam}>
               <label>TEAM NAME<input value={teamDraft.name} onChange={e=>setTeamDraft(v=>({...v,name:e.target.value}))} minLength={2} maxLength={48} required placeholder="e.g. NOVA RAVENS"/></label>
               <label>TEAM TAG<input value={teamDraft.team_tag} onChange={e=>setTeamDraft(v=>({...v,team_tag:e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12)}))} minLength={2} maxLength={12} required placeholder="RAVN"/></label>
               <label>GAME<select value={teamDraft.game_id} onChange={e=>setTeamDraft(v=>({...v,game_id:e.target.value}))} required><option value="">SELECT GAME</option>{data.games.filter((g:any)=>g.is_active!==false).map((g:any)=><option value={g.id} key={g.id}>{g.name}</option>)}</select></label>
               <label>TEAM DESCRIPTION<textarea value={teamDraft.description} onChange={e=>setTeamDraft(v=>({...v,description:e.target.value}))} maxLength={500} rows={3} placeholder="Tell players what your squad is about."/></label>
+              <label>TEAM ICON / LOGO URL<input type="url" value={teamDraft.logo_url} onChange={e=>setTeamDraft(v=>({...v,logo_url:e.target.value}))} placeholder="https://.../team-logo.png"/></label>
               <label className="no-team-visibility"><input type="checkbox" checked={teamDraft.is_public} onChange={e=>setTeamDraft(v=>({...v,is_public:e.target.checked}))}/> SHOW TEAM IN PUBLIC DIRECTORY</label>
               {teamError&&<p className="no-auth-error" role="alert">{teamError}</p>}{teamMessage&&<p className="no-auth-notice" role="status">{teamMessage}</p>}
-              <button className="no-btn" type="submit" disabled={teamBusy||!data.games.some((g:any)=>g.is_active!==false)}>{teamBusy?'CREATING TEAM…':'CREATE MY TEAM'} <ArrowUpRight size={15}/></button>
+              <button className="no-btn" type="submit" disabled={teamBusy||!data.games.some((g:any)=>g.is_active!==false)}>{teamBusy?'CREATING TEAM…':'SUBMIT TEAM APPLICATION'} <ArrowUpRight size={15}/></button>
             </form>
           </section>
           <div className="no-profile-preview-card"><span className="no-kicker">PLAYER ID / PUBLIC PROFILE</span><div className="no-profile-preview-row"><div><b>{profileDraft.display_name||'NOVA PLAYER'}</b><small>@{myProfile?.username||'your_username'}</small></div>{verified&&<span className="no-social-verified">✓</span>}</div><p>{profileDraft.bio||'Your player bio will appear here.'}</p><div className="no-profile-preview-footer"><span>COMPETITIVE IDENTITY</span><button onClick={()=>setEditOpen(true)}>EDIT IDENTITY <Pencil size={13}/></button></div></div>
