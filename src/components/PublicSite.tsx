@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode, type FormEvent } from 'react';
 import {
   ArrowRight, ArrowUpRight, Menu, X, DoorOpen, Pencil, Eye, Camera, BadgeCheck, Plus, Instagram, Twitch, Link2, Gamepad2, Trophy, Users, CalendarDays,
-  Radio, Youtube, Disc3, ChevronRight, MapPin, Clock3, Shield, ShieldCheck,
+  Radio, Youtube, Disc3, Facebook, Music2, ChevronRight, MapPin, Clock3, Shield, ShieldCheck,
   Swords, Newspaper, Mail, ExternalLink, Crown, Sparkles
 } from 'lucide-react';
 import { api, currentUser, getValidSession, signInWithEmail, signUpWithEmail, signOut, uploadPlayerAvatar, uploadTeamLogo, type NovaUser } from '../lib/supabase';
@@ -801,7 +801,9 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       {key:'youtube',icon:<Youtube/>,label:'YouTube'},
       {key:'discord',icon:<Disc3/>,label:'Discord'},
       {key:'twitch',icon:<Twitch/>,label:'Twitch'},
-      {key:'x',icon:<span className="no-social-x">𝕏</span>,label:'X'}
+      {key:'x',icon:<span className="no-social-x">𝕏</span>,label:'X'},
+      {key:'tiktok',icon:<Music2/>,label:'TikTok'},
+      {key:'facebook',icon:<Facebook/>,label:'Facebook'}
     ].filter(item=>safeHref(footerLinks['footer_'+item.key+'_url'])).map(item=><a key={item.key} href={safeHref(footerLinks['footer_'+item.key+'_url'])} aria-label={item.label} title={item.label} target="_blank" rel="noreferrer">{item.icon}</a>)}</div></div><div className="no-footer-links"><div><b>EXPLORE</b>{NAV.slice(1,6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>COMPETE</b>{NAV.slice(6).map(([label,to]) => <a key={to} href={to} onClick={e=>{e.preventDefault();navigate(to);}}>{label}</a>)}</div><div><b>CONTACT</b><a href={'mailto:'+(footerLinks.footer_contact_email||'hello@novaorigin.gg')}>{footerLinks.footer_contact_email||'hello@novaorigin.gg'}</a><button onClick={onOpenAdmin}>ADMIN ACCESS <ArrowUpRight size={13}/></button></div></div><div className="no-footer-bottom"><span>© {new Date().getFullYear()} NOVA ORIGIN. ALL SYSTEMS NOMINAL.</span><span>THE NEXT WAVE OF COMPETITION.</span></div></footer>
   </div>;
 }
