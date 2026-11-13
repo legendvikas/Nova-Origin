@@ -78,13 +78,11 @@ export function Dashboard({ user, role, organizerStatus, onBack, onLogin, onLogo
   const saveSocialLinks = async (e: FormEvent) => {
     e.preventDefault();
     const fields = ['instagram','youtube','discord','twitch','x','tiktok','facebook'];
-    const rows = fields.map(key => {
-      const value = (socialLinks['footer_' + key + '_url'] || '').trim();
-      if (value && !/^https:\/\//i.test(value)) throw new Error(key.toUpperCase() + ' link must start with https://');
-      return { setting_key: 'footer_' + key + '_url', setting_value: value, description: 'Official NOVA Origin ' + key + ' profile URL', updated_by: user!.id, updated_at: new Date().toISOString() };
-    });
+    const invalid = fields.find(key => { const value = (socialLinks['footer_' + key + '_url'] || '').trim(); return value && !/^https:\/\//i.test(value); });
+    if (invalid) { setNotice(invalid.toUpperCase() + ' link must start with https://'); return; }
+    const rows = fields.map(key => ({ setting_key: 'footer_' + key + '_url', setting_value: (socialLinks['footer_' + key + '_url'] || '').trim(), description: 'Official NOVA Origin ' + key + ' profile URL', updated_by: user!.id, updated_at: new Date().toISOString() }));
     const email = (socialLinks.footer_contact_email || '').trim();
-    if (email && !/^\\S+@\\S+\\.\\S+$/.test(email)) { setNotice('Enter a valid contact email address.'); return; }
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) { setNotice('Enter a valid contact email address.'); return; }
     rows.push({ setting_key: 'footer_contact_email', setting_value: email, description: 'Public NOVA Origin contact email', updated_by: user!.id, updated_at: new Date().toISOString() } as any);
     await run(() => api('site_settings', { on_conflict: 'setting_key' }, { method: 'POST', body: rows, prefer: 'resolution=merge-duplicates,return=minimal' }), 'Website social links saved. Footer will update on refresh.');
   };
