@@ -493,7 +493,27 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
       const teamResults = extra.results.filter((r:any) => r.team_id === currentTeam.id && r.verified_at);
       const roster = extra.members.filter((m:any) => m.team_id === currentTeam.id).map((m:any) => ({ ...m, profile: extra.profiles.find((p:any) => p.id === m.user_id) })).filter((m:any) => m.profile);
       const teamOwner = extra.profiles.find((p:any)=>p.id===currentTeam.owner_id);
-      return <><DetailShell kicker="TEAM PROFILE" title={currentTeam.name} copy={currentTeam.description || 'One roster. One standard. Built to rise.'}>
+      const teamGame = data.games.find(g => g.id === currentTeam.game_id)?.name || 'ESPORTS';
+      return <>
+      <section className="no-team-cover">
+        <div className="no-team-cover-grid"/>
+        <div className="no-team-cover-watermark">{(currentTeam.team_tag || currentTeam.name || 'N').slice(0,3).toUpperCase()}</div>
+        <div className="no-team-cover-content">
+          <span className="no-kicker">NOVA ORIGIN / SQUAD NETWORK</span>
+          <div className="no-team-cover-identity">
+            <div className="no-team-cover-logo">{currentTeam.logo_url ? <img src={currentTeam.logo_url} alt={currentTeam.name+' logo'}/> : <b>{(currentTeam.team_tag || currentTeam.name || 'N').slice(0,3).toUpperCase()}</b>}</div>
+            <div className="no-team-cover-copy">
+              <span className="no-team-cover-game">{teamGame} <i/> {currentTeam.team_tag || 'NOVA SQUAD'}</span>
+              <h1>{currentTeam.name}</h1>
+              {currentTeam.is_verified && <span className="no-team-verified no-team-verified-large"><ShieldCheck size={15}/> NOVA VERIFIED TEAM</span>}
+              <p>{currentTeam.description || 'One roster. One standard. Built to rise.'}</p>
+              <div className="no-team-cover-actions"><a href="#team-roster">MEET THE SQUAD <ArrowUpRight size={15}/></a><a href="#team-results">COMPETITIVE RECORD <ArrowUpRight size={15}/></a></div>
+            </div>
+          </div>
+          <div className="no-team-cover-bottom"><span><i/> PUBLIC TEAM PROFILE</span><span>TEAM ID / {String(currentTeam.id).slice(0,8).toUpperCase()}</span></div>
+        </div>
+      </section>
+      <section className="no-section no-team-identity-wrap">
         <div className="no-team-profile-hero" id="team-identity">
           <div className="no-team-profile-topline"><span>01 / OFFICIAL ROSTER IDENTITY</span><span className="no-team-live-mark"><i/> NOVA NETWORK</span></div>
           <div className="no-team-profile-main">
@@ -513,7 +533,7 @@ export function PublicSite({ data, loading, onOpenAdmin }: Props) {
             <div><b>{currentTeam.team_tag || 'NOVA'}</b><span>TEAM CALLSIGN</span></div>
           </div>
         </div>
-      </DetailShell>
+      </section>
       <nav className="no-social-profile-tabs no-team-profile-tabs" aria-label="Team profile sections"><a href="#team-identity">IDENTITY</a><a href="#team-roster">ROSTER</a><a href="#team-results">RESULTS</a></nav>
       <section className="no-section" id="team-roster"><div className="no-section-head"><div><span className="no-kicker">TEAM / ROSTER</span><h2>THE PEOPLE<br/><em>BEHIND THE TAG.</em></h2></div><p>Public roster members only.</p></div><div className="no-player-grid">{roster.map((m:any,i:number)=><article className="no-player-card" key={m.id}><div className="no-player-photo">{m.profile.avatar_url ? <img src={m.profile.avatar_url} alt=""/> : <Users size={34}/>}<span>0{i+1}</span></div><small>{clean(m.team_role)}</small><h3>{m.profile.display_name || m.profile.username}</h3>{m.profile.username && <a className="no-section-link" href={'/players/'+m.profile.username} onClick={e=>{e.preventDefault();navigate('/players/'+m.profile.username);}}>PLAYER PROFILE <ArrowUpRight size={14}/></a>}</article>)}{!extraLoading && !roster.length && <Empty text="No public roster members are listed yet."/>}</div></section>
       <section className="no-band" id="team-results"><div className="no-section"><div className="no-section-head"><div><span className="no-kicker">VERIFIED COMPETITIVE HISTORY</span><h2>RESULTS<br/><em>THAT COUNT.</em></h2></div><p>Only result records verified by NOVA Origin.</p></div><div className="no-result-grid">{teamResults.map((r:any)=><article className="no-result-card" key={r.id}><Trophy size={20}/><span>{r.match?.round_name || 'MATCH RESULT'}</span><b>{r.placement?'PLACE #'+r.placement:(r.points??'—')+' PTS'}</b><small>{r.eliminations??0} ELIMINATIONS · VERIFIED</small></article>)}{!extraLoading&&!teamResults.length&&<Empty text="No verified team results have been published yet."/>}</div></div></section></>;
