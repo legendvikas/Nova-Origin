@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, ArrowUpRight, Bell, CalendarDays, ChevronRight, Clock3, Gamepad2, Instagram, Menu, Radio, Search, ShieldCheck, Swords, Trophy, Users, Youtube, X, Zap } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Bell, CalendarDays, Clock3, Gamepad2, Menu, Radio, Search, Swords, Trophy, Users, X } from 'lucide-react';
 
 type Props = {
   data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[] };
@@ -131,7 +131,7 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
         <section className="nv-join"><div className="nv-kicker">YOUR NEXT CHAPTER STARTS HERE</div><h2>FIND YOUR<br/><em>PLACE IN NOVA.</em></h2><p>Discover the teams, follow the competition and be part of the network.</p><a className="nv-primary" href="#teams">EXPLORE THE NETWORK <ArrowUpRight size={16}/></a></section>
       </main>
 
-      <footer className="nv-footer"><a className="nv-brand" href="#home"><span className="nv-brand-mark">N<span>.</span></span><span><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></span></a><div className="nv-footer-copy">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</div><div className="nv-footer-social"><a href="https://www.instagram.com/" aria-label="Instagram"><Instagram size={17}/></a><a href="https://www.youtube.com/" aria-label="YouTube"><Youtube size={17}/></a><a href="#updates" aria-label="Community updates"><Radio size={17}/></a></div><button onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button></footer>
+      <footer className="nv-footer"><a className="nv-brand" href="#home"><span className="nv-brand-mark">N<span>.</span></span><span><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></span></a><div className="nv-footer-copy">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</div><a className="nv-footer-community" href="#updates">COMMUNITY UPDATES <ArrowUpRight size={14}/></a><button onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button></footer>
     </div>
   );
 }
