@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Menu, X, Shield, Trophy, Users, Gamepad2, Zap, ChevronRight, Radio, CalendarDays, Swords, Instagram, Youtube, Disc3, LogIn, Settings2 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
+import { HomeDashboard } from './components/HomeDashboard';
 import { PublicSite } from './components/PublicSite';
 import { api, currentUser, getSession, hasSupabaseConfig, loadPublicData, NovaUser, saveSession, signInWithGoogle, signOut } from './lib/supabase';
 import './index.css';
@@ -67,6 +68,6 @@ function App() {
     );
   }
 
-  return <PublicSite data={data} loading={loading} onOpenAdmin={openAdmin} />;
+  return <HomeDashboard data={data} loading={loading} onAdmin={openAdmin} />;
 }
 export default App;
