@@ -528,3 +528,67 @@
   .no-owned-team-actions{gap:5px}
   .no-owned-team-actions button{width:31px;height:31px;border-radius:8px}
 }
+
+
+/* NOVA squad social-first profile refresh */
+.no-team-cover{position:relative;isolation:isolate;overflow:hidden;min-height:470px;padding:58px max(6%,calc((100% - 1160px)/2));border-bottom:1px solid #b7ff5a28;background:radial-gradient(ellipse at 76% 38%,#344b252e,transparent 42%),linear-gradient(125deg,#101812 0%,#090d0b 58%,#111a10 100%)}
+.no-team-cover-grid{position:absolute;inset:0;z-index:-2;opacity:.3;background-image:linear-gradient(#b7ff5a12 1px,transparent 1px),linear-gradient(90deg,#b7ff5a12 1px,transparent 1px);background-size:54px 54px;mask-image:linear-gradient(90deg,transparent,#000 45%,#000)}
+.no-team-cover-watermark{position:absolute;z-index:-1;right:4%;top:-95px;color:#b7ff5a08;font:900 clamp(250px,42vw,520px)/1 'Barlow Condensed';letter-spacing:-.08em;pointer-events:none}
+.no-team-cover-content{position:relative;max-width:1160px;margin:auto}
+.no-team-cover-content>.no-kicker{font-size:9px;letter-spacing:2.2px}
+.no-team-cover-identity{display:grid;grid-template-columns:clamp(130px,19vw,220px) minmax(0,1fr);gap:clamp(22px,4vw,54px);align-items:center;margin:42px 0 38px}
+.no-team-cover-logo{width:100%;aspect-ratio:1;display:grid;place-items:center;overflow:hidden;border:1px solid #b7ff5a88;background:linear-gradient(145deg,#273b23,#0b100c);box-shadow:0 0 0 8px #b7ff5a0a,0 20px 65px #0008,inset 0 0 45px #b7ff5a13}
+.no-team-cover-logo img{width:100%;height:100%;object-fit:cover}
+.no-team-cover-logo b{color:#c5ff75;font:900 clamp(48px,8vw,86px)/1 'Barlow Condensed';text-shadow:0 0 35px #b7ff5a55}
+.no-team-cover-game{display:flex;align-items:center;gap:10px;color:#c5ff75;font:10px 'DM Mono';letter-spacing:1.6px;text-transform:uppercase}
+.no-team-cover-game i{width:4px;height:4px;border-radius:50%;background:#b7ff5a;box-shadow:0 0 10px #b7ff5a}
+.no-team-cover-copy h1{margin:13px 0 12px;color:#f5f7ef;font:900 clamp(52px,8vw,104px)/.84 'Barlow Condensed';letter-spacing:-.035em;text-transform:uppercase;overflow-wrap:anywhere}
+.no-team-cover-copy>.no-team-verified{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid #b7ff5a88;border-radius:99px;background:#b7ff5a12;color:#c5ff75;font:9px 'DM Mono';letter-spacing:1.2px;box-shadow:0 0 28px #b7ff5a12}
+.no-team-cover-copy p{max-width:570px;margin:15px 0 0;color:#aab5a5;font-size:13px;line-height:1.8}
+.no-team-cover-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:23px}
+.no-team-cover-actions a{display:inline-flex;align-items:center;gap:12px;padding:12px 15px;border:1px solid #b7ff5a55;color:#c5ff75;font:9px 'DM Mono';letter-spacing:1px;transition:background .2s,border-color .2s,transform .2s}
+.no-team-cover-actions a:first-child{background:#b7ff5a;color:#10150d;border-color:#b7ff5a}
+.no-team-cover-actions a:hover{transform:translateY(-3px);border-color:#c5ff75;background:#c5ff7518}
+.no-team-cover-actions a:first-child:hover{background:#d2ffa0}
+.no-team-cover-bottom{display:flex;justify-content:space-between;gap:15px;padding-top:16px;border-top:1px solid #ffffff19;color:#7f8b7a;font:8px 'DM Mono';letter-spacing:1.3px}
+.no-team-cover-bottom span:first-child{display:flex;align-items:center;gap:8px;color:#c5ff75}
+.no-team-cover-bottom i{width:7px;height:7px;border-radius:50%;background:#b7ff5a;box-shadow:0 0 12px #b7ff5a}
+.no-team-identity-wrap{padding-top:58px!important;padding-bottom:45px!important}
+.no-team-identity-wrap .no-team-profile-hero{max-width:1160px;margin:0 auto;border-radius:18px}
+.no-team-identity-wrap .no-team-profile-emblem{border-radius:12px}
+.no-team-identity-wrap .no-team-profile-stats>div{padding-top:20px;padding-bottom:8px}
+.no-team-profile-tabs{top:0}
+.no-team-profile-tabs a{font-weight:600}
+.no-team-profile-tabs a:first-child{color:#c5ff75}
+.no-team-profile-tabs a:first-child:after{transform:scaleX(1)}
+#team-roster,#team-results{scroll-margin-top:60px}
+#team-roster .no-player-card{border-radius:12px;overflow:hidden;background:linear-gradient(155deg,#172019,#0d110f);padding:12px}
+#team-roster .no-player-photo{border-radius:8px;height:210px}
+#team-roster .no-player-card h3{font-size:25px}
+#team-roster .no-player-card .no-section-link{justify-content:flex-start}
+#team-results .no-result-card{border-radius:12px}
+@media(max-width:760px){
+ .no-team-cover{min-height:0;padding:36px 20px 24px}
+ .no-team-cover-watermark{right:-8%;top:8px;font-size:270px}
+ .no-team-cover-identity{grid-template-columns:92px minmax(0,1fr);gap:16px;margin:34px 0 28px;align-items:start}
+ .no-team-cover-logo{width:92px;border-radius:10px}
+ .no-team-cover-game{font-size:7px;letter-spacing:.8px;flex-wrap:wrap;gap:6px}
+ .no-team-cover-copy h1{font-size:clamp(36px,10vw,55px);line-height:.9;margin:9px 0}
+ .no-team-cover-copy>.no-team-verified{font-size:7px;padding:6px 8px;letter-spacing:.6px}
+ .no-team-cover-copy p{font-size:10px;line-height:1.6;margin-top:9px}
+ .no-team-cover-actions{gap:7px;margin-top:14px}
+ .no-team-cover-actions a{font-size:7px;padding:10px 9px;gap:6px;letter-spacing:.4px}
+ .no-team-cover-bottom{font-size:7px;letter-spacing:.6px}
+ .no-team-identity-wrap{padding:34px 18px!important}
+ .no-team-identity-wrap .no-team-profile-hero{border-radius:14px}
+ #team-roster .no-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ #team-roster .no-player-photo{height:155px}
+}
+@media(max-width:380px){
+ .no-team-cover{padding-left:15px;padding-right:15px}
+ .no-team-cover-identity{grid-template-columns:76px minmax(0,1fr);gap:12px}
+ .no-team-cover-logo{width:76px}
+ .no-team-cover-copy h1{font-size:34px}
+ .no-team-cover-actions a{font-size:6px;padding:9px 7px}
+ .no-team-cover-bottom{font-size:6px}
+}
