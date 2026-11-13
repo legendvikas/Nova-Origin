@@ -17,6 +17,6 @@ async function startServer() {
     app.use(express.static(distPath));
     app.get("*", (_req, res) => res.sendFile(path.join(distPath, "index.html")));
   }
-  app.listen(PORT, "0.0.0.0", () => console.log(\`NOVA Origin running on port \${PORT}\`));
+  app.listen(PORT, "0.0.0.0", () => console.log(`NOVA Origin running on port ${PORT}`));
 }
 startServer().catch(err => { console.error("Server failed to start:", err); process.exit(1); });
