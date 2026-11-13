@@ -1,137 +1,93 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, ArrowUpRight, Bell, CalendarDays, Clock3, Gamepad2, Menu, Radio, Search, Swords, Trophy, Users, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowRight, ArrowUpRight, Bell, CalendarDays, ChevronDown, Gamepad2, Menu, Search, ShieldCheck, Swords, Trophy, Users, X, Radio, Newspaper, Clock3 } from 'lucide-react';
 
 type Props = {
   data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[] };
   loading: boolean;
   onAdmin: () => void;
 };
+const dateLabel = (value?: string | null) => value ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Date TBA';
+const statusLabel = (value?: string) => (value || 'upcoming').replaceAll('_', ' ').toUpperCase();
 
-function getCountdown(target?: string | null, now = Date.now()) {
-  if (!target) return null;
-  const ms = new Date(target).getTime() - now;
-  if (!Number.isFinite(ms) || ms <= 0) return null;
-  return {
-    days: Math.floor(ms / 86400000),
-    hours: Math.floor((ms % 86400000) / 3600000),
-    minutes: Math.floor((ms % 3600000) / 60000),
-    seconds: Math.floor((ms % 60000) / 1000),
-  };
+function SectionTitle({ eyebrow, title, action, onClick }: { eyebrow: string; title: string; action?: string; onClick?: () => void }) {
+  return <div className="nd-section-title"><div><small>{eyebrow}</small><h2>{title}</h2></div>{action && <button onClick={onClick}>{action}<ArrowUpRight size={14}/></button>}</div>;
 }
-
-const dateLabel = (value?: string | null) => value ? new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'DATE TO BE ANNOUNCED';
 
 export function HomeDashboard({ data, loading, onAdmin }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [now, setNow] = useState(Date.now());
+  const [gameFilter, setGameFilter] = useState('all');
+  const nextEvent = useMemo(() => data.tournaments.filter((e:any) => e.starts_at && new Date(e.starts_at).getTime() >= Date.now()).sort((a:any,b:any) => new Date(a.starts_at).getTime()-new Date(b.starts_at).getTime())[0], [data.tournaments]);
+  const filteredTeams = data.teams.filter((t:any) => (t.name+' '+(t.team_tag||'')+' '+(t.game?.name||'')).toLowerCase().includes(search.toLowerCase()));
+  const filteredGames = data.games.filter((g:any) => g.name?.toLowerCase().includes(search.toLowerCase()));
+  const updates = [...data.announcements.map((x:any)=>({...x,kind:'OFFICIAL'})),...data.posts.map((x:any)=>({...x,title:x.content?.slice(0,90)||'Community update',body:x.content,kind:'COMMUNITY'}))].sort((a:any,b:any)=>new Date(b.published_at||b.created_at||0).getTime()-new Date(a.published_at||a.created_at||0).getTime()).slice(0,4);
+  const events = data.tournaments.filter((e:any)=>gameFilter==='all'||e.game?.name===gameFilter).slice(0,4);
+  const closeMenu = () => setMenuOpen(false);
 
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, []);
+  return <div className="nova-dashboard" id="top">
+    <header className="nd-header">
+      <button className="nd-icon-btn nd-menu-btn" onClick={()=>setMenuOpen(v=>!v)} aria-label="Open navigation">{menuOpen?<X size={19}/>:<Menu size={19}/>}</button>
+      <a className="nd-brand" href="#top"><span className="nd-brand-mark">N</span><span><b>NOVA ORIGIN</b><small>ESPORTS NETWORK</small></span></a>
+      <nav className={menuOpen?'nd-nav is-open':'nd-nav'}>
+        <a href="#overview" onClick={closeMenu}>Overview</a><a href="#leaderboard" onClick={closeMenu}>Leaderboard</a><a href="#players" onClick={closeMenu}>Players</a><a href="#teams" onClick={closeMenu}>Teams</a><a href="#tournaments" onClick={closeMenu}>Tournaments</a><a href="#news" onClick={closeMenu}>News</a>
+      </nav>
+      <div className="nd-header-actions">
+        {searchOpen && <input className="nd-header-search" autoFocus placeholder="Search teams and games" value={search} onChange={e=>setSearch(e.target.value)}/>}
+        <button className="nd-icon-btn" aria-label="Search" onClick={()=>setSearchOpen(v=>!v)}><Search size={18}/></button>
+        <button className="nd-icon-btn nd-notification" aria-label="Updates" onClick={()=>document.getElementById('news')?.scrollIntoView({behavior:'smooth'})}><Bell size={18}/>{updates.length>0&&<i/>}</button>
+        <button className="nd-control-btn" onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button>
+      </div>
+    </header>
 
-  const nextEvent = useMemo(() => data.tournaments
-    .filter((event: any) => event.starts_at && new Date(event.starts_at).getTime() > now)
-    .sort((a: any, b: any) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())[0], [data.tournaments, now]);
-  const countdown = getCountdown(nextEvent?.starts_at, now);
-  const filteredGames = data.games.filter((game: any) => game.name?.toLowerCase().includes(search.toLowerCase()));
-  const filteredTeams = data.teams.filter((team: any) => (team.name + ' ' + team.team_tag + ' ' + team.game?.name).toLowerCase().includes(search.toLowerCase()));
-  const updates = [
-    ...data.announcements.map((item: any) => ({ id: 'a-' + item.id, type: 'OFFICIAL ANNOUNCEMENT', title: item.title, body: item.body, date: item.published_at || item.created_at })),
-    ...data.posts.map((item: any) => ({ id: 'p-' + item.id, type: 'COMMUNITY UPDATE', title: item.content?.slice(0, 72) || 'Community update', body: item.content, date: item.created_at })),
-  ].sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()).slice(0, 4);
+    <main className="nd-main">
+      <section className="nd-welcome" id="overview">
+        <div className="nd-welcome-copy"><div className="nd-overline"><span/> NOVA ORIGIN / COMPETITIVE NETWORK</div><h1>Welcome to <strong>NOVA ORIGIN</strong></h1><p>Your hub for competitive gaming. Discover active teams, explore game communities and stay up to date with upcoming tournaments.</p><div className="nd-welcome-actions"><a className="nd-btn-primary" href="#teams">Explore Teams <ArrowRight size={15}/></a><a className="nd-btn-secondary" href="#players">Explore Players <ArrowRight size={15}/></a></div></div>
+        <div className="nd-feature-mini"><div className="nd-feature-mini-head"><span><Trophy size={14}/> FEATURED TOURNAMENT</span><span className="nd-live-tag">{nextEvent?'UPCOMING':'NOVA EVENT'}</span></div><div className="nd-feature-mini-content">{nextEvent?.banner_url?<img src={nextEvent.banner_url} alt="Tournament artwork"/>:<div className="nd-feature-placeholder"><Swords size={28}/></div>}<div><small>{nextEvent?.game?.name||'NOVA ORIGIN'}</small><b>{nextEvent?.title||'The next challenge starts here'}</b><span>{nextEvent?dateLabel(nextEvent.starts_at):'New events will be announced soon'}</span></div></div><a href="#tournaments">View events <ArrowUpRight size={14}/></a></div>
+      </section>
 
-  return (
-    <div className="nova-home-v2">
-      <div className="nv-topline"><span className="nv-status-dot"/> NOVA ORIGIN <span className="nv-topline-divider">/</span> COMPETITIVE NETWORK <span className="nv-topline-right">INDIA <i/> NETWORK ONLINE</span></div>
-      <header className="nv-header">
-        <a className="nv-brand" href="#home" aria-label="NOVA Origin home"><span className="nv-brand-mark">N<span>.</span></span><span><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></span></a>
-        <nav className={menuOpen ? 'nv-nav is-open' : 'nv-nav'}>
-          <a href="#games" onClick={() => setMenuOpen(false)}>Games</a>
-          <a href="#teams" onClick={() => setMenuOpen(false)}>Teams</a>
-          <a href="#tournaments" onClick={() => setMenuOpen(false)}>Tournaments</a>
-          <a href="#rankings" onClick={() => setMenuOpen(false)}>Rankings</a>
-          <a href="#updates" onClick={() => setMenuOpen(false)}>Updates</a>
-        </nav>
-        <div className="nv-header-actions"><span className="nv-network"><i/> LIVE NETWORK</span><button className="nv-admin-button" onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={15}/></button><button className="nv-menu-button" onClick={() => setMenuOpen(v => !v)} aria-label="Toggle navigation">{menuOpen ? <X/> : <Menu/>}</button></div>
-      </header>
+      <section className="nd-metrics" aria-label="Platform overview"><div><Gamepad2/><span><b>{data.games.length}</b><small>ACTIVE GAMES</small></span></div><div><Users/><span><b>{data.teams.length}</b><small>PUBLIC TEAMS</small></span></div><div><Trophy/><span><b>{data.tournaments.length}</b><small>TOURNAMENTS</small></span></div><div><Radio/><span><b>{updates.length}</b><small>RECENT UPDATES</small></span></div></section>
 
-      <main id="home">
-        <section className="nv-hero">
-          <div className="nv-hero-grid"/>
-          <div className="nv-hero-content">
-            <div className="nv-eyebrow"><span/> THE NEXT GENERATION OF COMPETITION</div>
-            <h1>PLAY<br/><em>WITH</em><br/>PURPOSE<span>.</span></h1>
-            <p>One network for players, squads and competition. Discover teams, follow upcoming tournaments and stay connected to the NOVA Origin ecosystem.</p>
-            <div className="nv-hero-actions"><a className="nv-primary" href="#tournaments">EXPLORE COMPETITION <ArrowUpRight size={16}/></a><a className="nv-secondary" href="#teams">DISCOVER TEAMS <ArrowRight size={16}/></a></div>
-            <div className="nv-hero-foot"><span><i/> BUILT FOR THE COMPETITIVE COMMUNITY</span><span>EST. NOVA ORIGIN</span></div>
-          </div>
-          <div className="nv-hero-art" aria-hidden="true"><div className="nv-art-frame"><div className="nv-art-label">NOVA / 001</div><div className="nv-art-monogram">N<span>.</span></div><div className="nv-art-baseline">DISCOVER&nbsp; / &nbsp;COMPETE&nbsp; / &nbsp;EVOLVE</div><div className="nv-art-index">NO. 001 — INDIA</div></div></div>
-          <div className="nv-hero-index">01 <span/> 04</div>
-        </section>
+      <section className="nd-section" id="leaderboard">
+        <SectionTitle eyebrow="COMPETITIVE STANDINGS" title="Leaderboard" action="View all rankings"/>
+        <div className="nd-empty-panel"><div className="nd-empty-icon"><Trophy size={22}/></div><div><b>Official rankings are being prepared</b><p>Player ranking records are not currently connected to the public homepage. Verified results will appear here once the leaderboard data source is available.</p></div><span className="nd-data-label">WAITING FOR VERIFIED DATA</span></div>
+      </section>
 
-        <section className="nv-stats" aria-label="NOVA Origin platform statistics">
-          <div><b>{String(data.games.length).padStart(2, '0')}</b><span>GAME TITLES</span></div>
-          <div><b>{String(data.teams.length).padStart(2, '0')}</b><span>PUBLIC TEAMS</span></div>
-          <div><b>{String(data.tournaments.length).padStart(2, '0')}</b><span>TOURNAMENTS</span></div>
-          <div className="nv-stats-note"><span className="nv-status-dot"/> LIVE PLATFORM DATA</div>
-        </section>
+      <section className="nd-section nd-trending" id="trending">
+        <SectionTitle eyebrow="WHAT'S ACTIVE" title="Trending on NOVA"/>
+        <div className="nd-trending-grid">
+          <article className="nd-trend-card nd-trend-games"><div className="nd-trend-heading"><Gamepad2/><b>Popular games</b></div><div className="nd-chip-list">{data.games.slice(0,5).map((g:any)=><span key={g.id}>{g.name}</span>)}{!data.games.length&&<small>No active games published</small>}</div><a href="#games">Browse games <ArrowRight size={13}/></a></article>
+          <article className="nd-trend-card"><div className="nd-trend-heading"><Users/><b>Community teams</b></div><strong>{data.teams.length}</strong><p>Public teams in the NOVA network</p><a href="#teams">Explore teams <ArrowRight size={13}/></a></article>
+          <article className="nd-trend-card"><div className="nd-trend-heading"><CalendarDays/><b>Next tournament</b></div><strong className="nd-trend-event">{nextEvent?.title||'Coming soon'}</strong><p>{nextEvent?dateLabel(nextEvent.starts_at):'No upcoming event published'}</p><a href="#tournaments">Tournament schedule <ArrowRight size={13}/></a></article>
+        </div>
+      </section>
 
-        <section className="nv-section nv-discover" id="games">
-          <div className="nv-section-head"><div><div className="nv-kicker">01 / DISCOVER THE ECOSYSTEM</div><h2>YOUR <em>ARENA.</em></h2></div><p>Find your game. Find your people. Follow the competition.</p></div>
-          <div className="nv-search"><Search size={17}/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search games and teams..." aria-label="Search games and teams"/><span>LIVE SEARCH</span></div>
-          <div className="nv-game-grid">
-            {filteredGames.map((game: any, i: number) => <article className={'nv-game-card nv-game-' + (i % 3)} key={game.id}><div className="nv-card-top"><span>GAME TITLE / {String(i + 1).padStart(2, '0')}</span><Gamepad2 size={18}/></div><div className="nv-game-icon"><Swords size={38}/></div><div className="nv-card-bottom"><div><h3>{game.name}</h3><small>{game.publisher || 'COMPETITIVE TITLE'}</small></div><span className="nv-arrow"><ArrowUpRight size={19}/></span></div></article>)}
-            {!loading && filteredGames.length === 0 && <div className="nv-empty">{search ? 'No game titles match your search.' : 'Game titles published by NOVA Origin will appear here.'}</div>}
-            {loading && <div className="nv-empty">Loading game titles…</div>}
-          </div>
-        </section>
+      <section className="nd-section" id="players">
+        <SectionTitle eyebrow="THE COMMUNITY" title="Featured players"/>
+        <div className="nd-empty-panel nd-compact-empty"><div className="nd-empty-icon"><ShieldCheck size={22}/></div><div><b>Player directory connection required</b><p>No public player-profile records are currently exposed by the existing homepage data service. Player cards will populate here when the existing profile source is connected.</p></div></div>
+      </section>
 
-        <section className="nv-event-band" id="tournaments">
-          <div className="nv-section nv-event-layout">
-            <div className="nv-event-copy"><div className="nv-kicker">02 / THE COMPETITIVE CIRCUIT</div><h2>THE NEXT<br/><em>CHALLENGE.</em></h2><p>Stay ready for the next drop. Official NOVA tournaments and event schedules are published here.</p><a className="nv-secondary" href="#event-list">VIEW TOURNAMENTS <ArrowRight size={16}/></a></div>
-            <article className="nv-feature-event">
-              <div className="nv-feature-top"><span><Radio size={14}/> FEATURED EVENT</span><span>{nextEvent ? 'UPCOMING' : 'EVENT RADAR'}</span></div>
-              <div className="nv-feature-art"><Trophy size={52}/><span>NOVA<br/>CIRCUIT</span></div>
-              <div className="nv-feature-body"><small>{nextEvent?.game?.name || 'NOVA ORIGIN / ESPORTS'}</small><h3>{nextEvent?.title || 'A NEW COMPETITIVE SEASON.'}</h3><p>{nextEvent?.summary || 'Published tournament announcements will appear here. Check back for the next official event.'}</p></div>
-              <div className="nv-countdown">{countdown ? <><div><b>{String(countdown.days).padStart(2, '0')}</b><small>DAYS</small></div><i>:</i><div><b>{String(countdown.hours).padStart(2, '0')}</b><small>HOURS</small></div><i>:</i><div><b>{String(countdown.minutes).padStart(2, '0')}</b><small>MINUTES</small></div><i>:</i><div><b>{String(countdown.seconds).padStart(2, '0')}</b><small>SECONDS</small></div></> : <div className="nv-count-empty"><Clock3 size={17}/> EVENT DATE TO BE ANNOUNCED</div>}</div>
-              <div className="nv-feature-foot"><span>{dateLabel(nextEvent?.starts_at)}</span><a href="#event-list">EVENT DETAILS <ArrowUpRight size={14}/></a></div>
-            </article>
-          </div>
-        </section>
+      <section className="nd-section" id="teams">
+        <SectionTitle eyebrow="SQUADS & ORGANIZATIONS" title="Featured teams" action="Explore teams" onClick={()=>document.getElementById('teams-list')?.scrollIntoView({behavior:'smooth'})}/>
+        <div className="nd-team-grid" id="teams-list">{filteredTeams.slice(0,6).map((team:any)=><article className="nd-team-card" key={team.id}><div className="nd-team-card-top"><div className="nd-team-logo">{team.logo_url?<img src={team.logo_url} alt={team.name+' logo'}/>:<b>{team.team_tag?.slice(0,3)||team.name?.slice(0,2)||'N'}</b>}</div><span className="nd-team-state"><i/> ACTIVE</span></div><h3>{team.name}</h3><p>{team.game?.name||'Esports team'}{team.team_tag?' · '+team.team_tag:''}</p><div className="nd-team-card-foot"><span>PUBLIC TEAM</span><span>PROFILE <ArrowUpRight size={13}/></span></div></article>)}{!loading&&filteredTeams.length===0&&<div className="nd-empty-inline">{search?'No teams match your search.':'No public teams have been published yet.'}</div>}{loading&&<div className="nd-empty-inline">Loading teams…</div>}</div>
+      </section>
 
-        <section className="nv-section nv-teams" id="teams">
-          <div className="nv-section-head"><div><div className="nv-kicker">03 / BUILT BY THE COMMUNITY</div><h2>MEET THE <em>SQUADS.</em></h2></div><p>Public team profiles from across the NOVA network.</p></div>
-          <div className="nv-team-list">
-            {filteredTeams.map((team: any, i: number) => <article className="nv-team-row" key={team.id}><span className="nv-team-number">{String(i + 1).padStart(2, '0')}</span><div className="nv-team-logo">{team.logo_url ? <img src={team.logo_url} alt={team.name + ' logo'}/> : <b>{team.team_tag?.slice(0, 3) || team.name?.slice(0, 2) || 'N'}</b>}</div><div className="nv-team-main"><small>{team.team_tag || 'NOVA TEAM'} <span>/</span> {team.game?.name || 'ESPORTS'}</small><h3>{team.name}</h3><p>{team.description || 'A team in the NOVA competitive network.'}</p></div><div className="nv-team-status"><i/> {team.status || 'ACTIVE'}</div><ArrowUpRight className="nv-team-arrow" size={21}/></article>)}
-            {!loading && filteredTeams.length === 0 && <div className="nv-empty">{search ? 'No teams match your search.' : 'No public teams have been published yet.'}</div>}
-            {loading && <div className="nv-empty">Loading public teams…</div>}
-          </div>
-        </section>
+      <section className="nd-section" id="games">
+        <SectionTitle eyebrow="FIND YOUR ARENA" title="Games"/>
+        <div className="nd-game-grid">{filteredGames.slice(0,8).map((game:any)=><div className="nd-game-card" key={game.id}><span><Gamepad2 size={17}/></span><b>{game.name}</b><small>{game.publisher||'COMPETITIVE TITLE'}</small></div>)}{!loading&&filteredGames.length===0&&<div className="nd-empty-inline">No active games found.</div>}</div>
+      </section>
 
-        <section className="nv-section nv-rankings" id="rankings">
-          <div className="nv-section-head"><div><div className="nv-kicker">04 / PERFORMANCE TRACKER</div><h2>THE <em>RANKINGS.</em></h2></div><p>Competitive standings belong to verified match records, not made-up numbers.</p></div>
-          <div className="nv-ranking-panel"><div className="nv-ranking-icon"><Trophy size={25}/></div><div><b>OFFICIAL LEADERBOARD</b><p>Rankings will appear when verified player results are published by NOVA Origin administrators.</p></div><span className="nv-ranking-state">AWAITING VERIFIED RESULTS</span></div>
-        </section>
+      <section className="nd-section" id="tournaments">
+        <SectionTitle eyebrow="COMPETE & PROGRESS" title="Upcoming tournaments"/>
+        <div className="nd-filter-row"><label>Filter by game <ChevronDown size={14}/><select value={gameFilter} onChange={e=>setGameFilter(e.target.value)}><option value="all">All games</option>{data.games.map((g:any)=><option key={g.id} value={g.name}>{g.name}</option>)}</select></label></div>
+        <div className="nd-tournament-grid">{events.map((event:any)=><article className="nd-tournament-card" key={event.id}><div className="nd-tournament-image">{event.banner_url?<img src={event.banner_url} alt={event.title}/>:<Trophy size={26}/>}<span>{statusLabel(event.status)}</span></div><div className="nd-tournament-info"><small>{event.game?.name||'NOVA CIRCUIT'}</small><h3>{event.title}</h3><p>{event.summary||'Official NOVA Origin tournament.'}</p><div className="nd-event-meta"><span><CalendarDays size={13}/>{dateLabel(event.starts_at)}</span><span>{event.prize_description||'Prize details TBA'}</span></div></div></article>)}{!loading&&events.length===0&&<div className="nd-empty-inline">No tournaments match this filter. Check back for new events.</div>}</div>
+      </section>
 
-        <section className="nv-section nv-event-list" id="event-list">
-          <div className="nv-section-head"><div><div className="nv-kicker">05 / UPCOMING & PUBLISHED</div><h2>EVENT <em>LOG.</em></h2></div><p>Official tournament information, registration status and schedules.</p></div>
-          <div className="nv-tournament-grid">
-            {data.tournaments.slice(0, 3).map((event: any) => <article className="nv-tournament-card" key={event.id}><div className="nv-tournament-art" style={event.banner_url ? { backgroundImage: 'linear-gradient(180deg, #17152a22, #11121a), url(' + event.banner_url + ')' } : undefined}><span><i/> {(event.status || 'UPCOMING').replaceAll('_', ' ')}</span><Trophy size={35}/></div><div className="nv-tournament-body"><small>{event.game?.name || 'NOVA CIRCUIT'}</small><h3>{event.title}</h3><p>{event.summary || 'Official competitive event.'}</p><div><span><CalendarDays size={13}/> {dateLabel(event.starts_at)}</span><span>{event.team_size || '—'} PLAYER FORMAT</span></div></div></article>)}
-            {!loading && data.tournaments.length === 0 && <div className="nv-empty">No tournaments have been published yet. New events will appear here.</div>}
-          </div>
-        </section>
-
-        <section className="nv-updates" id="updates"><div className="nv-section"><div className="nv-section-head"><div><div className="nv-kicker">06 / SIGNAL FROM THE NETWORK</div><h2>WHAT'S <em>HAPPENING.</em></h2></div><p>Announcements and community updates from NOVA Origin.</p></div><div className="nv-update-grid">
-          {updates.map(item => <article className="nv-update-card" key={item.id}><div className="nv-update-meta"><span>{item.type === 'OFFICIAL ANNOUNCEMENT' ? <Bell size={13}/> : <Radio size={13}/>} {item.type}</span><small>{dateLabel(item.date)}</small></div><h3>{item.title}</h3><p>{item.body}</p><span className="nv-update-foot">NOVA NETWORK <ArrowUpRight size={14}/></span></article>)}
-          {!loading && updates.length === 0 && <div className="nv-empty">The network is quiet for now. Official announcements and community posts will show here.</div>}
-        </div></div></section>
-
-        <section className="nv-join"><div className="nv-kicker">YOUR NEXT CHAPTER STARTS HERE</div><h2>FIND YOUR<br/><em>PLACE IN NOVA.</em></h2><p>Discover the teams, follow the competition and be part of the network.</p><a className="nv-primary" href="#teams">EXPLORE THE NETWORK <ArrowUpRight size={16}/></a></section>
-      </main>
-
-      <footer className="nv-footer"><a className="nv-brand" href="#home"><span className="nv-brand-mark">N<span>.</span></span><span><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></span></a><div className="nv-footer-copy">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</div><a className="nv-footer-community" href="#updates">COMMUNITY UPDATES <ArrowUpRight size={14}/></a><button onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button></footer>
-    </div>
-  );
+      <section className="nd-section nd-news-section" id="news">
+        <SectionTitle eyebrow="FROM THE NETWORK" title="Latest news & updates"/>
+        <div className="nd-news-grid">{updates.map((item:any)=><article className="nd-news-card" key={item.id}><div className="nd-news-meta"><span>{item.kind==='OFFICIAL'?<Newspaper size={13}/>:<Radio size={13}/>} {item.kind}</span><time>{dateLabel(item.published_at||item.created_at)}</time></div><h3>{item.title||'Community update'}</h3><p>{item.body||item.content||'NOVA Origin community update.'}</p></article>)}{!loading&&updates.length===0&&<div className="nd-empty-inline">No news or community updates have been published yet.</div>}</div>
+      </section>
+    </main>
+    <footer className="nd-footer"><a className="nd-brand" href="#top"><span className="nd-brand-mark">N</span><span><b>NOVA ORIGIN</b><small>ESPORTS NETWORK</small></span></a><span>© 2026 NOVA ORIGIN</span><div><a href="#teams">Teams</a><a href="#tournaments">Tournaments</a><a href="#news">Updates</a><button onClick={onAdmin}>Control Room <ArrowUpRight size={13}/></button></div></footer>
+  </div>;
 }
