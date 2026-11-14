@@ -1,12 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowLeft, LayoutDashboard, Users, Trophy, Megaphone, Radio, LogOut, Plus, Pencil, RefreshCw, ShieldCheck, LockKeyhole, ImagePlus, X, Save } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, Users, Trophy, Megaphone, Radio, LogOut, Plus, Pencil, RefreshCw, LockKeyhole, Mail, KeyRound, ImagePlus, X, Save } from 'lucide-react';
 import { api, hasSupabaseConfig, NovaUser } from '../lib/supabase';
 
-type Props = { user: NovaUser | null; role: string | null; organizerStatus: string | null; onBack: () => void; onLogin: () => void; onLogout: () => void; authError: string; canManage: boolean; onRefresh: () => Promise<void> };
+type Props = { user: NovaUser | null; role: string | null; organizerStatus: string | null; onBack: () => void; onLogin: (email: string, password: string) => Promise<void>; onLogout: () => void; authError: string; canManage: boolean; onRefresh: () => Promise<void> };
 const blankTeam = { name: '', team_tag: '', game_id: '', description: '', logo_url: '' };
 const blankTournament = { title: '', game_id: '', summary: '', description: '', banner_url: '', starts_at: '', team_size: '4', max_entries: '32' };
 
 export function Dashboard({ user, role, organizerStatus, onBack, onLogin, onLogout, authError, canManage, onRefresh }: Props) {
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginBusy, setLoginBusy] = useState(false);
   const [tab, setTab] = useState('overview');
   const [games, setGames] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -86,7 +89,7 @@ export function Dashboard({ user, role, organizerStatus, onBack, onLogin, onLogo
   ];
 
   if (!hasSupabaseConfig()) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / SETUP</span><h1>Connect your<br/><em>command center.</em></h1><p>Add the Supabase project URL and publishable key as environment variables to activate the website and control room.</p><code>VITE_SUPABASE_URL</code><code>VITE_SUPABASE_PUBLISHABLE_KEY</code><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Back to website</button></div></div>;
-  if (!user) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / SECURE ACCESS</span><h1>Enter the<br/><em>control room.</em></h1><p>Sign in with your authorized NOVA Origin account. Only approved platform administrators and organizers can manage content.</p>{authError && <div className="admin-error">{authError}</div>}<button className="admin-signin" onClick={onLogin}><ShieldCheck size={18}/> Continue with Google</button><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Back to website</button></div></div>;
+  if (!user) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo">N</div><span className="admin-kicker">NOVA ORIGIN / SECURE ACCESS</span><h1>Enter the<br/><em>control room.</em></h1><p>Sign in with your authorized NOVA Origin account. Only approved platform administrators and organizers can manage content.</p>{authError && <div className="admin-error">{authError}</div>}<form className="admin-form admin-login-form" onSubmit={async (e) => { e.preventDefault(); setLoginBusy(true); try { await onLogin(loginEmail, loginPassword); } finally { setLoginBusy(false); } }}><label>Email address<div className="input-icon"><Mail size={16}/><input type="email" autoComplete="username" required value={loginEmail} onChange={e => setLoginEmail(e.target.value)} placeholder="admin@novaorigin.in"/></div></label><label>Password<div className="input-icon"><KeyRound size={16}/><input type="password" autoComplete="current-password" required value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Enter your password"/></div></label><button className="admin-signin" type="submit" disabled={loginBusy}>{loginBusy ? "Signing in…" : "Sign in to Control Room"}</button></form><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Back to website</button></div></div>;
   if (!canManage) return <div className="admin-screen"><div className="admin-login-card"><div className="admin-logo"><LockKeyhole/></div><span className="admin-kicker">ACCESS NOT YET APPROVED</span><h1>Almost<br/><em>there.</em></h1><p>Signed in as <b>{user.email}</b>. Your account does not currently have an approved management role.</p><div className="access-status"><span>Platform role</span><b>{role || 'No role assigned'}</b><span>Organizer status</span><b>{organizerStatus || 'Not registered'}</b></div><button className="admin-back" onClick={onBack}><ArrowLeft size={16}/> Back to website</button><button className="admin-back" onClick={onLogout}><LogOut size={16}/> Sign out</button></div></div>;
 
   return <div className="admin-layout">
