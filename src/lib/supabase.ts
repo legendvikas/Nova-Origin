@@ -64,7 +64,7 @@ export function signOut() { clearSession(); window.location.assign('/'); }
 
 export async function loadPublicData() {
   const read = async (table: string, query: Record<string, string>) => {
-    try { return await api<any[]>(table, query); } catch { return []; }
+    try { return await api<any[]>(table, query); } catch (error) { console.error('[NOVA public data]', table, error); return []; }
   };
   const [games, tournaments, teams, announcements, posts, players] = await Promise.all([
     read('games', { select: 'id,name,slug,publisher,is_active', is_active: 'eq.true', order: 'name.asc' }),
