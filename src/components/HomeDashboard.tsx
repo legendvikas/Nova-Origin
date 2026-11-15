@@ -23,11 +23,11 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
         <a className="origin-logo" href="#origin-home" aria-label="NOVA Origin home"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></a>
         <span className="origin-official"><BadgeCheck size={16}/> OFFICIAL</span>
         <nav className={menuOpen ? 'origin-nav open' : 'origin-nav'}>
-          <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
-          <a href="#players" onClick={() => setMenuOpen(false)}>Players</a>
-          <a href="#teams" onClick={() => setMenuOpen(false)}>Teams</a>
-          <a href="#events" onClick={() => setMenuOpen(false)}>Events</a>
-          <a href="#news" onClick={() => setMenuOpen(false)}>News</a>
+          <a href="/about" onClick={() => setMenuOpen(false)}>About</a>
+          <a href="/players" onClick={() => setMenuOpen(false)}>Players</a>
+          <a href="/teams" onClick={() => setMenuOpen(false)}>Teams</a>
+          <a href="/events" onClick={() => setMenuOpen(false)}>Events</a>
+          <a href="/news" onClick={() => setMenuOpen(false)}>News</a>
         </nav>
         <button className="origin-menu" onClick={() => setMenuOpen(v => !v)} aria-label="Toggle menu">{menuOpen ? <X/> : <Menu/>}</button>
       </header>
