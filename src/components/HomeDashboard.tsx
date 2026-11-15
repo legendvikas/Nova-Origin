@@ -61,11 +61,13 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
         <section className="origin-team-section" id="teams">
           <div className="origin-team-intro"><h2>BUILT AS<br/>ONE.<br/><em>PLAY AS<br/>MANY.</em></h2><p>Every role matters. Every player moves the team forward.</p></div>
           <div className="origin-team-list">
-            {teams.map((team: any, index: number) => <article className="origin-team-card origin-interactive-card" key={team.id} role="button" tabIndex={0} onClick={() => setSelectedProfile({kind:"TEAM",...team})} onKeyDown={e => {if(e.key==="Enter") setSelectedProfile({kind:"TEAM",...team});}}>
-              <span className="origin-team-index">{String(index + 1).padStart(2, '0')}</span>
-              <div className="origin-team-logo">{team.logo_url ? <img src={team.logo_url} alt={team.name + ' logo'}/> : <b>{team.team_tag?.slice(0, 3) || team.name?.slice(0, 2) || 'N'}</b>}</div>
-              <div className="origin-team-copy"><h3>{team.name} {team.is_verified && <span className="origin-team-verified"><ShieldCheck size={14}/> VERIFIED</span>}</h3><p>{team.description || team.game?.name || 'NOVA Origin esports team'}</p><small>OWNED BY · {team.owner_name || team.captain_name || 'NOVA ORIGIN'}</small></div>
-              <ArrowUpRight className="origin-team-arrow"/>
+            {teams.map((team: any, index: number) => <article className="origin-team-card origin-team-card-v2 origin-interactive-card" key={team.id} role="button" tabIndex={0} onClick={() => setSelectedProfile({kind:"TEAM",...team})} onKeyDown={e => {if(e.key==="Enter" || e.key===" ") setSelectedProfile({kind:"TEAM",...team});}}>
+              <div className="origin-team-card-top"><span className="origin-team-index">DIVISION / {String(index + 1).padStart(2, '0')}</span><span className="origin-team-game">{team.game?.name || team.game_name || 'ESPORTS DIVISION'}</span></div>
+              <div className="origin-team-card-main">
+                <div className="origin-team-logo">{team.logo_url ? <img src={team.logo_url} alt={team.name + ' logo'}/> : <b>{team.team_tag?.slice(0, 3) || team.name?.slice(0, 2) || 'N'}</b>}</div>
+                <div className="origin-team-copy"><div className="origin-team-title-row"><h3>{team.name}</h3>{team.is_verified && <span className="origin-team-verified"><ShieldCheck size={13}/> VERIFIED</span>}</div><p>{team.description || 'Official NOVA Origin competitive division.'}</p><div className="origin-team-card-bottom"><small>MANAGED BY · {team.owner_name || team.captain_name || 'NOVA ORIGIN'}</small><span className="origin-team-open">VIEW DIVISION <ArrowUpRight size={15}/></span></div></div>
+              </div>
+              <span className="origin-team-watermark" aria-hidden="true">{team.team_tag?.slice(0,4) || 'NOVA'}</span>
             </article>)}
             {!loading && teams.length === 0 && <div className="origin-team-empty">APPROVED PUBLIC TEAMS WILL APPEAR HERE.</div>}
           </div>
