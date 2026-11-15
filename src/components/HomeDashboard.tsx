@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ArrowRight, ArrowUpRight, BadgeCheck, Instagram, Menu, ShieldCheck, X, Youtube, Mail, Sparkles } from 'lucide-react';
 
 type Props = {
-  data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[] };
+  data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[]; players: any[] };
   loading: boolean;
   onAdmin: () => void;
 };
