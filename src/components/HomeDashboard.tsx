@@ -22,9 +22,11 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
         <a className="origin-logo" href="#origin-home" aria-label="NOVA Origin home"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></a>
         <span className="origin-official"><BadgeCheck size={16}/> OFFICIAL</span>
         <nav className={menuOpen ? 'origin-nav open' : 'origin-nav'}>
+          <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
           <a href="#players" onClick={() => setMenuOpen(false)}>Players</a>
           <a href="#teams" onClick={() => setMenuOpen(false)}>Teams</a>
           <a href="#events" onClick={() => setMenuOpen(false)}>Events</a>
+          <a href="#news" onClick={() => setMenuOpen(false)}>News</a>
           <button onClick={() => { setMenuOpen(false); onAdmin(); }}>Control Room <ArrowUpRight size={15}/></button>
         </nav>
         <button className="origin-menu" onClick={() => setMenuOpen(v => !v)} aria-label="Toggle menu">{menuOpen ? <X/> : <Menu/>}</button>
@@ -71,10 +73,30 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
 
         <section className="origin-events" id="events"><div className="origin-section-label"><i/> COMPETITIVE CIRCUIT</div><h2>READY FOR<br/><em>THE NEXT MATCH?</em></h2><div className="origin-event-list">{data.tournaments.slice(0, 3).map((event: any, index: number) => <article key={event.id}><span>{String(index + 1).padStart(2, '0')}</span><div><small>{event.game?.name || 'NOVA ORIGIN'} · {(event.status || 'UPCOMING').replaceAll('_', ' ')}</small><h3>{event.title}</h3><p>{event.summary || 'Official NOVA Origin competition.'}</p></div><ArrowUpRight/></article>)}{!loading && data.tournaments.length === 0 && <p className="origin-event-empty">UPCOMING OFFICIAL EVENTS WILL BE ANNOUNCED HERE.</p>}</div></section>
 
-        <section className="origin-join"><h2>READY TO<br/><em>RISE WITH<br/>US?</em></h2><p>Find your place in the origin.</p><a className="origin-primary" href="#players">JOIN NOVA ORIGIN <ArrowUpRight/></a><a className="origin-secondary" href="mailto:hello@novaorigin.gg">CONTACT THE TEAM <Mail/></a></section>
+
+        <section className="origin-about" id="about">
+          <div className="origin-section-label"><i/> THE ORGANIZATION</div>
+          <div className="origin-about-grid"><h2>MORE THAN<br/><em>A NAME.</em></h2><div><p>NOVA ORIGIN is an independent esports collective built around players, teams and competitive communities. Our focus is to create a connected home for competition and growth.</p><div className="origin-about-values"><span>01 / COMMUNITY FIRST</span><span>02 / COMPETE WITH INTEGRITY</span><span>03 / BUILD FOR THE LONG RUN</span></div></div></div>
+        </section>
+
+        <section className="origin-games" id="games">
+          <div className="origin-section-label"><i/> OUR COMPETITIVE TITLES</div><div className="origin-section-head"><h2>BUILT FOR<br/><em>EVERY GAME.</em></h2><p>Explore the active game communities connected to NOVA Origin.</p></div>
+          <div className="origin-game-grid">{data.games.map((game: any, index: number) => <article key={game.id} className="origin-game-card"><span>GAME / {String(index+1).padStart(2,'0')}</span><h3>{game.name}</h3><small>{game.publisher || 'COMPETITIVE DIVISION'}</small></article>)}{!loading && data.games.length===0 && <div className="origin-empty">Active game divisions will appear here when published.</div>}</div>
+        </section>
+
+        <section className="origin-news" id="news">
+          <div className="origin-section-label"><i/> FROM THE NETWORK</div><div className="origin-section-head"><h2>THE LATEST<br/><em>FROM NOVA.</em></h2><p>Official announcements and community updates.</p></div>
+          <div className="origin-news-grid">
+            {[...data.announcements.map((item:any)=>({...item,kind:'ANNOUNCEMENT',copy:item.body})),...data.posts.map((item:any)=>({...item,kind:'COMMUNITY UPDATE',copy:item.content}))].sort((a:any,b:any)=>new Date(b.published_at||b.created_at||0).getTime()-new Date(a.published_at||a.created_at||0).getTime()).slice(0,4).map((item:any,index:number)=><article key={item.id||index}><small>{item.kind}</small><h3>{item.title||item.copy?.slice(0,72)||'NOVA Origin update'}</h3><p>{item.copy||''}</p><time>{item.published_at||item.created_at ? new Date(item.published_at||item.created_at).toLocaleDateString() : 'NOVA ORIGIN'}</time></article>)}
+            {!loading && data.announcements.length===0 && data.posts.length===0 && <div className="origin-empty">Official news and media updates will appear here when published.</div>}
+          </div>
+        </section>
+
+        <section className="origin-partners" id="partners"><div><div className="origin-section-label"><i/> PARTNERSHIPS</div><h2>BUILT ON<br/><em>TRUST.</em></h2><p>We welcome brands and organizations that share our commitment to competitive gaming and community.</p></div><div className="origin-partner-placeholder">PARTNER WITH NOVA ORIGIN <span>COLLABORATIONS / BUSINESS INQUIRIES</span></div></section>
+        <section className="origin-join" id="join"><h2>READY TO<br/><em>RISE WITH<br/>US?</em></h2><p>Find your place in the origin.</p><a className="origin-primary" href="#players">JOIN NOVA ORIGIN <ArrowUpRight/></a><a className="origin-secondary" href="mailto:hello@novaorigin.gg">CONTACT THE TEAM <Mail/></a></section>
       </main>
 
-      <footer className="origin-footer"><div className="origin-footer-brand"><a className="origin-logo" href="#origin-home"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></a><span className="origin-official"><BadgeCheck size={16}/> OFFICIAL</span><div className="origin-social"><a href="https://www.instagram.com/" aria-label="Instagram"><Instagram/></a><a href="https://www.youtube.com/" aria-label="YouTube"><Youtube/></a></div></div><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="origin-footer-links"><span>EXPLORE</span><a href="#players">PLAYERS</a><a href="#teams">TEAMS</a><a href="#events">EVENTS</a><button onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button></div><small className="origin-copyright">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</small></footer>
+      <footer className="origin-footer"><div className="origin-footer-brand"><a className="origin-logo" href="#origin-home"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></a><span className="origin-official"><BadgeCheck size={16}/> OFFICIAL</span><div className="origin-social"><a href="https://www.instagram.com/" aria-label="Instagram"><Instagram/></a><a href="https://www.youtube.com/" aria-label="YouTube"><Youtube/></a></div></div><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="origin-footer-links"><span>EXPLORE</span><a href="#players">PLAYERS</a><a href="#teams">TEAMS</a><a href="#events">EVENTS</a><a href="#news">NEWS</a><a href="#partners">PARTNERS</a><a href="#join">JOIN NOVA</a><button onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button></div><small className="origin-copyright">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</small></footer>
     </div>
   );
 }
