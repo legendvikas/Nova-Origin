@@ -75,3 +75,19 @@ export async function loadPublicData() {
   ]);
   return { games, tournaments, teams, announcements, posts };
 }
+
+export async function uploadPublicMedia(file: File, folder: string): Promise<string> {
+  if (!hasSupabaseConfig()) throw new Error('Supabase storage is not configured.');
+  const session = getSession();
+  if (!session?.access_token) throw new Error('Please sign in again before uploading.');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-').toLowerCase();
+  const path = `${folder}/${crypto.randomUUID()}-${safeName}`;
+  const response = await fetch(`${SUPABASE_URL}/storage/v1/object/nova-media/${path}`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}`, 'Content-Type': file.type, 'x-upsert': 'false' },
+    body: file,
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.message || payload.error || 'Image upload failed.');
+  return `${SUPABASE_URL}/storage/v1/object/public/nova-media/${path}`;
+}
