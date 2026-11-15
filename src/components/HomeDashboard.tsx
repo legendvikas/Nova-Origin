@@ -4,7 +4,6 @@ import { ArrowRight, ArrowUpRight, BadgeCheck, Instagram, Menu, ShieldCheck, X, 
 type Props = {
   data: { games: any[]; tournaments: any[]; teams: any[]; announcements: any[]; posts: any[]; players: any[] };
   loading: boolean;
-  onAdmin: () => void;
 };
 
 export function HomeDashboard({ data, loading, onAdmin }: Props) {
@@ -29,7 +28,6 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
           <a href="#teams" onClick={() => setMenuOpen(false)}>Teams</a>
           <a href="#events" onClick={() => setMenuOpen(false)}>Events</a>
           <a href="#news" onClick={() => setMenuOpen(false)}>News</a>
-          <button onClick={() => { setMenuOpen(false); onAdmin(); }}>Control Room <ArrowUpRight size={15}/></button>
         </nav>
         <button className="origin-menu" onClick={() => setMenuOpen(v => !v)} aria-label="Toggle menu">{menuOpen ? <X/> : <Menu/>}</button>
       </header>
@@ -99,7 +97,7 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
       </main>
 
       {selectedProfile && <div className="origin-profile-overlay" role="dialog" aria-modal="true" aria-label={selectedProfile.kind + " profile"} onClick={() => setSelectedProfile(null)}><section className="origin-profile-modal" onClick={e => e.stopPropagation()}><button className="origin-profile-close" onClick={() => setSelectedProfile(null)} aria-label="Close profile"><X/></button><div className="origin-profile-cover">{(selectedProfile.avatar_url || selectedProfile.photo_url || selectedProfile.logo_url) ? <img src={selectedProfile.avatar_url || selectedProfile.photo_url || selectedProfile.logo_url} alt=""/> : <b>N.</b>}<span>{selectedProfile.kind} / NOVA ORIGIN</span></div><div className="origin-profile-details"><span className="origin-section-label"><i/> OFFICIAL DIRECTORY</span><h2>{selectedProfile.display_name || selectedProfile.full_name || selectedProfile.username || selectedProfile.name || "NOVA ORIGIN"}</h2><p>{selectedProfile.bio || selectedProfile.description || "Official NOVA Origin profile. More information will be added as the roster is updated."}</p><div className="origin-profile-meta"><span>{selectedProfile.role || selectedProfile.game?.name || "COMPETITIVE PLAYER"}</span><span>{selectedProfile.teamName || selectedProfile.team_tag || selectedProfile.teamTag || "NOVA ORIGIN"}</span></div>{selectedProfile.is_verified && <span className="origin-verified"><BadgeCheck/> VERIFIED</span>}</div></section></div>}
-      <footer className="origin-footer"><div className="origin-footer-brand"><a className="origin-logo" href="#origin-home"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></a><span className="origin-official"><BadgeCheck size={16}/> OFFICIAL</span><div className="origin-social"><a href="https://www.instagram.com/" aria-label="Instagram"><Instagram/></a><a href="https://www.youtube.com/" aria-label="YouTube"><Youtube/></a></div></div><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="origin-footer-links"><span>EXPLORE</span><a href="#players">PLAYERS</a><a href="#teams">TEAMS</a><a href="#events">EVENTS</a><a href="#news">NEWS</a><a href="#partners">PARTNERS</a><a href="#join">JOIN NOVA</a><button onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button></div><small className="origin-copyright">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</small></footer>
+      <footer className="origin-footer"><div className="origin-footer-brand"><a className="origin-logo" href="#origin-home"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></a><span className="origin-official"><BadgeCheck size={16}/> OFFICIAL</span><div className="origin-social"><a href="https://www.instagram.com/" aria-label="Instagram"><Instagram/></a><a href="https://www.youtube.com/" aria-label="YouTube"><Youtube/></a></div></div><p>More than a team. A collective built to rise, compete and create what comes next.</p><small className="origin-copyright">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</small></footer>
     </div>
   );
 }
