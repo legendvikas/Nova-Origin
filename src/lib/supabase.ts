@@ -40,6 +40,20 @@ export async function currentUser(token: string): Promise<NovaUser> {
   return response.json();
 }
 
+export async function signInWithPassword(email: string, password: string): Promise<NovaSession> {
+  if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim(), password }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.msg || payload.message || payload.error_description || 'Email or password is incorrect.');
+  const session: NovaSession = { access_token: payload.access_token, refresh_token: payload.refresh_token, expires_at: payload.expires_at };
+  saveSession(session);
+  return session;
+}
+
 export function signInWithGoogle() {
   if (!hasSupabaseConfig()) throw new Error('Supabase environment variables are missing.');
   const redirect = encodeURIComponent(window.location.origin);
