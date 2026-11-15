@@ -290,3 +290,35 @@ body{min-width:320px}
   .admin-panel{padding:16px}
   .admin-page-heading h1{font-size:34px}
 }
+
+
+/* NOVA ORIGIN premium interaction layer */
+.origin-interactive-card{cursor:pointer;position:relative;isolation:isolate;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .35s,box-shadow .35s}
+.origin-interactive-card:before{content:"";position:absolute;inset:-1px;z-index:-1;border-radius:inherit;background:linear-gradient(125deg,#075bff55,transparent 35%,#9edcff33 70%,transparent);opacity:0;transition:opacity .35s}
+.origin-interactive-card:hover,.origin-interactive-card:focus-visible{transform:translateY(-7px);border-color:#398cff88;box-shadow:0 18px 55px #075bff20,0 0 0 1px #075bff22}
+.origin-interactive-card:hover:before,.origin-interactive-card:focus-visible:before{opacity:1}
+.origin-player-image img,.origin-team-logo img{transition:transform .65s cubic-bezier(.2,.8,.2,1),filter .4s}
+.origin-interactive-card:hover img{transform:scale(1.06);filter:saturate(1.18)}
+.origin-hero{isolation:isolate}
+.origin-glow{animation:novaGlow 9s ease-in-out infinite alternate}
+.origin-grid{opacity:.85;mask-image:linear-gradient(180deg,transparent,#000 12%,#000 85%,transparent)}
+.origin-eyebrow i,.origin-section-label i{animation:novaPulse 2.4s ease-in-out infinite}
+.origin-primary,.origin-secondary{transition:transform .25s,box-shadow .25s,background .25s}
+.origin-primary:hover{transform:translateY(-3px);box-shadow:0 12px 38px #075bff44}
+.origin-secondary:hover{border-color:#9edcff;box-shadow:0 0 25px #075bff22}
+.origin-profile-overlay{position:fixed;inset:0;z-index:1000;background:#02050bdc;backdrop-filter:blur(14px);display:grid;place-items:center;padding:22px;animation:novaFade .2s ease}
+.origin-profile-modal{width:min(100%,560px);max-height:min(88vh,800px);overflow:auto;position:relative;background:linear-gradient(145deg,#101a2c,#080c15 70%);border:1px solid #247cff66;box-shadow:0 30px 100px #000b,0 0 60px #075bff20}
+.origin-profile-close{position:absolute;right:16px;top:16px;z-index:2;width:42px;height:42px;border:1px solid #9edcff55;background:#080d18cc;display:grid;place-items:center;color:#eaf4ff}
+.origin-profile-cover{height:260px;background:radial-gradient(circle at 50% 60%,#075bff55,#0b1424 70%);display:grid;place-items:center;position:relative;overflow:hidden}
+.origin-profile-cover img{width:100%;height:100%;object-fit:cover}
+.origin-profile-cover>b{font:900 150px/.8 'Barlow Condensed';color:#9edcff55}
+.origin-profile-cover>span{position:absolute;left:22px;bottom:18px;font:10px 'DM Mono';letter-spacing:2px;color:#c4e6ff;text-shadow:0 2px 12px #000}
+.origin-profile-details{padding:28px}
+.origin-profile-details h2{font:800 42px/.95 'Barlow Condensed';margin:18px 0 12px;color:#f4f7ff}
+.origin-profile-details p{color:#aab7c9;line-height:1.8;font-size:13px}
+.origin-profile-meta{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0}
+.origin-profile-meta span{padding:9px 12px;border:1px solid #398cff55;color:#9edcff;font:10px 'DM Mono';letter-spacing:1px}
+@keyframes novaGlow{from{opacity:.45;transform:scale(.96)}to{opacity:1;transform:scale(1.04)}}
+@keyframes novaPulse{0%,100%{box-shadow:0 0 0 0 #075bff55}50%{box-shadow:0 0 0 8px #075bff00}}
+@keyframes novaFade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.origin-interactive-card,.origin-glow,.origin-eyebrow i,.origin-section-label i{animation:none!important;transition:none!important}}
