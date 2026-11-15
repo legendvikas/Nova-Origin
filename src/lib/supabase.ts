@@ -72,7 +72,7 @@ export async function loadPublicData() {
     read('teams', { select: 'id,name,team_tag,description,logo_url,is_verified,game_id,game:games(name)', is_public: 'eq.true', status: 'eq.active', order: 'created_at.desc', limit: '8' }),
     read('announcements', { select: 'id,title,body,audience,published_at,created_at', status: 'eq.published', order: 'published_at.desc.nullslast', limit: '4' }),
     read('social_posts', { select: 'id,content,media_url,media_type,created_at', is_published: 'eq.true', order: 'created_at.desc', limit: '3' }),
-    read('roster_players', { select: 'id,team_id,game_id,display_name,ign,role,avatar_url,bio,jersey_number,is_published,is_verified,created_at,game:games(name,publisher),team:teams!roster_players_team_id_fkey(name,team_tag,logo_url,is_verified)', is_published: 'eq.true', order: 'created_at.desc', limit: '50' }),
+    read('roster_players', { select: 'id,team_id,game_id,display_name,ign,role,avatar_url,bio,jersey_number,is_published,created_at,game:games(name,publisher),team:teams!roster_players_team_id_fkey(name,team_tag,logo_url,is_verified)', is_published: 'eq.true', order: 'created_at.desc', limit: '50' }),
   ]);
   return { games, tournaments, teams, announcements, posts, players };
 }
