@@ -72,7 +72,7 @@ export async function loadPublicData() {
     read('teams', { select: 'id,name,team_tag,description,logo_url,game_id,game:games(name)', is_public: 'eq.true', status: 'eq.active', order: 'created_at.desc', limit: '8' }),
     read('announcements', { select: 'id,title,body,audience,published_at,created_at', status: 'eq.published', order: 'published_at.desc.nullslast', limit: '4' }),
     read('social_posts', { select: 'id,content,media_url,media_type,created_at', is_published: 'eq.true', order: 'created_at.desc', limit: '3' }),
-    read('roster_players', { select: 'id,display_name,ign,role,avatar_url,bio,team_id,game_id,team:teams(name,team_tag),game:games(name)', is_published: 'eq.true', order: 'created_at.desc', limit: '8' }),
+    read('roster_players', { select: '*', is_published: 'eq.true', order: 'created_at.desc', limit: '50' }),
   ]);
   return { games, tournaments, teams, announcements, posts, players };
 }
