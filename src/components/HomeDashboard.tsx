@@ -62,7 +62,11 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
               <div className="origin-team-card-top"><span className="origin-team-index">DIVISION / {String(index + 1).padStart(2, '0')}</span><span className="origin-team-game">{team.game?.name || team.game_name || 'ESPORTS DIVISION'}</span></div>
               <div className="origin-team-card-main">
                 <div className="origin-team-logo">{team.logo_url ? <img src={team.logo_url} alt={team.name + ' logo'}/> : <b>{team.team_tag?.slice(0, 3) || team.name?.slice(0, 2) || 'N'}</b>}</div>
-                <div className="origin-team-copy"><div className="origin-team-title-row"><h3>{team.name}</h3>{team.is_verified && <span className="origin-team-verified"><ShieldCheck size={13}/> VERIFIED</span>}</div><p>{team.description || 'Official NOVA Origin competitive division.'}</p><div className="origin-team-roster">{data.players.filter((player: any) => player.team_id === team.id).slice(0, 4).map((player: any) => <span key={player.id}>{player.avatar_url ? <img src={player.avatar_url} alt=""/> : <i>{(player.display_name || player.ign || 'P').slice(0,1)}</i>}{player.display_name || player.ign}</span>)}{!data.players.some((player: any) => player.team_id === team.id) && <small>ROSTER NOT PUBLISHED</small>}</div><div className="origin-team-card-bottom"><small>MANAGED BY · {team.owner_name || team.captain_name || 'NOVA ORIGIN'}</small><span className="origin-team-open">VIEW DIVISION <ArrowUpRight size={15}/></span></div></div>
+                <div className="origin-team-copy">
+                  <div className="origin-team-title-row"><h3>{team.name}</h3>{team.is_verified && <span className="origin-team-verified"><ShieldCheck size={13}/> VERIFIED</span>}</div>
+                  <p>{team.description || 'Official NOVA Origin competitive division.'}</p>
+                  <div className="origin-team-card-bottom"><small>{data.players.filter((player: any) => player.team_id === team.id).length} PLAYERS · MANAGED BY NOVA ORIGIN</small><span className="origin-team-open">VIEW DIVISION <ArrowUpRight size={15}/></span></div>
+                </div>
               </div>
               <span className="origin-team-watermark" aria-hidden="true">{team.team_tag?.slice(0,4) || 'NOVA'}</span>
             </article>)}
