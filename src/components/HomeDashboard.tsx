@@ -9,6 +9,7 @@ type Props = {
 
 export function HomeDashboard({ data, loading, onAdmin }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const teams = data.teams.slice(0, 6);
   const players = data.teams.flatMap((team: any) => {
     const members = Array.isArray(team.members) ? team.members : [];
@@ -50,7 +51,7 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
         <section className="origin-players" id="players">
           <div className="origin-section-label"><i/> COMMUNITY / ROSTER</div>
           <div className="origin-section-head"><h2>MEET THE<br/><em>PLAYERS.</em></h2><p>The NOVA Origin squad. Verified competitive records appear separately when available.</p></div>
-          {players.length > 0 ? <div className="origin-player-grid">{players.map((player: any, index: number) => <article className="origin-player-card" key={player.id || player.user_id || index}>
+          {players.length > 0 ? <div className="origin-player-grid">{players.map((player: any, index: number) => <article className="origin-player-card origin-interactive-card" key={player.id || player.user_id || index} role="button" tabIndex={0} onClick={() => setSelectedProfile({kind:"PLAYER",...player})} onKeyDown={e => {if(e.key==="Enter") setSelectedProfile({kind:"PLAYER",...player});}}>
             <div className="origin-player-image">{player.avatar_url || player.photo_url ? <img src={player.avatar_url || player.photo_url} alt={player.display_name || player.username || 'NOVA player'}/> : <div className="origin-player-placeholder">N<span>.</span></div>}<small>PLAYER {String(index + 1).padStart(2, '0')}</small></div>
             <div className="origin-player-role">{player.role || 'NOVA PLAYER'}</div><h3>{player.display_name || player.full_name || player.username || 'NOVA PLAYER'}</h3>
             {player.is_verified && <span className="origin-verified"><BadgeCheck size={19}/></span>}
@@ -61,7 +62,7 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
         <section className="origin-team-section" id="teams">
           <div className="origin-team-intro"><h2>BUILT AS<br/>ONE.<br/><em>PLAY AS<br/>MANY.</em></h2><p>Every role matters. Every player moves the team forward.</p></div>
           <div className="origin-team-list">
-            {teams.map((team: any, index: number) => <article className="origin-team-card" key={team.id}>
+            {teams.map((team: any, index: number) => <article className="origin-team-card origin-interactive-card" key={team.id} role="button" tabIndex={0} onClick={() => setSelectedProfile({kind:"TEAM",...team})} onKeyDown={e => {if(e.key==="Enter") setSelectedProfile({kind:"TEAM",...team});}}>
               <span className="origin-team-index">{String(index + 1).padStart(2, '0')}</span>
               <div className="origin-team-logo">{team.logo_url ? <img src={team.logo_url} alt={team.name + ' logo'}/> : <b>{team.team_tag?.slice(0, 3) || team.name?.slice(0, 2) || 'N'}</b>}</div>
               <div className="origin-team-copy"><h3>{team.name} {team.is_verified && <span className="origin-team-verified"><ShieldCheck size={14}/> VERIFIED</span>}</h3><p>{team.description || team.game?.name || 'NOVA Origin esports team'}</p><small>OWNED BY · {team.owner_name || team.captain_name || 'NOVA ORIGIN'}</small></div>
@@ -96,6 +97,7 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
         <section className="origin-join" id="join"><h2>READY TO<br/><em>RISE WITH<br/>US?</em></h2><p>Find your place in the origin.</p><a className="origin-primary" href="#players">JOIN NOVA ORIGIN <ArrowUpRight/></a><a className="origin-secondary" href="mailto:hello@novaorigin.gg">CONTACT THE TEAM <Mail/></a></section>
       </main>
 
+      {selectedProfile && <div className="origin-profile-overlay" role="dialog" aria-modal="true" aria-label={selectedProfile.kind + " profile"} onClick={() => setSelectedProfile(null)}><section className="origin-profile-modal" onClick={e => e.stopPropagation()}><button className="origin-profile-close" onClick={() => setSelectedProfile(null)} aria-label="Close profile"><X/></button><div className="origin-profile-cover">{(selectedProfile.avatar_url || selectedProfile.photo_url || selectedProfile.logo_url) ? <img src={selectedProfile.avatar_url || selectedProfile.photo_url || selectedProfile.logo_url} alt=""/> : <b>N.</b>}<span>{selectedProfile.kind} / NOVA ORIGIN</span></div><div className="origin-profile-details"><span className="origin-section-label"><i/> OFFICIAL DIRECTORY</span><h2>{selectedProfile.display_name || selectedProfile.full_name || selectedProfile.username || selectedProfile.name || "NOVA ORIGIN"}</h2><p>{selectedProfile.bio || selectedProfile.description || "Official NOVA Origin profile. More information will be added as the roster is updated."}</p><div className="origin-profile-meta"><span>{selectedProfile.role || selectedProfile.game?.name || "COMPETITIVE PLAYER"}</span><span>{selectedProfile.teamName || selectedProfile.team_tag || selectedProfile.teamTag || "NOVA ORIGIN"}</span></div>{selectedProfile.is_verified && <span className="origin-verified"><BadgeCheck/> VERIFIED</span>}</div></section></div>}
       <footer className="origin-footer"><div className="origin-footer-brand"><a className="origin-logo" href="#origin-home"><b>NOVA<span>.</span></b><small>ORIGIN ESPORTS</small></a><span className="origin-official"><BadgeCheck size={16}/> OFFICIAL</span><div className="origin-social"><a href="https://www.instagram.com/" aria-label="Instagram"><Instagram/></a><a href="https://www.youtube.com/" aria-label="YouTube"><Youtube/></a></div></div><p>More than a team. A collective built to rise, compete and create what comes next.</p><div className="origin-footer-links"><span>EXPLORE</span><a href="#players">PLAYERS</a><a href="#teams">TEAMS</a><a href="#events">EVENTS</a><a href="#news">NEWS</a><a href="#partners">PARTNERS</a><a href="#join">JOIN NOVA</a><button onClick={onAdmin}>CONTROL ROOM <ArrowUpRight size={14}/></button></div><small className="origin-copyright">© 2026 NOVA ORIGIN. ALL RIGHTS RESERVED.</small></footer>
     </div>
   );
