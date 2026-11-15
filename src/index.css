@@ -194,3 +194,99 @@ body{background:#080B12}
 .origin-empty{grid-column:1/-1;padding:25px;border:1px dashed #ffffff26;color:#8d9bad;font-size:12px}
 @media(max-width:700px){.origin-about,.origin-games,.origin-news,.origin-partners{padding:68px 7%}.origin-about-grid,.origin-partners{grid-template-columns:1fr;gap:25px}.origin-game-grid{grid-template-columns:1fr 1fr}.origin-game-card{min-height:145px;padding:17px}.origin-game-card h3{font-size:24px}.origin-news-grid{grid-template-columns:1fr}.origin-section-head{gap:20px;align-items:flex-start;flex-direction:column}}
 @media(max-width:420px){.origin-game-grid{grid-template-columns:1fr}}
+
+
+/* NOVA ORIGIN — responsive spacing and overflow correction pass */
+html,body,#root{width:100%;max-width:100%;overflow-x:clip}
+body{min-width:320px}
+.nova-origin{width:100%;max-width:100%;overflow-x:clip}
+.nova-origin img{max-width:100%}
+.origin-hero{min-height:0;height:auto;padding:clamp(88px,11vh,142px) 7% 86px}
+.origin-hero-content{width:min(100%,790px)}
+.origin-stamp{max-width:100%;flex-wrap:wrap}
+.origin-hero h1{margin:clamp(34px,5vh,58px) 0 30px;line-height:.84}
+.origin-actions{margin-top:38px;gap:16px}
+.origin-primary,.origin-secondary{min-height:78px}
+.origin-meta{margin-top:48px}
+.origin-monogram{top:42%;right:2%;max-width:45%;overflow:hidden}
+.origin-players,.origin-events,.origin-about,.origin-games,.origin-news,.origin-partners{scroll-margin-top:24px}
+.origin-player-card,.origin-team-card,.origin-news-grid article,.origin-game-card{min-width:0}
+.origin-team-copy{min-width:0;overflow-wrap:anywhere}
+.origin-team-copy h3{overflow-wrap:anywhere}
+.origin-footer{overflow-wrap:anywhere}
+.origin-footer-brand{min-width:0}
+.origin-footer-links a,.origin-footer-links button{max-width:100%}
+@media(max-width:760px){
+  .origin-hero{min-height:0;padding:clamp(76px,10vh,112px) 7% 70px}
+  .origin-hero h1{font-size:clamp(64px,12vw,94px);margin:38px 0 30px;line-height:.85}
+  .origin-stamp{margin-top:30px;padding:12px 14px;letter-spacing:1px}
+  .origin-hero-content>p{font-size:clamp(15px,3.6vw,18px);line-height:1.7}
+  .origin-actions{margin-top:34px;gap:14px}
+  .origin-primary,.origin-secondary{min-height:68px;padding:0 22px;font-size:clamp(15px,3.7vw,20px)}
+  .origin-meta{margin-top:36px;gap:12px}
+  .origin-monogram{top:48%;right:-5%;font-size:clamp(240px,55vw,390px);opacity:.12}
+  .origin-players{padding-top:76px;padding-bottom:82px}
+  .origin-section-head{margin-bottom:38px}
+  .origin-player-grid{gap:16px}
+  .origin-player-card{padding:14px;border-radius:18px}
+  .origin-player-image{height:clamp(155px,34vw,230px);border-radius:14px}
+  .origin-player-card h3{font-size:clamp(21px,4.6vw,28px);overflow-wrap:anywhere}
+  .origin-team-section{padding:78px 0 68px}
+  .origin-team-intro{padding-bottom:58px}
+  .origin-team-card{min-height:0;padding:18px 4%;grid-template-columns:24px 66px minmax(0,1fr) 20px;gap:10px}
+  .origin-team-logo{width:64px;height:64px}
+  .origin-team-copy h3{font-size:clamp(19px,4.4vw,25px)}
+  .origin-team-copy p{font-size:12px;line-height:1.5}
+  .origin-events{padding:76px 6%}
+  .origin-about,.origin-games,.origin-news,.origin-partners{padding:70px 6%}
+  .origin-section-label{font-size:10px;letter-spacing:2px}
+  .origin-footer{padding:62px 6% 24px}
+  .origin-footer>p{margin:32px 0 44px;font-size:15px}
+  .origin-footer-links{gap:20px;padding-top:30px}
+  .admin-layout{display:block}
+  .admin-sidebar{width:100%;padding:14px;position:relative;border-right:0;border-bottom:1px solid #ffffff18}
+  .admin-brand{padding:0 5px 16px}
+  .admin-sidebar nav{display:flex;overflow-x:auto;gap:7px;padding-bottom:4px}
+  .admin-sidebar nav button{white-space:nowrap;flex:0 0 auto;padding:10px}
+  .admin-sidebar-bottom{margin-top:14px;padding-top:12px}
+  .admin-content{padding:24px 16px}
+  .admin-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-two-col{grid-template-columns:minmax(0,1fr)}
+  .admin-page-heading{align-items:flex-start;gap:12px}
+}
+@media(max-width:430px){
+  .origin-strip{font-size:8px;letter-spacing:1.3px}
+  .origin-header{height:88px;gap:8px}
+  .origin-nav{top:88px}
+  .origin-logo b{font-size:32px}
+  .origin-logo small{font-size:7px;letter-spacing:2px}
+  .origin-official{padding:7px 8px;font-size:7px}
+  .origin-menu svg{width:29px;height:29px}
+  .origin-hero{padding:68px 6% 58px}
+  .origin-eyebrow{font-size:9px;letter-spacing:1.4px;gap:9px}
+  .origin-stamp{font-size:8px;padding:10px;gap:7px}
+  .origin-stamp svg{width:16px;height:16px}
+  .origin-hero h1{font-size:clamp(58px,13.2vw,72px);letter-spacing:-.8px;margin:34px 0 25px}
+  .origin-actions{margin-top:28px}
+  .origin-primary,.origin-secondary{min-height:62px;padding:0 16px;font-size:15px;letter-spacing:.5px}
+  .origin-primary svg,.origin-secondary svg{width:19px;height:19px}
+  .origin-meta{font-size:7px;letter-spacing:1px;gap:9px}
+  .origin-player-grid{grid-template-columns:minmax(0,1fr)}
+  .origin-player-image{height:clamp(230px,72vw,310px)}
+  .origin-team-card{grid-template-columns:18px 54px minmax(0,1fr) 16px;gap:8px;padding:14px 3%}
+  .origin-team-logo{width:52px;height:52px}
+  .origin-team-copy h3{font-size:19px}
+  .origin-team-copy small{font-size:7px;letter-spacing:.5px}
+  .origin-team-arrow{width:18px}
+  .origin-event-list article{grid-template-columns:22px minmax(0,1fr) 18px;gap:8px}
+  .origin-game-grid{grid-template-columns:minmax(0,1fr)}
+  .origin-footer-brand{gap:12px}
+  .origin-footer-brand .origin-official{padding:7px}
+  .origin-social{margin-left:auto}
+  .admin-stats,.quick-grid{grid-template-columns:minmax(0,1fr)}
+  .admin-topbar{padding:0 14px}
+  .admin-top-right{gap:8px}
+  .admin-panel{padding:16px}
+  .admin-page-heading h1{font-size:34px}
+}
