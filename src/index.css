@@ -472,3 +472,25 @@ body{min-width:320px}
  .nova-player-grid .nova-page-card-copy small{font-size:8px}
  .nova-player-grid .nova-page-card-index{top:18px;left:18px;font-size:7px}
 }
+
+
+/* Homepage polish: compact team tiles and readable player roster */
+.origin-team-card-v2{min-height:0!important;padding:20px 24px!important;border-radius:18px!important}
+.origin-team-card-v2 .origin-team-card-top{margin-bottom:14px}
+.origin-team-card-v2 .origin-team-card-main{grid-template-columns:76px minmax(0,1fr);gap:16px}
+.origin-team-card-v2 .origin-team-logo{width:76px;height:76px;border-radius:14px}
+.origin-team-card-v2 .origin-team-copy p{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;line-height:1.4;margin:7px 0 10px}
+.origin-team-card-v2 .origin-team-card-bottom{padding-top:8px;gap:8px}
+.origin-team-card-v2 .origin-team-card-bottom small{font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.origin-team-card-v2 .origin-team-open{white-space:nowrap;font-size:8px}
+@media(max-width:600px){
+ .origin-team-card-v2{padding:15px!important}
+ .origin-team-card-v2 .origin-team-card-top{margin-bottom:11px}
+ .origin-team-card-v2 .origin-team-card-main{grid-template-columns:64px minmax(0,1fr);gap:12px}
+ .origin-team-card-v2 .origin-team-logo{width:64px;height:64px;border-radius:12px}
+ .origin-team-card-v2 .origin-team-copy h3{font-size:22px}
+ .origin-team-card-v2 .origin-team-copy p{font-size:10px;margin:6px 0 8px}
+ .origin-team-card-v2 .origin-team-card-bottom{padding-top:6px;flex-wrap:nowrap}
+ .origin-team-card-v2 .origin-team-card-bottom small{font-size:7px;letter-spacing:.4px}
+ .origin-team-card-v2 .origin-team-open{font-size:7px}
+}
