@@ -453,3 +453,22 @@ body{min-width:320px}
 
 /* Public player and division profile pages */
 .nova-profile-detail{margin-top:42px;padding:28px;border:1px solid #075bff55;background:linear-gradient(145deg,#10203a99,#080d18);border-radius:18px}.nova-profile-portrait{width:116px;height:116px;display:grid;place-items:center;overflow:hidden;border:2px solid #075bff;border-radius:18px;background:#0d1b31;color:#9edcff;font-size:38px;font-weight:800}.nova-profile-portrait img{width:100%;height:100%;object-fit:cover}.nova-profile-detail>h2{margin:22px 0 8px;color:#edf4ff;font-size:clamp(30px,6vw,52px);font-weight:900}.nova-profile-detail>p{color:#a8b6c9;line-height:1.7}.nova-profile-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:24px 0}.nova-profile-facts span{padding:14px;border:1px solid #ffffff18;background:#080d18aa;color:#8fa9c8;font:9px 'DM Mono';letter-spacing:1px}.nova-profile-facts b{display:block;margin-top:7px;color:#eef4ff;font:600 15px 'Barlow Condensed';letter-spacing:0}.nova-profile-detail>h3{margin-top:30px;color:#9edcff;font:10px 'DM Mono';letter-spacing:2px}.nova-profile-roster{margin-top:12px}.nova-profile-roster button{display:flex;width:100%;align-items:center;gap:12px;padding:12px 0;border:0;border-bottom:1px solid #ffffff17;background:transparent;text-align:left;color:#edf4ff}.nova-profile-roster img,.nova-profile-roster i{width:44px;height:44px;object-fit:cover;border-radius:50%;background:#10274b;display:grid;place-items:center}.nova-profile-roster span{flex:1}.nova-profile-roster b,.nova-profile-roster small{display:block}.nova-profile-roster small{margin-top:4px;color:#9ab0ca;font-size:10px}.nova-profile-back{margin-top:24px;padding:13px 18px;border:1px solid #075bff;color:#bfe6ff;background:#075bff1c;font:10px 'DM Mono';letter-spacing:1px}@media(max-width:520px){.nova-profile-detail{padding:20px}.nova-profile-facts{grid-template-columns:1fr 1fr}}
+
+
+/* Player directory: strict two-column layout on mobile and desktop */
+.nova-player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:stretch}
+.nova-player-grid .nova-page-card{display:flex;flex-direction:column;align-items:stretch;gap:0;min-width:0;min-height:0;padding:14px;border-radius:22px;background:linear-gradient(155deg,#101d33,#080e19);border:1px solid #9edcff24}
+.nova-player-grid .nova-page-card>img,.nova-player-grid .nova-page-card>.nova-page-card-mark{display:grid;width:100%;height:auto;aspect-ratio:1/1;flex:0 0 auto;object-fit:cover;border-radius:16px;margin:0 0 14px}
+.nova-player-grid .nova-page-card-copy{width:100%;min-width:0;padding-top:2px}
+.nova-player-grid .nova-page-card-copy h2{font-size:clamp(16px,2.2vw,25px);line-height:1.05;overflow-wrap:anywhere;margin:0 0 8px}
+.nova-player-grid .nova-page-card-copy p{font-size:11px}
+.nova-player-grid .nova-page-card-index{top:25px;left:25px;right:auto;z-index:2;padding:5px 7px;background:#050a12b8;color:#b7d8ff;border-radius:5px}
+@media(max-width:650px){
+ .nova-player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .nova-player-grid .nova-page-card{padding:10px;border-radius:18px}
+ .nova-player-grid .nova-page-card>img,.nova-player-grid .nova-page-card>.nova-page-card-mark{border-radius:13px;margin-bottom:11px}
+ .nova-player-grid .nova-page-card-copy h2{font-size:clamp(15px,4vw,20px)}
+ .nova-player-grid .nova-page-card-copy p{font-size:10px;-webkit-line-clamp:2}
+ .nova-player-grid .nova-page-card-copy small{font-size:8px}
+ .nova-player-grid .nova-page-card-index{top:18px;left:18px;font-size:7px}
+}
