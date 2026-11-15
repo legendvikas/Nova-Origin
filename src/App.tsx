@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, ArrowUpRight, Menu, X, Shield, Trophy, Users, Gamepad2, Zap, ChevronRight, Radio, CalendarDays, Swords, Instagram, Youtube, Disc3, LogIn, Settings2 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { HomeDashboard } from './components/HomeDashboard';
-import { api, clearSession, currentUser, getSession, hasSupabaseConfig, loadPublicData, NovaUser, saveSession, signInWithPassword, signOut } from './lib/supabase';
+import { api, clearSession, currentUser, getSession, loadPublicData, NovaUser, saveSession, signInWithPassword, signOut } from './lib/supabase';
 import './index.css';
 
 type PublicData = Awaited<ReturnType<typeof loadPublicData>>;
+const isAdminPath = (path: string) => ['/nova-origin-admin', '/nova-origin-admin/', '/control-room', '/control-room/', '/admin', '/admin/'].includes(path);
 
 function App() {
   const [data, setData] = useState<PublicData>({ games: [], tournaments: [], teams: [], announcements: [], posts: [], players: [] });
@@ -13,9 +13,18 @@ function App() {
   const [user, setUser] = useState<NovaUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [organizerStatus, setOrganizerStatus] = useState<string | null>(null);
-  const [page, setPage] = useState<'home' | 'admin'>(() => (window.location.pathname === '/control-room' || window.location.pathname === '/control-room/') ? 'admin' : 'home');
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [page, setPage] = useState<'home' | 'admin'>(() => isAdminPath(window.location.pathname) ? 'admin' : 'home');
   const [authError, setAuthError] = useState('');
+
+  useEffect(() => {
+    const onPopState = () => setPage(isAdminPath(window.location.pathname) ? 'admin' : 'home');
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  useEffect(() => {
+    document.title = page === 'admin' ? 'NOVA ORIGIN Admin' : 'NOVA ORIGIN ESPORTS';
+  }, [page]);
 
   const refresh = async () => {
     setLoading(true);
@@ -68,22 +77,13 @@ function App() {
   };
 
   const canManage = role === 'super_admin' || role === 'platform_admin' || (role === 'organizer' && organizerStatus === 'approved');
-  const openAdmin = () => { window.history.pushState({}, '', '/control-room'); setPage('admin'); setMenuOpen(false); };
 
   if (page === 'admin') {
-    return (
-      <Dashboard
-        user={user}
-        role={role}
-        organizerStatus={organizerStatus}
-        onBack={() => { window.history.pushState({}, '', '/'); setPage('home'); }}
-        onLogin={handleEmailLogin}
-        onLogout={() => { signOut(); setUser(null); setRole(null); }}
-        authError={authError}
-        canManage={canManage}
-        onRefresh={refresh}
-      />
-    );
+    return <Dashboard user={user} role={role} organizerStatus={organizerStatus}
+      onBack={() => { window.history.pushState({}, '', '/'); setPage('home'); }}
+      onLogin={handleEmailLogin}
+      onLogout={() => { signOut(); setUser(null); setRole(null); }}
+      authError={authError} canManage={canManage} onRefresh={refresh} />;
   }
 
   return <HomeDashboard data={data} loading={loading} />;
