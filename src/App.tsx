@@ -13,7 +13,7 @@ function App() {
   const [user, setUser] = useState<NovaUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [organizerStatus, setOrganizerStatus] = useState<string | null>(null);
-  const [page, setPage] = useState<'home' | 'admin'>('home');
+  const [page, setPage] = useState<'home' | 'admin'>(() => window.location.pathname.replace(/\\/$/, '') === '/control-room' ? 'admin' : 'home');
   const [menuOpen, setMenuOpen] = useState(false);
   const [authError, setAuthError] = useState('');
 
@@ -68,7 +68,7 @@ function App() {
   };
 
   const canManage = role === 'super_admin' || role === 'platform_admin' || (role === 'organizer' && organizerStatus === 'approved');
-  const openAdmin = () => { setPage('admin'); setMenuOpen(false); };
+  const openAdmin = () => { window.history.pushState({}, '', '/control-room'); setPage('admin'); setMenuOpen(false); };
 
   if (page === 'admin') {
     return (
@@ -76,7 +76,7 @@ function App() {
         user={user}
         role={role}
         organizerStatus={organizerStatus}
-        onBack={() => setPage('home')}
+        onBack={() => { window.history.pushState({}, '', '/'); setPage('home'); }}
         onLogin={handleEmailLogin}
         onLogout={() => { signOut(); setUser(null); setRole(null); }}
         authError={authError}
@@ -86,6 +86,6 @@ function App() {
     );
   }
 
-  return <HomeDashboard data={data} loading={loading} onAdmin={openAdmin} />;
+  return <HomeDashboard data={data} loading={loading} />;
 }
 export default App;
