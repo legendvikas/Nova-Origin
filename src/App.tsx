@@ -8,7 +8,7 @@ import './index.css';
 type PublicData = Awaited<ReturnType<typeof loadPublicData>>;
 const isAdminPath = (path: string) => ['/nova-origin-admin','/nova-origin-admin/','/control-room','/control-room/','/admin','/admin/'].includes(path);
 const publicPages = ['about','players','teams','events','news','partners','join','contact'];
-const getPage = (path: string) => publicPages.includes(path.replace(/^\/+|\/+$/g,'')) ? path.replace(/^\/+|\/+$/g,'') : 'home';
+const getPage = (path: string) => { const clean=path.replace(/^\/+|\/+$/g,''); if(publicPages.includes(clean)) return clean; const parts=clean.split('/'); if(parts.length===2&&parts[0]==='players') return `player-${parts[1]}`; if(parts.length===2&&parts[0]==='teams') return `team-${parts[1]}`; return 'home'; };
 
 function App() {
   const [data, setData] = useState<PublicData>({ games: [], tournaments: [], teams: [], announcements: [], posts: [], players: [] });
