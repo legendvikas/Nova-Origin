@@ -322,3 +322,25 @@ body{min-width:320px}
 @keyframes novaPulse{0%,100%{box-shadow:0 0 0 0 #075bff55}50%{box-shadow:0 0 0 8px #075bff00}}
 @keyframes novaFade{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.origin-interactive-card,.origin-glow,.origin-eyebrow i,.origin-section-label i{animation:none!important;transition:none!important}}
+
+/* Player photo gallery + square crop studio */
+.admin-photo-field{display:grid;gap:12px}
+.admin-field-label{font:11px 'DM Mono',monospace;letter-spacing:1.5px;color:#aebbd0}
+.admin-photo-picker{display:flex;align-items:center;gap:16px;padding:16px;border:1px dashed #347de866;background:#0a1424}
+.admin-photo-thumb{width:82px;height:82px;flex:0 0 82px;display:grid;place-items:center;overflow:hidden;border:1px solid #2b83ff66;background:#101e34;color:#8bcaff}
+.admin-photo-thumb img{width:100%;height:100%;object-fit:cover}
+.admin-photo-picker>div:nth-child(2){display:grid;gap:6px}
+.admin-photo-picker b{font-size:14px;color:#e9f3ff}
+.admin-photo-picker small{font-size:11px;color:#91a1b8}
+.admin-upload-button{width:max-content;display:inline-flex;align-items:center;gap:8px;padding:9px 13px;background:#075bff;color:white;font:600 11px 'DM Mono',monospace;cursor:pointer}
+.admin-upload-button input{display:none}
+.admin-crop-backdrop{position:fixed;inset:0;z-index:2000;background:#020611e8;backdrop-filter:blur(12px);display:grid;place-items:center;padding:18px}
+.admin-crop-dialog{width:min(100%,440px);max-height:92vh;overflow:auto;position:relative;padding:26px;background:#0b1423;border:1px solid #287cff77;box-shadow:0 24px 90px #000c,0 0 45px #075bff22}
+.admin-crop-dialog h2{margin:8px 0;color:#eff6ff;font-size:26px}
+.admin-crop-dialog p{color:#9aabc2;font-size:13px}
+.admin-crop-close{position:absolute;right:14px;top:14px;background:transparent;color:#d9e9ff;border:0}
+.admin-crop-frame{width:260px;height:260px;max-width:100%;margin:18px auto;position:relative;overflow:hidden;border-radius:50%;border:2px solid #61a7ff;box-shadow:0 0 0 5px #075bff22,0 0 35px #075bff33;background:#050b15}
+.admin-crop-frame img{position:absolute;max-width:none;object-fit:cover;transform:translate(-50%,-50%);left:50%;top:50%;pointer-events:none}
+.admin-crop-dialog label{display:grid;gap:8px;margin:13px 0;color:#b7c6d9;font:11px 'DM Mono',monospace;letter-spacing:1px}
+.admin-crop-dialog input[type=range]{width:100%;accent-color:#1474ff}
+@media(max-width:600px){.admin-crop-dialog{padding:20px}.admin-crop-frame{width:230px;height:230px}.admin-photo-picker{align-items:flex-start}}
