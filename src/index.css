@@ -104,3 +104,63 @@
 }
 @media(max-width:430px){.origin-header{gap:10px}.origin-logo b{font-size:34px}.origin-logo small{font-size:7px;letter-spacing:2.3px}.origin-official{padding:8px;font-size:7px;gap:5px}.origin-hero{min-height:1130px;padding-top:185px}.origin-hero h1{font-size:clamp(62px,13.8vw,80px)}.origin-stamp{font-size:8px;padding:12px}.origin-primary,.origin-secondary{min-height:92px;font-size:18px;padding:0 22px}.origin-player-grid{grid-template-columns:1fr}.origin-player-image{height:300px}.origin-team-card{grid-template-columns:20px 65px minmax(0,1fr) 18px;gap:9px;padding:18px 3%}.origin-team-logo{width:62px;height:62px}.origin-team-copy h3{font-size:21px}.origin-team-copy p{font-size:10px}.origin-team-copy small{font-size:7px}.origin-team-verified{font-size:6px}.origin-join .origin-primary,.origin-join .origin-secondary{font-size:17px}
 }
+
+
+/* NOVA ORIGIN / ELECTRIC BLUE GLOBAL DESIGN SYSTEM */
+:root{--nova-ink:#080B12;--nova-blue:#075BFF;--nova-chrome:#C6CEDA;--nova-ice:#9EDCFF;--lime:#075BFF;color-scheme:dark}
+html,body,#root{background:#080B12;color:#EAF0F8}
+body{background:#080B12}
+.nova-origin{background:#080B12;color:#EAF0F8}
+.origin-strip{background:#0b1220;color:#9baac0}
+.origin-strip span:first-child{color:#9EDCFF}
+.origin-strip i,.origin-eyebrow i,.origin-meta i,.origin-section-label i{background:#075BFF;box-shadow:0 0 14px #075BFF99}
+.origin-header{background:rgba(8,11,18,.92);border-color:#C6CEDA22;backdrop-filter:blur(18px)}
+.origin-logo b span{color:#075BFF}
+.origin-logo small{color:#C6CEDA}
+.origin-official{border-color:#075BFF88;color:#9EDCFF;background:#075BFF0d}
+.origin-official svg{color:#079cff}
+.origin-nav a:hover,.origin-nav button:hover{color:#9EDCFF}
+.origin-hero{background:radial-gradient(ellipse at 75% 45%,#0b2b66 0%,#0b1427 22%,#080B12 61%)}
+.origin-grid{background-image:linear-gradient(#9EDCFF0b 1px,transparent 1px),linear-gradient(90deg,#9EDCFF0b 1px,transparent 1px);background-size:clamp(64px,10vw,134px) clamp(64px,10vw,134px)}
+.origin-glow{background:#075BFF;opacity:.19}
+.origin-eyebrow,.origin-section-label,.origin-meta span:first-child{color:#9EDCFF}
+.origin-stamp{border-color:#075BFF66;background:#075BFF0b;color:#C6CEDA}
+.origin-stamp svg,.origin-player-role,.origin-team-arrow,.origin-event-list article>span,.origin-event-list article small{color:#9EDCFF}
+.origin-hero h1 em,.origin-section-head h2 em,.origin-team-intro h2 em,.origin-events h2 em,.origin-join h2 em{color:#075BFF}
+.origin-hero h1 .outline-word{-webkit-text-stroke-color:#C6CEDA}
+.origin-primary{background:#075BFF;color:#fff!important}
+.origin-primary:hover{background:#2672ff}
+.origin-secondary{border-color:#C6CEDA55;color:#EAF0F8}
+.origin-monogram{color:#075BFF;opacity:.17}
+.origin-monogram span{color:#9EDCFF}
+.origin-players{background:#0a101c}
+.origin-player-card{background:linear-gradient(145deg,#101b30,#0b111d);border-color:#C6CEDA24;border-radius:22px}
+.origin-player-image{background:radial-gradient(circle,#12336b,#0b111d 72%);border-color:#075BFF55;border-radius:16px}
+.origin-player-image small,.origin-player-placeholder{color:#9EDCFF}
+.origin-player-tag{border-color:#C6CEDA22;color:#C6CEDA}
+.origin-verified{color:#9EDCFF}
+.origin-team-section{background:radial-gradient(ellipse at 45% 30%,#0d2450,#080B12 70%)}
+.origin-team-card{background:linear-gradient(110deg,#0d1c35,#0a111e);border-color:#075BFF55;box-shadow:inset 0 0 35px #075BFF0b}
+.origin-team-logo{border-color:#075BFF88;background:#0d1b32;color:#9EDCFF}
+.origin-team-verified{border-color:#075BFF88;color:#9EDCFF}
+.origin-team-copy small{color:#9EDCFF}
+.origin-events{background:#080e19}
+.origin-join{background:radial-gradient(ellipse at 50% 50%,#0b2b66,#080B12 70%)}
+.origin-footer{background:#080e19;border-color:#C6CEDA22}
+.origin-footer-links>span{color:#9EDCFF}
+.origin-footer-links button{border-color:#C6CEDA44}
+.origin-social{color:#C6CEDA}
+.origin-player-empty,.origin-team-empty,.origin-event-empty{border-color:#9EDCFF33;color:#C6CEDA}
+.admin-screen,.admin-layout{background:#080B12!important;color:#EAF0F8!important}
+.admin-sidebar,.admin-topbar,.admin-panel,.admin-login-card{background:#0d1422!important;border-color:#C6CEDA22!important}
+.admin-logo,.admin-logo.small{background:#075BFF!important;color:white!important}
+.admin-kicker,.admin-nav-label,.admin-live,.panel-live{color:#9EDCFF!important}
+.admin-sidebar nav button.active,.admin-signin,.admin-submit{background:#075BFF!important;color:#fff!important}
+.admin-sidebar nav button.active svg,.admin-stats>div>svg,.quick-grid button>svg{color:#9EDCFF!important}
+.admin-stats>div,.quick-grid button{background:#101b30!important;border-color:#C6CEDA22!important}
+.admin-form input,.admin-form textarea,.admin-form select{background:#080f1d!important;border-color:#C6CEDA33!important;color:#EAF0F8!important}
+.admin-notice{background:#0b2852!important;border-color:#075BFF66!important;color:#dceaff!important}
+.admin-error{background:#32151c!important;border-color:#a83b50!important}
+.admin-back,.admin-cancel{border-color:#C6CEDA33!important}
+@media(max-width:760px){.origin-header{height:112px}.origin-nav{top:112px;background:#0b1424;border-color:#075BFF55}.origin-hero{min-height:1000px}.origin-stamp{max-width:100%;gap:9px}.origin-primary,.origin-secondary{min-height:76px;font-size:clamp(16px,4vw,22px)}.origin-player-card{border-radius:20px}.origin-team-card{border-radius:14px}}
+@media(max-width:430px){.origin-hero{min-height:950px}.origin-header{height:96px}.origin-nav{top:96px}.origin-logo b{font-size:34px}}
