@@ -372,3 +372,25 @@ body{min-width:320px}
  .origin-game-card{min-height:132px;padding:18px}
  .origin-game-card h3{font-size:27px}
 }
+
+/* NOVA team division cards — distinct roster identity treatment */
+.origin-team-list{gap:18px}
+.origin-team-card-v2{display:block!important;min-height:0!important;padding:20px 22px!important;overflow:hidden;border-radius:18px!important;background:radial-gradient(ellipse at 88% 10%,#075bff28,transparent 38%),linear-gradient(115deg,#101d33 0%,#0a111e 62%,#0b1424 100%)!important;border:1px solid #3288ff55!important;box-shadow:inset 0 1px #c5e7ff12,0 14px 38px #0004!important}
+.origin-team-card-v2:after{content:"";position:absolute;right:-55px;top:-85px;width:230px;height:230px;border:1px solid #4b9cff35;border-radius:50%;box-shadow:0 0 0 22px #075bff0a,0 0 0 48px #075bff08;pointer-events:none}
+.origin-team-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:2;margin-bottom:20px}
+.origin-team-card-top>span{font:9px 'DM Mono',monospace;letter-spacing:1.7px;color:#9edcff}
+.origin-team-card-top .origin-team-game{padding:7px 10px;border:1px solid #398cff55;background:#075bff14;color:#c8e8ff}
+.origin-team-card-main{display:grid;grid-template-columns:92px minmax(0,1fr);gap:18px;align-items:center;position:relative;z-index:2}
+.origin-team-card-v2 .origin-team-logo{width:92px;height:92px;border-radius:18px;border:1px solid #67b6ff88;background:linear-gradient(145deg,#162b49,#07101f);box-shadow:0 0 0 5px #075bff12,0 12px 28px #0005;overflow:hidden}
+.origin-team-card-v2 .origin-team-logo img{width:100%;height:100%;object-fit:cover}
+.origin-team-card-v2 .origin-team-logo b{font:900 30px 'Barlow Condensed';letter-spacing:-1px}
+.origin-team-title-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.origin-team-card-v2 .origin-team-copy h3{font:800 clamp(24px,3vw,32px)/.95 'Barlow Condensed';letter-spacing:.2px;margin:0;color:#f1f6ff}
+.origin-team-card-v2 .origin-team-copy p{font-size:13px;line-height:1.55;color:#aebbd0;margin:10px 0 15px;max-width:540px}
+.origin-team-card-v2 .origin-team-verified{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid #9edcff66;border-radius:3px;font:8px 'DM Mono';letter-spacing:1px;color:#9edcff}
+.origin-team-card-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.origin-team-card-v2 .origin-team-copy small{font:8px 'DM Mono';letter-spacing:1px;color:#8ea9c8}
+.origin-team-open{display:inline-flex;align-items:center;gap:6px;color:#9edcff;font:9px 'DM Mono';letter-spacing:1px}
+.origin-team-watermark{position:absolute;right:18px;bottom:-18px;font:900 82px/.9 'Barlow Condensed';letter-spacing:-4px;color:#9edcff08;pointer-events:none}
+@media(max-width:600px){.origin-team-list{gap:14px}.origin-team-card-v2{padding:16px!important;border-radius:16px!important}.origin-team-card-top{margin-bottom:16px}.origin-team-card-top>span{font-size:8px;letter-spacing:1px}.origin-team-card-main{grid-template-columns:76px minmax(0,1fr);gap:13px}.origin-team-card-v2 .origin-team-logo{width:76px;height:76px;border-radius:15px}.origin-team-card-v2 .origin-team-copy h3{font-size:24px}.origin-team-card-v2 .origin-team-copy p{font-size:12px;margin:8px 0 12px}.origin-team-open{font-size:8px}.origin-team-watermark{font-size:64px}}
+@media(prefers-reduced-motion:reduce){.origin-team-card-v2:after{display:none}}
