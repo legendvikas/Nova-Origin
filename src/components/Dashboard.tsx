@@ -20,7 +20,10 @@ export function Dashboard({ user, role, organizerStatus, onBack, onLogin, onLogo
   const [post, setPost] = useState({ content: '', media_url: '' });
   const [editing, setEditing] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
-  const [busy, setBusy] = useState(false);\n  const [loginEmail, setLoginEmail] = useState('');\n  const [loginPassword, setLoginPassword] = useState('');\n  const [loginBusy, setLoginBusy] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginBusy, setLoginBusy] = useState(false);
 
   const load = async () => {
     if (!user) return;
