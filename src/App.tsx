@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, Menu, X, Shield, Trophy, Users, Gamepad2, Zap, ChevronRight, Radio, CalendarDays, Swords, Instagram, Youtube, Disc3, LogIn, Settings2 } from 'lucide-react';
 import { Dashboard } from './components/Dashboard';
 import { HomeDashboard } from './components/HomeDashboard';
-import { api, currentUser, getSession, hasSupabaseConfig, loadPublicData, NovaUser, saveSession, signInWithPassword, signOut } from './lib/supabase';
+import { api, clearSession, currentUser, getSession, hasSupabaseConfig, loadPublicData, NovaUser, saveSession, signInWithPassword, signOut } from './lib/supabase';
 import './index.css';
 
 type PublicData = Awaited<ReturnType<typeof loadPublicData>>;
@@ -61,7 +61,7 @@ function App() {
       setRole(roles[0]?.role || null);
       setOrganizerStatus(organizers[0]?.status || null);
     } catch (e: any) {
-      signOut();
+      clearSession();
       setAuthError(e.message || 'Unable to sign in.');
       throw e;
     }
