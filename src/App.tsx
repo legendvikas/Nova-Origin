@@ -8,7 +8,7 @@ import './index.css';
 type PublicData = Awaited<ReturnType<typeof loadPublicData>>;
 
 function App() {
-  const [data, setData] = useState<PublicData>({ games: [], tournaments: [], teams: [], announcements: [], posts: [] });
+  const [data, setData] = useState<PublicData>({ games: [], tournaments: [], teams: [], announcements: [], posts: [], players: [] });
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<NovaUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
