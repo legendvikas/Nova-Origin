@@ -11,6 +11,7 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const teams = data.teams.slice(0, 6);
+  const featuredGames = data.games.filter((game: any) => /^(bgmi|battlegrounds mobile india|free fire india)$/i.test(String(game.name || '').trim()));
   const players = data.teams.flatMap((team: any) => {
     const members = Array.isArray(team.members) ? team.members : [];
     return members.map((member: any) => ({ ...member, teamName: team.name, teamTag: team.team_tag }));
@@ -82,7 +83,7 @@ export function HomeDashboard({ data, loading, onAdmin }: Props) {
 
         <section className="origin-games" id="games">
           <div className="origin-section-label"><i/> OUR COMPETITIVE TITLES</div><div className="origin-section-head"><h2>BUILT FOR<br/><em>EVERY GAME.</em></h2><p>Explore the active game communities connected to NOVA Origin.</p></div>
-          <div className="origin-game-grid">{data.games.map((game: any, index: number) => <article key={game.id} className="origin-game-card"><span>GAME / {String(index+1).padStart(2,'0')}</span><h3>{game.name}</h3><small>{game.publisher || 'COMPETITIVE DIVISION'}</small></article>)}{!loading && data.games.length===0 && <div className="origin-empty">Active game divisions will appear here when published.</div>}</div>
+          <div className="origin-game-grid">{featuredGames.map((game: any, index: number) => <article key={game.id} className="origin-game-card"><span>GAME / {String(index+1).padStart(2,'0')}</span><h3>{game.name}</h3><small>{game.publisher || 'COMPETITIVE DIVISION'}</small></article>)}{!loading && featuredGames.length===0 && <div className="origin-empty">Active game divisions will appear here when published.</div>}</div>
         </section>
 
         <section className="origin-news" id="news">
