@@ -66,14 +66,15 @@ export async function loadPublicData() {
   const read = async (table: string, query: Record<string, string>) => {
     try { return await api<any[]>(table, query); } catch { return []; }
   };
-  const [games, tournaments, teams, announcements, posts] = await Promise.all([
+  const [games, tournaments, teams, announcements, posts, players] = await Promise.all([
     read('games', { select: 'id,name,slug,publisher,is_active', is_active: 'eq.true', order: 'name.asc' }),
     read('tournaments', { select: 'id,title,slug,summary,banner_url,format,team_size,max_entries,status,starts_at,prize_description,game:games(name)', status: 'in.(published,registration_open,registration_closed,live)', order: 'starts_at.asc.nullslast', limit: '6' }),
     read('teams', { select: 'id,name,team_tag,description,logo_url,game_id,game:games(name)', is_public: 'eq.true', status: 'eq.active', order: 'created_at.desc', limit: '8' }),
     read('announcements', { select: 'id,title,body,audience,published_at,created_at', status: 'eq.published', order: 'published_at.desc.nullslast', limit: '4' }),
     read('social_posts', { select: 'id,content,media_url,media_type,created_at', is_published: 'eq.true', order: 'created_at.desc', limit: '3' }),
+    read('roster_players', { select: 'id,display_name,ign,role,avatar_url,bio,team_id,game_id,team:teams(name,team_tag),game:games(name)', is_published: 'eq.true', order: 'created_at.desc', limit: '8' }),
   ]);
-  return { games, tournaments, teams, announcements, posts };
+  return { games, tournaments, teams, announcements, posts, players };
 }
 
 export async function uploadPublicMedia(file: File, folder: string): Promise<string> {
