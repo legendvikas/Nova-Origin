@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { HomeDashboard } from './components/HomeDashboard';
+import { PublicPage } from './components/PublicPage';
 import { api, clearSession, currentUser, getSession, loadPublicData, NovaUser, saveSession, signInWithPassword, signOut } from './lib/supabase';
 import './index.css';
 
 type PublicData = Awaited<ReturnType<typeof loadPublicData>>;
-const isAdminPath = (path: string) => ['/nova-origin-admin', '/nova-origin-admin/', '/control-room', '/control-room/', '/admin', '/admin/'].includes(path);
+const isAdminPath = (path: string) => ['/nova-origin-admin','/nova-origin-admin/','/control-room','/control-room/','/admin','/admin/'].includes(path);
+const publicPages = ['about','players','teams','events','news','partners','join','contact'];
+const getPage = (path: string) => publicPages.includes(path.replace(/^\/+|\/+$/g,'')) ? path.replace(/^\/+|\/+$/g,'') : 'home';
 
 function App() {
   const [data, setData] = useState<PublicData>({ games: [], tournaments: [], teams: [], announcements: [], posts: [], players: [] });
@@ -13,23 +16,24 @@ function App() {
   const [user, setUser] = useState<NovaUser | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [organizerStatus, setOrganizerStatus] = useState<string | null>(null);
-  const [page, setPage] = useState<'home' | 'admin'>(() => isAdminPath(window.location.pathname) ? 'admin' : 'home');
+  const [route, setRoute] = useState(() => isAdminPath(window.location.pathname) ? 'admin' : getPage(window.location.pathname));
   const [authError, setAuthError] = useState('');
 
+  const navigate = (path: string) => {
+    window.history.pushState({}, '', path);
+    setRoute(isAdminPath(path) ? 'admin' : getPage(path));
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+
   useEffect(() => {
-    const onPopState = () => setPage(isAdminPath(window.location.pathname) ? 'admin' : 'home');
+    const onPopState = () => setRoute(isAdminPath(window.location.pathname) ? 'admin' : getPage(window.location.pathname));
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  useEffect(() => {
-    document.title = page === 'admin' ? 'NOVA ORIGIN Admin' : 'NOVA ORIGIN ESPORTS';
-  }, [page]);
+  useEffect(() => { document.title = route === 'admin' ? 'NOVA ORIGIN Admin' : route === 'home' ? 'NOVA ORIGIN ESPORTS' : `${route.toUpperCase()} | NOVA ORIGIN ESPORTS`; }, [route]);
 
-  const refresh = async () => {
-    setLoading(true);
-    try { setData(await loadPublicData()); } finally { setLoading(false); }
-  };
+  const refresh = async () => { setLoading(true); try { setData(await loadPublicData()); } finally { setLoading(false); } };
 
   useEffect(() => {
     const boot = async () => {
@@ -48,8 +52,7 @@ function App() {
             api<any[]>('user_roles', { select: 'role', user_id: `eq.${signedInUser.id}` }).catch(() => []),
             api<any[]>('organizers', { select: 'status', user_id: `eq.${signedInUser.id}` }).catch(() => []),
           ]);
-          setRole(roles[0]?.role || null);
-          setOrganizerStatus(organizers[0]?.status || null);
+          setRole(roles[0]?.role || null); setOrganizerStatus(organizers[0]?.status || null);
         } catch { signOut(); }
       }
       await refresh();
@@ -67,25 +70,16 @@ function App() {
         api<any[]>('user_roles', { select: 'role', user_id: `eq.${signedInUser.id}` }).catch(() => []),
         api<any[]>('organizers', { select: 'status', user_id: `eq.${signedInUser.id}` }).catch(() => []),
       ]);
-      setRole(roles[0]?.role || null);
-      setOrganizerStatus(organizers[0]?.status || null);
-    } catch (e: any) {
-      clearSession();
-      setAuthError(e.message || 'Unable to sign in.');
-      throw e;
-    }
+      setRole(roles[0]?.role || null); setOrganizerStatus(organizers[0]?.status || null);
+    } catch (e: any) { clearSession(); setAuthError(e.message || 'Unable to sign in.'); throw e; }
   };
 
   const canManage = role === 'super_admin' || role === 'platform_admin' || (role === 'organizer' && organizerStatus === 'approved');
-
-  if (page === 'admin') {
-    return <Dashboard user={user} role={role} organizerStatus={organizerStatus}
-      onBack={() => { window.history.pushState({}, '', '/'); setPage('home'); }}
-      onLogin={handleEmailLogin}
-      onLogout={() => { signOut(); setUser(null); setRole(null); }}
-      authError={authError} canManage={canManage} onRefresh={refresh} />;
-  }
-
-  return <HomeDashboard data={data} loading={loading} />;
+  if (route === 'admin') return <Dashboard user={user} role={role} organizerStatus={organizerStatus}
+    onBack={() => navigate('/')} onLogin={handleEmailLogin}
+    onLogout={() => { signOut(); setUser(null); setRole(null); }}
+    authError={authError} canManage={canManage} onRefresh={refresh} />;
+  if (route !== 'home') return <PublicPage page={route} data={data} loading={loading} onNavigate={navigate}/>;
+  return <HomeDashboard data={data} loading={loading}/>;
 }
 export default App;
