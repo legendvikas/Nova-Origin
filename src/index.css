@@ -579,3 +579,11 @@ body{min-width:320px}
 .admin-tournament-status.status-draft{color:#d8c38a;border-color:#d8c38a55}.admin-tournament-status.status-published,.admin-tournament-status.status-registration_open,.admin-tournament-status.status-live{color:#a6e86d;border-color:#a6e86d66}.admin-tournament-status.status-completed{color:#9eb8d7}
 .admin-tournament-info{align-self:center;min-width:0;display:grid;gap:7px}.admin-tournament-info>b{color:#f1f5fb;font-size:15px;line-height:1.25;overflow-wrap:anywhere}.admin-tournament-info>small{color:#9baabe;font:9px 'DM Mono';letter-spacing:.04em}.admin-tournament-info>small i{font-style:normal;color:#a6e86d}.admin-tournament-info>span{color:#8795a8;font-size:11px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media(max-width:560px){.admin-tournament-card{grid-template-columns:96px minmax(0,1fr);gap:11px;padding:9px}.admin-tournament-art{min-height:86px}.admin-tournament-info>b{font-size:13px}.admin-tournament-info>span{font-size:10px}}
+
+
+/* Tournament management actions */
+.admin-tournament-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px}
+.admin-tournament-actions button{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 10px;border:1px solid rgba(166,232,109,.25);border-radius:7px;background:rgba(166,232,109,.07);color:#c8e9a6;font:800 9px 'DM Mono';letter-spacing:.03em;cursor:pointer;transition:background .18s,border-color .18s}
+.admin-tournament-actions button:hover{background:rgba(166,232,109,.16);border-color:rgba(166,232,109,.55)}
+.admin-tournament-actions button.danger{border-color:rgba(255,112,112,.25);background:rgba(255,112,112,.06);color:#ffaaaa}
+.admin-tournament-actions button.danger:hover{background:rgba(255,112,112,.14);border-color:rgba(255,112,112,.5)}
