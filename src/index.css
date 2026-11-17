@@ -330,6 +330,7 @@ body{min-width:320px}
 .admin-photo-thumb{width:82px;height:82px;flex:0 0 82px;display:grid;place-items:center;overflow:hidden;border:1px solid #2b83ff66;background:#101e34;color:#8bcaff}
 .admin-photo-thumb img{width:100%;height:100%;object-fit:cover}
 .admin-cover-thumb{width:148px;height:84px;flex-basis:148px;border-radius:4px;background:#0c192b}.admin-cover-thumb img{object-fit:cover}
+.admin-cover-actions{display:grid;justify-items:start;gap:9px}.admin-cover-remove{border:0;background:transparent;color:#ff8d9b;font:600 11px 'DM Mono',monospace;padding:4px 0;cursor:pointer}.admin-cover-remove:hover{color:#ffc1c9}
 .admin-photo-picker>div:nth-child(2){display:grid;gap:6px}
 .admin-photo-picker b{font-size:14px;color:#e9f3ff}
 .admin-photo-picker small{font-size:11px;color:#91a1b8}
