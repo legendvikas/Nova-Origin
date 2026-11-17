@@ -329,6 +329,7 @@ body{min-width:320px}
 .admin-photo-picker{display:flex;align-items:center;gap:16px;padding:16px;border:1px dashed #347de866;background:#0a1424}
 .admin-photo-thumb{width:82px;height:82px;flex:0 0 82px;display:grid;place-items:center;overflow:hidden;border:1px solid #2b83ff66;background:#101e34;color:#8bcaff}
 .admin-photo-thumb img{width:100%;height:100%;object-fit:cover}
+.admin-cover-thumb{width:148px;height:84px;flex-basis:148px;border-radius:4px;background:#0c192b}.admin-cover-thumb img{object-fit:cover}
 .admin-photo-picker>div:nth-child(2){display:grid;gap:6px}
 .admin-photo-picker b{font-size:14px;color:#e9f3ff}
 .admin-photo-picker small{font-size:11px;color:#91a1b8}
