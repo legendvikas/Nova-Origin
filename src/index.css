@@ -550,3 +550,19 @@ body{min-width:320px}
 .nova-social-content .nova-profile-roster span{flex:1}
 .nova-social-content .nova-profile-roster small{display:block;margin-top:4px;color:#8fa7c8}
 @media(max-width:560px){.nova-social-cover{height:140px}.nova-social-avatar{width:94px;height:94px;margin-left:16px}.nova-social-title{padding:15px 16px}.nova-social-title h2{font-size:27px}.nova-social-bio{padding:0 16px;font-size:12px}.nova-social-stats{margin:0 16px}.nova-social-content{padding:18px 16px}}
+
+
+/* Player social profile sections */
+.admin-profile-social{display:grid;gap:12px;padding:16px;border:1px solid var(--admin-border,rgba(255,255,255,.12));border-radius:14px;background:rgba(255,255,255,.025)}
+.admin-profile-social>.admin-field-label{font-size:11px;letter-spacing:.14em;font-weight:800;color:var(--admin-muted,#9aa0aa)}
+.nova-player-social-links{display:flex;flex-wrap:wrap;gap:9px}
+.nova-player-social-links a{display:inline-flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid rgba(255,255,255,.14);border-radius:999px;color:inherit;text-decoration:none;font-size:11px;font-weight:800;letter-spacing:.08em;transition:background .2s,border-color .2s}
+.nova-player-social-links a:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.35)}
+.nova-player-achievements{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.nova-player-achievements>div{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.025)}
+.nova-player-achievements>div>b{color:#a6e86d;font-size:11px;letter-spacing:.12em}
+.nova-player-achievements>div>span{font-size:13px;line-height:1.5}
+.nova-player-activity{display:grid;gap:0}
+.nova-player-activity>div{display:flex;gap:13px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.09);font-size:13px;line-height:1.5}
+.nova-player-activity>div>i{width:8px;height:8px;flex:0 0 8px;margin-top:5px;border-radius:50%;background:#a6e86d;box-shadow:0 0 12px rgba(166,232,109,.35)}
+@media(max-width:640px){.nova-player-achievements{grid-template-columns:1fr}.admin-profile-social .form-row{display:grid;grid-template-columns:1fr}}
