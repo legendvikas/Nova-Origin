@@ -494,3 +494,32 @@ body{min-width:320px}
  .origin-team-card-v2 .origin-team-card-bottom small{font-size:7px;letter-spacing:.4px}
  .origin-team-card-v2 .origin-team-open{font-size:7px}
 }
+
+
+/* FINAL PLAYER DIRECTORY GRID — compact two-column cards at every viewport */
+.nova-page-main .nova-page-grid.nova-player-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:stretch}
+.nova-page-main .nova-player-grid .nova-page-card{display:flex;flex-direction:column;align-items:stretch;min-width:0;min-height:0;padding:12px;border-radius:18px;gap:0}
+.nova-page-main .nova-player-grid .nova-page-card>img,
+.nova-page-main .nova-player-grid .nova-page-card>.nova-page-card-mark{width:100%;height:auto;aspect-ratio:1/1;flex:0 0 auto;object-fit:cover;border-radius:13px;margin:0 0 11px}
+.nova-page-main .nova-player-grid .nova-page-card-copy{width:100%;min-width:0;padding-top:0}
+.nova-page-main .nova-player-grid .nova-page-card-copy h2{font-size:clamp(16px,2vw,23px);line-height:1.05;margin:0 0 6px;overflow-wrap:anywhere}
+.nova-page-main .nova-player-grid .nova-page-card-copy p{font-size:10px;line-height:1.45;-webkit-line-clamp:2;margin:0 0 8px}
+.nova-page-main .nova-player-grid .nova-page-card-index{top:18px;left:18px;right:auto;font-size:8px;padding:4px 6px;background:#050a12c9;border-radius:4px}
+@media(max-width:650px){
+ .nova-page-main .nova-page-grid.nova-player-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+ .nova-page-main .nova-player-grid .nova-page-card{padding:9px;border-radius:15px}
+ .nova-page-main .nova-player-grid .nova-page-card>img,
+ .nova-page-main .nova-player-grid .nova-page-card>.nova-page-card-mark{border-radius:11px;margin-bottom:9px}
+ .nova-page-main .nova-player-grid .nova-page-card-copy h2{font-size:clamp(14px,3.8vw,19px)}
+ .nova-page-main .nova-player-grid .nova-page-card-copy p{font-size:9px}
+ .nova-page-main .nova-player-grid .nova-page-card-index{top:14px;left:14px;font-size:7px}
+}
+/* Homepage roster also stays two-up on narrow phones */
+@media(max-width:430px){
+ .origin-player-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+ .origin-player-card{padding:9px;border-radius:15px}
+ .origin-player-image{height:clamp(125px,38vw,165px);border-radius:11px}
+ .origin-player-role{margin-top:12px}
+ .origin-player-card h3{font-size:clamp(15px,4vw,19px);margin:8px 0 5px}
+ .origin-player-tag{font-size:7px;letter-spacing:1px;padding-top:10px;margin-top:12px}
+}
