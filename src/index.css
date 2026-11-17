@@ -523,3 +523,30 @@ body{min-width:320px}
  .origin-player-card h3{font-size:clamp(15px,4vw,19px);margin:8px 0 5px}
  .origin-player-tag{font-size:7px;letter-spacing:1px;padding-top:10px;margin-top:12px}
 }
+
+/* NOVA social-style player and team profiles */
+.nova-social-profile{margin:36px auto;max-width:900px;overflow:hidden;border:1px solid #263b5d;border-radius:22px;background:linear-gradient(160deg,#111e33,#080e19 70%);box-shadow:0 20px 60px #0005}
+.nova-social-cover{height:180px;padding:20px;background:radial-gradient(ellipse at 75% 15%,#1765ff99,transparent 42%),linear-gradient(120deg,#071326,#12366e 60%,#080e19);color:#b8dcff;font:10px 'DM Mono';letter-spacing:2px}
+.nova-social-team-cover{background:radial-gradient(ellipse at 75% 15%,#1765ff99,transparent 42%),linear-gradient(120deg,#071326,#172b4a 60%,#080e19)}
+.nova-social-avatar{position:relative;margin:-65px 24px 0;width:118px;height:118px;display:grid;place-items:center;overflow:hidden;border:5px solid #0b1423;border-radius:50%;background:#12315a;color:white;font:800 38px 'Barlow Condensed'}
+.nova-social-avatar img{width:100%;height:100%;object-fit:cover}
+.nova-social-team-avatar{border-radius:22px}
+.nova-social-title{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 24px 0}
+.nova-social-title h2{margin:0;color:#f0f5ff;font:800 34px/1 'Barlow Condensed';text-transform:uppercase}
+.nova-social-title small{display:block;margin-top:7px;color:#8fa7c8;font:10px 'DM Mono'}
+.nova-social-title button{padding:10px 14px;border:1px solid #416a9c;border-radius:22px;background:#0c1a2e;color:#c5e3ff;font:9px 'DM Mono'}
+.nova-social-tick{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#1678ff;color:white;font: bold 14px sans-serif}
+.nova-social-bio{padding:0 24px;margin:16px 0;color:#bdcadd;font-size:14px;line-height:1.7}
+.nova-social-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0 24px;border-block:1px solid #ffffff20}
+.nova-social-stats span{padding:15px 8px;text-align:center;color:#8ea4c2;font:9px 'DM Mono';letter-spacing:1px;border-right:1px solid #ffffff14}
+.nova-social-stats span:last-child{border:0}
+.nova-social-stats b{display:block;margin-bottom:6px;color:#f0f5ff;font:700 15px 'Barlow Condensed';overflow-wrap:anywhere}
+.nova-social-content{padding:22px 24px;color:#aebed2}
+.nova-social-content h3{color:#9ed0ff;font:10px 'DM Mono';letter-spacing:2px}
+.nova-social-content>p{display:flex;justify-content:space-between;gap:10px;padding:10px;border-bottom:1px solid #ffffff13;font:10px 'DM Mono'}
+.nova-social-content>p b{color:#edf4ff}
+.nova-social-content .nova-profile-roster button{display:flex;align-items:center;gap:12px;width:100%;padding:12px 0;border:0;border-bottom:1px solid #ffffff18;background:transparent;color:#edf4ff;text-align:left}
+.nova-social-content .nova-profile-roster img,.nova-social-content .nova-profile-roster i{width:46px;height:46px;flex:0 0 46px;object-fit:cover;border-radius:50%;display:grid;place-items:center;background:#142b4d;color:white;font-style:normal}
+.nova-social-content .nova-profile-roster span{flex:1}
+.nova-social-content .nova-profile-roster small{display:block;margin-top:4px;color:#8fa7c8}
+@media(max-width:560px){.nova-social-cover{height:140px}.nova-social-avatar{width:94px;height:94px;margin-left:16px}.nova-social-title{padding:15px 16px}.nova-social-title h2{font-size:27px}.nova-social-bio{padding:0 16px;font-size:12px}.nova-social-stats{margin:0 16px}.nova-social-content{padding:18px 16px}}
